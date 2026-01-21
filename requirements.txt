@@ -1,0 +1,32 @@
+Django==5.0.1
+
+# PostgreSQL driver (psycopg v3)
+psycopg[binary]>=3.2.10,<3.4
+
+python-dotenv==1.0.1
+
+# Forms & UI
+django-crispy-forms==2.1
+crispy-tailwind==0.5.0
+
+# Auth
+django-allauth>=0.61.1
+
+# Images & files
+Pillow==12.1.0
+
+# API (на будущее)
+djangorestframework==3.14.0
+
+# Tests
+pytest==8.0.0
+pytest-django==4.8.0
+factory-boy==3.3.0
+
+# Coverage (на 3.14 лучше не фиксировать старую)
+coverage>=7.6
+
+# Code quality
+black==24.1.1
+flake8==7.0.0
+isort==5.13.2
