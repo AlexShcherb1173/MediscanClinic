@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ category.name }}</h1>
+
+<p><a href="{% url 'service_list' %}">← Все услуги</a></p>
+
+{% for s in services %}
+  <div style="padding: 12px; border: 1px solid #ddd; margin-bottom: 10px;">
+    <div><b><a href="{% url 'service_detail' s.slug %}">{{ s.name }}</a></b></div>
+    <div>Цена: {{ s.price }} ₽</div>
+    {% if s.short_description %}<div>{{ s.short_description }}</div>{% endif %}
+  </div>
+{% empty %}
+  <p>В этой категории пока нет услуг.</p>
+{% endfor %}
+{% endblock %}

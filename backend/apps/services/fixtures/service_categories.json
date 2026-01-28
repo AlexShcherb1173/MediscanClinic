@@ -1,0 +1,32 @@
+[
+  {
+    "model": "services.servicecategory",
+    "pk": 1,
+    "fields": {
+      "name": "Диагностика",
+      "slug": "diagnostika",
+      "order": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.servicecategory",
+    "pk": 2,
+    "fields": {
+      "name": "Анализы",
+      "slug": "analizy",
+      "order": 2,
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.servicecategory",
+    "pk": 3,
+    "fields": {
+      "name": "Консультации врачей",
+      "slug": "consultacii",
+      "order": 3,
+      "is_active": true
+    }
+  }
+]

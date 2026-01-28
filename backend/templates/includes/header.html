@@ -1,0 +1,22 @@
+<header>
+  <div>
+    <a href="/">Mediscan</a>
+  </div>
+
+  <div>
+    <span>Город:</span>
+    {% if cities %}
+      {% for c in cities %}
+        <a href="{% url 'set_city' c.id %}">
+          {% if current_city and current_city.id == c.id %}<b>{{ c.name }}</b>{% else %}{{ c.name }}{% endif %}
+        </a>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <nav>
+    <a href="/page/about/">О компании</a>
+    <a href="/page/contacts/">Контакты</a>
+  </nav>
+</header>
+<hr>

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} — Mediscan{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <nav class="text-sm text-slate-500">
+    <a class="hover:text-slate-900" href="{% url 'services:list' %}">Услуги</a>
+    <span class="mx-2">/</span>
+    <a class="hover:text-slate-900" href="{% url 'services:category' service.category.slug %}">
+      {{ service.category.name }}
+    </a>
+    <span class="mx-2">/</span>
+    <span class="text-slate-700">{{ service.name }}</span>
+  </nav>
+
+  <div class="mt-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="text-xs text-slate-500">{{ service.category.name }}</div>
+
+    <h1 class="mt-2 text-2xl font-semibold text-slate-900">
+      {{ service.name }}
+    </h1>
+
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <div class="inline-flex items-center rounded-xl bg-slate-900 text-white px-3 py-1 text-sm font-semibold">
+        от {{ service.price_from }} ₽{% if service.price_to %} — {{ service.price_to }} ₽{% endif %}
+      </div>
+    </div>
+
+    {% if service.description %}
+      <div class="mt-6 prose max-w-none">
+        {{ service.description|linebreaks }}
+      </div>
+    {% else %}
+      <div class="mt-6 text-slate-600">
+        Описание услуги скоро появится.
+      </div>
+    {% endif %}
+
+    <div class="mt-8 flex flex-wrap items-center gap-3">
+  <a
+    href="{% url 'appointments:create' %}?service={{ service.id }}"
+    class="inline-flex items-center justify-center rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800 transition">
+    Записаться
+  </a>
+
+  <button
+    type="button"
+    class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+    disabled>
+    Добавить в корзину (позже)
+  </button>
+</div>
+  </div>
+</div>
+{% endblock %}

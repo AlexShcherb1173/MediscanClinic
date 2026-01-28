@@ -23,6 +23,17 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
+INSTALLED_APPS += [
+    "apps.core",
+    "apps.pages",
+    "apps.promos",
+    "apps.services",
+    "apps.staff",
+    "apps.appointments",
+    "apps.patients",
+    "apps.contacts",
+]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # важен порядок (после Security)

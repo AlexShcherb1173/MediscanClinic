@@ -1,0 +1,54 @@
+[
+  {
+    "model": "services.service",
+    "pk": 1,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ органов брюшной полости",
+      "slug": "uzi-bryushnoy-polosti",
+      "description": "Ультразвуковое исследование органов брюшной полости позволяет оценить состояние печени, желчного пузыря, поджелудочной железы, селезёнки и почек.",
+      "price_from": "2500.00",
+      "price_to": "3500.00",
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.service",
+    "pk": 2,
+    "fields": {
+      "category": 1,
+      "name": "МРТ головного мозга",
+      "slug": "mrt-golovnogo-mozga",
+      "description": "Магнитно-резонансная томография головного мозга — высокоточный метод диагностики заболеваний центральной нервной системы.",
+      "price_from": "5500.00",
+      "price_to": "8500.00",
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.service",
+    "pk": 3,
+    "fields": {
+      "category": 2,
+      "name": "Общий анализ крови",
+      "slug": "obshiy-analiz-krovi",
+      "description": "Базовый лабораторный анализ, позволяющий оценить общее состояние организма и выявить воспалительные процессы.",
+      "price_from": "700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.service",
+    "pk": 4,
+    "fields": {
+      "category": 3,
+      "name": "Консультация терапевта",
+      "slug": "consultaciya-terapevta",
+      "description": "Первичный приём врача-терапевта с осмотром, сбором анамнеза и рекомендациями по лечению.",
+      "price_from": "2000.00",
+      "price_to": null,
+      "is_active": true
+    }
+  }
+]

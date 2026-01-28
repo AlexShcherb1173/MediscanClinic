@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Услуги{% endblock %}
+
+{% block content %}
+<div class="flex items-start justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold">Услуги</h1>
+    <p class="text-slate-600 mt-1">Выберите категорию и настройте фильтры.</p>
+  </div>
+</div>
+
+<div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+  <!-- Left: categories -->
+  <aside class="lg:col-span-3">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+      <div class="text-sm font-semibold">Категории</div>
+      <div class="mt-3 space-y-1">
+        <a href="{% url 'services:list' %}"
+           class="block rounded-lg px-3 py-2 text-sm
+                  {% if not category_slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}">
+          Все услуги
+        </a>
+        {% for c in categories %}
+          <a href="{% url 'services:category' c.slug %}"
+             class="block rounded-lg px-3 py-2 text-sm
+                    {% if category_slug == c.slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}">
+            {{ c.name }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right: list -->
+  <section class="lg:col-span-9">
+
+    <!-- Filters -->
+    <form method="get" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Поиск</label>
+          <input class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
+                 type="text" name="q" value="{{ q }}" placeholder="Например: УЗИ, МРТ">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Цена от</label>
+          <input class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
+                 type="text" name="price_min" value="{{ price_min }}" placeholder="0">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Цена до</label>
+          <input class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
+                 type="text" name="price_max" value="{{ price_max }}" placeholder="10000">
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Сортировка</label>
+          <select class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0" name="sort">
+            <option value="name" {% if sort == "name" %}selected{% endif %}>По названию (А→Я)</option>
+            <option value="-name" {% if sort == "-name" %}selected{% endif %}>По названию (Я→А)</option>
+            <option value="price" {% if sort == "price" %}selected{% endif %}>По цене (возр.)</option>
+            <option value="-price" {% if sort == "-price" %}selected{% endif %}>По цене (убыв.)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          Применить
+        </button>
+
+        <a class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+           href="?">
+          Сбросить
+        </a>
+
+        <div class="ml-auto text-sm text-slate-600">
+          Найдено: <b class="text-slate-900">{{ page_obj.paginator.count }}</b>
+        </div>
+      </div>
+    </form>
+
+    <!-- Cards -->
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {% for s in services %}
+        <a href="{% url 'services:detail' s.slug %}"
+           class="block bg-white rounded-2xl shadow-sm border border-slate-200 p-4
+              hover:border-slate-300 hover:shadow transition">
+           <div class="text-xs text-slate-500">{{ s.category.name }}</div>
+           <div class="mt-1 text-base font-semibold text-slate-900">
+             {{ s.name }}
+           </div>
+
+          <div class="mt-4 flex items-center justify-between">
+             <div class="text-sm font-semibold text-slate-900">
+               от {{ s.price_from }} ₽{% if s.price_to %} — {{ s.price_to }} ₽{% endif %}
+          </div>
+          <span class="text-xs text-slate-500">Подробнее →</span>
+          </div>
+      {% empty %}
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 text-slate-700 md:col-span-2 xl:col-span-3">
+          Услуги не найдены. Попробуйте изменить фильтры.
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <nav class="mt-6 flex items-center justify-center gap-2">
+        {% with qs="q="|add:q|add:"&price_min="|add:price_min|add:"&price_max="|add:price_max|add:"&sort="|add:sort %}
+          {% if page_obj.has_previous %}
+            <a class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
+               href="?{{ qs }}&page={{ page_obj.previous_page_number }}">←</a>
+          {% else %}
+            <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400">←</span>
+          {% endif %}
+
+          <span class="px-3 py-2 text-sm text-slate-600">
+            Стр. <b class="text-slate-900">{{ page_obj.number }}</b> из <b class="text-slate-900">{{ page_obj.paginator.num_pages }}</b>
+          </span>
+
+          {% if page_obj.has_next %}
+            <a class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
+               href="?{{ qs }}&page={{ page_obj.next_page_number }}">→</a>
+          {% else %}
+            <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400">→</span>
+          {% endif %}
+        {% endwith %}
+      </nav>
+    {% endif %}
+
+  </section>
+</div>
+{% endblock %}
