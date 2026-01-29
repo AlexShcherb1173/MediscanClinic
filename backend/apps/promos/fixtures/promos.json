@@ -1,0 +1,59 @@
+[
+  {
+    "model": "promos.promo",
+    "pk": 1,
+    "fields": {
+      "title": "Комплекс “Здоровье” — 15%",
+      "slug": "kompleks-zdorove-15",
+      "badge": "Скидка",
+      "subtitle": "Анализы + консультация. Действует до конца месяца.",
+      "description": "",
+      "cta_text": "Подобрать",
+      "cta_url": "/services/?q=комплекс",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 10,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z"
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 2,
+    "fields": {
+      "title": "МРТ ночью — выгоднее",
+      "slug": "mrt-nochyu",
+      "badge": "Ночь",
+      "subtitle": "Слоты после 20:00 по сниженной цене (если доступны).",
+      "description": "",
+      "cta_text": "Подробнее",
+      "cta_url": "/services/?q=МРТ",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 20,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z"
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 3,
+    "fields": {
+      "title": "Профилактический базовый чек-ап",
+      "slug": "checkup-basic",
+      "badge": "Чек-ап",
+      "subtitle": "Набор анализов для контроля здоровья.",
+      "description": "",
+      "cta_text": "Смотреть",
+      "cta_url": "/services/?q=чек-ап",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 30,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Мед-стиль (Invitro-like) поверх tailwind ---- */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+}
+
+@layer components {
+  .container-site { @apply max-w-6xl mx-auto px-4; }
+  .card { @apply bg-white border border-slate-200 rounded-[28px] shadow-sm; }
+  .btn-primary { @apply inline-flex items-center justify-center rounded-full bg-blue-600 text-white px-5 py-3 text-sm font-medium hover:bg-blue-700; }
+  .btn-outline { @apply inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-3 text-sm font-medium hover:bg-slate-50; }
+}

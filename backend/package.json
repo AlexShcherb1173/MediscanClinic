@@ -1,0 +1,13 @@
+{
+  "name": "mediscanclinic",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.4.10",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i ./backend/static_src/app.css -o ./backend/static/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./backend/static_src/app.css -o ./backend/static/css/app.css --watch"
+  }
+}

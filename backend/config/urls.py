@@ -16,14 +16,23 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.contrib import admin
+from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    path("", include("apps.core.urls")),
-    path("", include("apps.pages.urls")),
+    path("", include("apps.pages.urls")),          # ← главная тут
+    path("services/", include("apps.services.urls")),
+    path("appointments/", include("apps.appointments.urls")),
 
-    path("services/", include(("apps.services.urls", "services"), namespace="services")),
-    path("appointments/", include(("apps.appointments.urls", "appointments"), namespace="appointments")),
+    path("core/", include("apps.core.urls")),      # ← core НЕ в корне
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
