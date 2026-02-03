@@ -1,27 +1,99 @@
+{# backend/templates/appointments/create.html #}
 {% extends "base.html" %}
 {% block title %}Запись на приём — Mediscan{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
-  <h1 class="text-2xl font-semibold">Запись на приём</h1>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold">Запись на приём</h1>
 
-  {% if service %}
-    <p class="mt-2 text-slate-600">
-      Услуга: <span class="font-semibold text-slate-900">{{ service.name }}</span>
-      <span class="text-slate-400">({{ service.category.name }})</span>
-    </p>
-  {% else %}
-    <p class="mt-2 text-slate-600">Выберите услугу на странице услуг и нажмите “Записаться”.</p>
-  {% endif %}
-
-  <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-    <form method="post" class="space-y-4">
-      {% csrf_token %}
-
-      {% if service %}
-        <input type="hidden" name="service_id" value="{{ service.id }}">
+      {% if doctor %}
+        <p class="mt-2 text-slate-600">
+          Врач: <span class="font-semibold text-slate-900">{{ doctor.full_name }}</span>
+          {% if doctor.experience_years %}<span class="text-slate-400">• стаж {{ doctor.experience_years }} лет</span>{% endif %}
+        </p>
       {% endif %}
 
+      {% if service %}
+        <p class="{% if doctor %}mt-1{% else %}mt-2{% endif %} text-slate-600">
+          Услуга: <span class="font-semibold text-slate-900">{{ service.name }}</span>
+          <span class="text-slate-400">({{ service.category.name }})</span>
+        </p>
+      {% else %}
+        <p class="mt-2 text-slate-600">
+          Выберите услугу на странице услуг и нажмите “Записаться”.
+        </p>
+      {% endif %}
+    </div>
+
+    <a href="{% url 'services:list' %}"
+       class="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+      К услугам
+    </a>
+  </div>
+
+  <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <form method="post" class="space-y-4" novalidate>
+      {% csrf_token %}
+
+      {# фиксируем выбранные сущности скрытыми полями, чтобы POST не терял контекст #}
+      {% if locked_service and service %}
+        <input type="hidden" name="service_id" value="{{ service.id }}">
+      {% endif %}
+      {% if locked_doctor and doctor %}
+        <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+      {% endif %}
+
+      {# Сервис #}
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <label class="block text-sm font-medium text-slate-700">Услуга</label>
+
+          {% if locked_service and service %}
+            <span class="text-xs text-slate-500">Выбрано из каталога</span>
+          {% endif %}
+        </div>
+
+        {% if locked_service and service %}
+          <div class="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div class="text-sm font-semibold text-slate-900">{{ service.name }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ service.category.name }}</div>
+          </div>
+        {% else %}
+          {{ form.service }}
+        {% endif %}
+
+        {% if form.service.errors %}
+          <div class="mt-1 text-sm text-red-600">{{ form.service.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {# Врач #}
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <label class="block text-sm font-medium text-slate-700">Врач (необязательно)</label>
+
+          {% if locked_doctor and doctor %}
+            <span class="text-xs text-slate-500">Выбрано из профиля врача</span>
+          {% endif %}
+        </div>
+
+        {% if locked_doctor and doctor %}
+          <div class="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div class="text-sm font-semibold text-slate-900">{{ doctor.full_name }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">Приоритет: расписание врача</div>
+          </div>
+        {% else %}
+          {{ form.doctor }}
+        {% endif %}
+
+        {% if form.doctor.errors %}
+          <div class="mt-1 text-sm text-red-600">{{ form.doctor.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {# Имя #}
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Имя</label>
         <input
@@ -34,6 +106,7 @@
         {% endif %}
       </div>
 
+      {# Телефон #}
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Телефон</label>
         <input
@@ -46,35 +119,56 @@
         {% endif %}
       </div>
 
+      {# Дата + время #}
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Дата</label>
-          <input
-            type="date"
-            name="preferred_date"
-            value="{{ form.preferred_date.value|default:'' }}"
-            class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0">
+          {{ form.preferred_date }}
           {% if form.preferred_date.errors %}
             <div class="mt-1 text-sm text-red-600">{{ form.preferred_date.errors.0 }}</div>
           {% endif %}
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Время</label>
+          <div class="flex items-center justify-between gap-3">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Время</label>
+            <span id="slotHint" class="text-xs text-slate-500">Выберите дату</span>
+          </div>
+
+          {# ВАЖНО: дадим select стабильный id для скрипта #}
           <select
+            id="id_preferred_time"
             name="preferred_time"
             class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0">
             {% for value, label in form.preferred_time.field.choices %}
               <option value="{{ value }}" {% if form.preferred_time.value == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
+
           {% if form.preferred_time.errors %}
             <div class="mt-1 text-sm text-red-600">{{ form.preferred_time.errors.0 }}</div>
           {% endif %}
-          <div class="mt-1 text-xs text-slate-500">Слоты каждые 20 минут (08:00–20:40).</div>
+
+          <div class="mt-1 text-xs text-slate-500">
+            {% if doctor %}
+              Слоты по расписанию врача (шаг 20 минут).
+            {% else %}
+              Стандартные слоты услуги (08:00–20:40, шаг 20 минут).
+            {% endif %}
+          </div>
         </div>
       </div>
 
+      {# Быстрый выбор слотов кнопками (как ты просил) #}
+      <div id="slotButtonsWrap" class="hidden">
+        <label class="block text-sm font-semibold mb-2">Доступное время</label>
+        <div id="slotButtons" class="flex flex-wrap gap-2"></div>
+        <div class="mt-2 text-xs text-slate-500">
+          Серые — занято. Нажмите на время, чтобы выбрать.
+        </div>
+      </div>
+
+      {# Комментарий #}
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Комментарий (необязательно)</label>
         <textarea
@@ -87,22 +181,30 @@
         {% endif %}
       </div>
 
-      <div class="pt-2 flex gap-3">
+      {# Ошибки формы #}
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ form.non_field_errors.0 }}
+        </div>
+      {% endif %}
+
+      {# Кнопки #}
+      <div class="pt-2 flex flex-wrap gap-3">
         <button
           class="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
           Отправить заявку
         </button>
 
-        <a
-          href="{% url 'services:list' %}"
-          class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-          К услугам
-        </a>
+        {% if locked_service or locked_doctor %}
+          <button
+            type="submit"
+            name="_action"
+            value="change_service"
+            class="rounded-xl bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-semibold hover:bg-yellow-300 transition shadow">
+            Изменить услугу/врача
+          </button>
+        {% endif %}
       </div>
-
-      {% if form.non_field_errors %}
-        <div class="mt-2 text-sm text-red-600">{{ form.non_field_errors.0 }}</div>
-      {% endif %}
     </form>
   </div>
 </div>
@@ -110,17 +212,31 @@
 <script>
 (function () {
   const dateInput = document.querySelector('input[name="preferred_date"]');
-  const timeSelect = document.querySelector('select[name="preferred_time"]');
+  const timeSelect = document.getElementById('id_preferred_time');
+  const hint = document.getElementById('slotHint');
 
-  // Берём serviceId максимально надёжно:
-  // 1) из скрытого input service_id (если есть)
-  // 2) из шаблонного service.id (если есть)
+  const serviceSelect = document.querySelector('select[name="service"]');
+  const doctorSelect = document.querySelector('select[name="doctor"]');
+
   const hiddenService = document.querySelector('input[name="service_id"]');
-  const serviceId = (hiddenService && hiddenService.value) ? hiddenService.value : "{{ service.id|default:'' }}";
+  const hiddenDoctor = document.querySelector('input[name="doctor_id"]');
 
-  if (!dateInput || !timeSelect || !serviceId) return;
+  const slotButtonsWrap = document.getElementById('slotButtonsWrap');
+  const slotButtons = document.getElementById('slotButtons');
 
-  function setOptions(label) {
+  function getServiceId() {
+    if (hiddenService && hiddenService.value) return hiddenService.value;
+    if (serviceSelect && serviceSelect.value) return serviceSelect.value;
+    return "";
+  }
+
+  function getDoctorId() {
+    if (hiddenDoctor && hiddenDoctor.value) return hiddenDoctor.value;
+    if (doctorSelect && doctorSelect.value) return doctorSelect.value;
+    return "";
+  }
+
+  function setSelectOptions(label) {
     timeSelect.innerHTML = "";
     const opt = document.createElement("option");
     opt.value = "";
@@ -128,21 +244,70 @@
     timeSelect.appendChild(opt);
   }
 
+  function clearButtons() {
+    if (!slotButtonsWrap || !slotButtons) return;
+    slotButtonsWrap.classList.add("hidden");
+    slotButtons.innerHTML = "";
+  }
+
+  function renderButtons(slots) {
+    if (!slotButtonsWrap || !slotButtons) return;
+
+    slotButtons.innerHTML = "";
+    slotButtonsWrap.classList.remove("hidden");
+
+    slots.forEach(s => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = s.label;
+
+      const base = "px-3 py-1 rounded-full border text-sm transition";
+      const enabledCls = " border-slate-200 hover:bg-blue-50";
+      const disabledCls = " border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed";
+
+      btn.className = base + (s.available ? enabledCls : disabledCls);
+      btn.disabled = !s.available;
+
+      btn.addEventListener("click", () => {
+        timeSelect.value = s.value;
+        timeSelect.setAttribute("data-prev", s.value);
+      });
+
+      slotButtons.appendChild(btn);
+    });
+  }
+
   async function loadSlots() {
+    if (!dateInput || !timeSelect) return;
+
     const d = dateInput.value;
+    const serviceId = getServiceId();
+    const doctorId = getDoctorId();
+
     if (!d) {
-      setOptions("Выберите дату");
+      hint && (hint.textContent = "Выберите дату");
+      setSelectOptions("Выберите дату");
+      clearButtons();
       return;
     }
 
-    setOptions("Загрузка слотов...");
+    hint && (hint.textContent = "Загрузка...");
+    setSelectOptions("Загрузка слотов...");
+    clearButtons();
 
     try {
-      const url = `/appointments/slots/?service=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(d)}`;
-      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      const params = new URLSearchParams();
+      params.set("date", d);
+      if (doctorId) params.set("doctor", doctorId);
+      if (serviceId) params.set("service", serviceId);
+
+      const res = await fetch(`/appointments/slots/?${params.toString()}`, {
+        headers: { "Accept": "application/json" }
+      });
 
       if (!res.ok) {
-        setOptions("Ошибка загрузки слотов");
+        hint && (hint.textContent = "Ошибка");
+        setSelectOptions("Ошибка загрузки слотов");
         return;
       }
 
@@ -152,38 +317,57 @@
       timeSelect.innerHTML = "";
 
       if (!slots.length) {
-        setOptions("Нет свободных слотов");
+        hint && (hint.textContent = "Нет слотов");
+        setSelectOptions("Нет свободных слотов");
         return;
       }
 
       const prev = timeSelect.getAttribute("data-prev") || "";
 
+      // первая пустая опция
+      const emptyOpt = document.createElement("option");
+      emptyOpt.value = "";
+      emptyOpt.textContent = "Выберите время";
+      timeSelect.appendChild(emptyOpt);
+
+      // ✅ подсветка занятых: disabled + подпись
       slots.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.value;
-        opt.textContent = s.label;
+        opt.textContent = s.label + (s.available ? "" : " (занято)");
+        opt.disabled = !s.available;
         timeSelect.appendChild(opt);
       });
 
+      // ✅ “Инвитро”-кнопки слотов: занятые — серые/disabled
+      renderButtons(slots);
+
+      hint && (hint.textContent = doctorId ? "По расписанию врача" : "Стандартные слоты");
+
       // восстановим предыдущее значение, если оно ещё доступно
-      if (prev && Array.from(timeSelect.options).some(o => o.value === prev)) {
+      if (prev && Array.from(timeSelect.options).some(o => o.value === prev && !o.disabled)) {
         timeSelect.value = prev;
       }
     } catch (e) {
-      setOptions("Ошибка загрузки слотов");
+      hint && (hint.textContent = "Ошибка");
+      setSelectOptions("Ошибка загрузки слотов");
     }
   }
 
-  timeSelect.addEventListener("change", () => {
+  // ✅ авто-обновление при смене даты
+  dateInput && dateInput.addEventListener("change", loadSlots);
+
+  // ✅ если пользователь меняет врача/услугу (когда не зафиксированы) — обновляем
+  serviceSelect && serviceSelect.addEventListener("change", loadSlots);
+  doctorSelect && doctorSelect.addEventListener("change", loadSlots);
+
+  // ✅ запомним выбор времени
+  timeSelect && timeSelect.addEventListener("change", () => {
     timeSelect.setAttribute("data-prev", timeSelect.value || "");
   });
 
-  dateInput.addEventListener("change", loadSlots);
-
-  // ВАЖНО: загрузка при открытии страницы
-  // (особенно если дата уже заполнена или браузер автозаполнил поле)
-  setTimeout(loadSlots, 50);
+  // ✅ загрузка при открытии (на случай автозаполнения даты браузером)
+  setTimeout(loadSlots, 60);
 })();
 </script>
-
 {% endblock %}

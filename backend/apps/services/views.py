@@ -1,5 +1,5 @@
-from django.shortcuts import get_object_or_404
 from decimal import Decimal, InvalidOperation
+
 from django.views.generic import ListView, DetailView
 
 from .models import Service, ServiceCategory
@@ -24,9 +24,15 @@ SORT_MAP = {
 
 class ServiceListView(ListView):
     model = Service
-    template_name = "services/list.html"
+    # ✅ ВАЖНО: теперь используем твой файл templates/services/service_list.html
+    template_name = "services/service_list.html"
     context_object_name = "services"
     paginate_by = 9
+
+    def get(self, request, *args, **kwargs):
+        # ✅ запоминаем полный URL каталога (категория/поиск/фильтры/страница)
+        request.session["services_return_url"] = request.get_full_path()
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         qs = Service.objects.filter(is_active=True, category__is_active=True).select_related("category")
@@ -62,6 +68,7 @@ class ServiceListView(ListView):
         ctx["category_slug"] = self.kwargs.get("category_slug", "")
         return ctx
 
+
 class ServiceDetailView(DetailView):
     model = Service
     template_name = "services/detail.html"
@@ -77,5 +84,5 @@ class ServiceDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["categories"] = ServiceCategory.objects.filter(is_active=True)  # если хочешь меню слева и на деталке
+        ctx["categories"] = ServiceCategory.objects.filter(is_active=True)
         return ctx

@@ -1,0 +1,143 @@
+[
+  {
+    "model": "staff.specialty",
+    "pk": 1,
+    "fields": {
+      "name": "Терапевт"
+    }
+  },
+  {
+    "model": "staff.specialty",
+    "pk": 2,
+    "fields": {
+      "name": "Кардиолог"
+    }
+  },
+  {
+    "model": "staff.specialty",
+    "pk": 3,
+    "fields": {
+      "name": "УЗИ-диагностика"
+    }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 1,
+    "fields": {
+      "full_name": "Иванова Анна Сергеевна",
+      "photo": "",
+      "bio": "Врач-терапевт, ведёт первичный приём, профилактические осмотры, интерпретацию анализов. Акцент на доказательной медицине и понятных рекомендациях.",
+      "experience_years": 8,
+      "is_active": true,
+      "specialties": [1]
+    }
+  },
+  {
+    "model": "staff.doctor",
+    "pk": 2,
+    "fields": {
+      "full_name": "Петров Максим Олегович",
+      "photo": "",
+      "bio": "Врач-кардиолог. Диагностика и ведение пациентов с гипертонией, ИБС, нарушениями ритма. Подбор терапии и рекомендации по образу жизни.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [2]
+    }
+  },
+  {
+    "model": "staff.doctor",
+    "pk": 3,
+    "fields": {
+      "full_name": "Сидорова Елена Викторовна",
+      "photo": "",
+      "bio": "Врач УЗИ-диагностики. Выполняет УЗИ органов брюшной полости, щитовидной железы, мягких тканей. Внимательный подход и аккуратное описание результатов.",
+      "experience_years": 6,
+      "is_active": true,
+      "specialties": [3, 1]
+    }
+  },
+
+  {
+    "model": "staff.doctorschedule",
+    "pk": 1,
+    "fields": {
+      "doctor": 1,
+      "weekday": 0,
+      "time_from": "09:00:00",
+      "time_to": "13:00:00"
+    }
+  },
+  {
+    "model": "staff.doctorschedule",
+    "pk": 2,
+    "fields": {
+      "doctor": 1,
+      "weekday": 2,
+      "time_from": "14:00:00",
+      "time_to": "18:00:00"
+    }
+  },
+  {
+    "model": "staff.doctorschedule",
+    "pk": 3,
+    "fields": {
+      "doctor": 1,
+      "weekday": 4,
+      "time_from": "09:00:00",
+      "time_to": "13:00:00"
+    }
+  },
+
+  {
+    "model": "staff.doctorschedule",
+    "pk": 4,
+    "fields": {
+      "doctor": 2,
+      "weekday": 1,
+      "time_from": "10:00:00",
+      "time_to": "14:00:00"
+    }
+  },
+  {
+    "model": "staff.doctorschedule",
+    "pk": 5,
+    "fields": {
+      "doctor": 2,
+      "weekday": 3,
+      "time_from": "15:00:00",
+      "time_to": "19:00:00"
+    }
+  },
+
+  {
+    "model": "staff.doctorschedule",
+    "pk": 6,
+    "fields": {
+      "doctor": 3,
+      "weekday": 0,
+      "time_from": "09:00:00",
+      "time_to": "12:00:00"
+    }
+  },
+  {
+    "model": "staff.doctorschedule",
+    "pk": 7,
+    "fields": {
+      "doctor": 3,
+      "weekday": 2,
+      "time_from": "09:00:00",
+      "time_to": "12:00:00"
+    }
+  },
+  {
+    "model": "staff.doctorschedule",
+    "pk": 8,
+    "fields": {
+      "doctor": 3,
+      "weekday": 5,
+      "time_from": "10:00:00",
+      "time_to": "14:00:00"
+    }
+  }
+]
