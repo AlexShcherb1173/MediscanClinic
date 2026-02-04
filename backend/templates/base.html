@@ -24,7 +24,7 @@
     <!-- Top row -->
     <div class="h-16 flex items-center justify-between gap-4">
       <!-- Logo -->
-      <a href="{% url 'home' %}" class="flex items-center gap-3">
+      <a href="{% url 'pages:home' %}" class="flex items-center gap-3">
         <div class="h-10 w-10 rounded-2xl bg-white/15 border border-white/20"></div>
         <div class="leading-tight">
           <div class="font-semibold text-lg text-white">Mediscan</div>
@@ -93,63 +93,63 @@
     </div>
 
     <!-- Second row: main menu -->
-    {% with ns=request.resolver_match.namespace %}
-    <div class="pb-4 flex flex-wrap gap-2">
+    {# Second row: main menu #}
+{% with p=request.path %}
+  <div class="pb-4 flex flex-wrap gap-2">
+    {% comment %} Базовые классы для пунктов меню {% endcomment %}
+    {% with base="px-4 py-2 rounded-full text-sm transition" %}
+      {% with inactive="bg-white/10 hover:bg-white/20 text-white" %}
+        {% with active="bg-yellow-400 text-blue-900 font-semibold hover:bg-yellow-300" %}
 
-      <!-- Услуги -->
-      <a href="/services/"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                {% if ns == 'services' %}
-                  bg-yellow-400 text-blue-900
-                {% else %}
-                  bg-white/10 text-white hover:bg-white/20
-                {% endif %}">
-        Услуги
-      </a>
+          <a href="/services/"
+             class="{{ base }} {% if p|slice:":10" == "/services/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+            Услуги
+          </a>
 
-      <!-- Акции (якорь на главной; делаем "активным" только если мы на home и есть #promos) -->
-      <a href="/#promos"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                bg-white/10 text-white hover:bg-white/20">
-        Акции
-      </a>
+          <a href="{% url 'promos:list' %}"
+             class="{{ base }} {% if p|slice:":8" == "/promos/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+            Акции
+          </a>
 
-      <!-- Врачи -->
-      <a href="{% url 'staff:doctor_list' %}"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                {% if ns == 'staff' %}
-                  bg-yellow-400 text-blue-900
-                {% else %}
-                  bg-white/10 text-white hover:bg-white/20
-                {% endif %}">
-        Врачи
-      </a>
+          <a href="{% url 'staff:doctor_list' %}"
+             class="{{ base }} {% if p|slice:":9" == "/doctors/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+            Врачи
+          </a>
 
-      <!-- Контакты -->
-      <a href="/#contacts"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                bg-white/10 text-white hover:bg-white/20">
-        Контакты
-      </a>
+          {% url 'contacts' as contacts_url %}
+          <a href="{{ contacts_url }}"
+             class="px-4 py-2 rounded-full text-sm transition
+             {% if request.path == contacts_url %}
+             bg-yellow-400 text-blue-900
+             {% else %}
+             bg-white/10 hover:bg-white/20 text-white
+             {% endif %}">
+             Контакты
+          </a>
 
-      <!-- Обратная связь -->
-      <a href="/#feedback"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                bg-white/10 text-white hover:bg-white/20">
-        Обратная связь
-      </a>
+          <a href="/#feedback"
+             class="{{ base }} {{ inactive }}">
+            Обратная связь
+          </a>
 
-      <!-- Telegram -->
-      <a href="/#telegram"
-         class="px-4 py-2 rounded-full text-sm font-medium transition
-                bg-white/10 text-white hover:bg-white/20">
-        Telegram-бот
-      </a>
-    </div>
+          <a href="/#telegram"
+             class="{{ base }} {{ inactive }}">
+            Telegram-бот
+          </a>
+
+          <a href="{% url 'pages:page_detail' 'about' %}"
+             class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20
+             text-sm text-white transition">
+             О компании
+          </a>
+
+        {% endwith %}
+      {% endwith %}
     {% endwith %}
-
   </div>
-</header>
+{% endwith %}
+   </div>
+   </header>
 
 <!-- Search modal -->
 <div id="searchModal" class="hidden fixed inset-0 bg-black/30 z-50">
@@ -197,10 +197,14 @@
       <div class="md:col-span-3">
         <div class="text-sm font-semibold text-yellow-900">Карта сайта</div>
         <div class="mt-3 space-y-2 text-sm text-yellow-800">
+          <a class="block hover:text-yellow-700 hover:underline transition"
+               href="{% url 'pages:page_detail' 'about' %}">
+               О компании
+          </a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="/services/">Услуги</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="/#promos">Акции</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'staff:doctor_list' %}">Врачи</a>
-          <a class="block hover:text-yellow-700 hover:underline transition" href="/#contacts">Контакты</a>
+          <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'contacts' %}">Контакты</a>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent  # = .../backend
@@ -68,7 +69,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # backend/templates
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,6 +77,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.services.context_processors.popular_services",
+                "apps.core.context_processors.core_context",
             ],
         },
     },
@@ -146,4 +149,35 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+DEFAULT_FROM_EMAIL = "lenov02015549@gmail.com"  # или твой реальный ящик
+FEEDBACK_TO_EMAIL = "lenov02015549@gmail.com"   # куда принимать заявки
 
+EMAIL_BACKEND = os.getenv("SMTP_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("SMTP_HOST", "")
+EMAIL_PORT = int(os.getenv("SMTP_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("SMTP_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("SMTP_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/2"
+
+CELERY_TASK_ALWAYS_EAGER = False  # в проде False, в тестах можно True
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # Europe/Amsterdam
+
+CELERY_BEAT_SCHEDULE = {
+    "appointments-reminders-every-5-min": {
+        "task": "apps.appointments.tasks.send_appointment_reminders",
+        "schedule": crontab(minute="*/5"),
+    },
+}
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "")
+
+# Куда слать: твой user id или chat id группы (например -100123...)
+TELEGRAM_CHAT_ID = os.getenv("8424405225", "")

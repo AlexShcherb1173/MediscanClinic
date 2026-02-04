@@ -8,6 +8,7 @@ from django.views.decorators.http import require_GET
 
 from apps.services.models import Service
 from apps.staff.models import Doctor, DoctorSchedule
+from apps.promos.models import Promo  # ✅
 
 from .forms import AppointmentCreateForm
 from .models import Appointment
@@ -38,6 +39,7 @@ def generate_default_slots() -> list[dtime]:
 def appointment_create(request):
     service_id = request.GET.get("service")
     doctor_id = request.GET.get("doctor")
+    promo_slug = request.GET.get("promo")  # ✅
 
     locked_service = bool(service_id)
     locked_doctor = bool(doctor_id)
@@ -46,6 +48,19 @@ def appointment_create(request):
     next_url = request.GET.get("next")
     if next_url:
         request.session["services_return_url"] = next_url
+
+    promo = None
+    promo_services_qs = None
+
+    # ✅ контекст "акция"
+    if promo_slug:
+        promo = get_object_or_404(Promo, slug=promo_slug, is_active=True)
+        promo_services_qs = promo.services.filter(is_active=True, category__is_active=True)
+
+        # если service не передали явно, а по акции 1 услуга — подставим и зафиксируем
+        if not service_id and promo_services_qs.exists() and promo_services_qs.count() == 1:
+            service_id = str(promo_services_qs.first().id)
+            locked_service = True
 
     service = (
         get_object_or_404(Service, id=service_id, is_active=True, category__is_active=True)
@@ -74,9 +89,19 @@ def appointment_create(request):
                 return redirect(return_url)
             return redirect("services:list")
 
-        # service/doctor можно передавать скрытыми полями (если select скрыт)
+        # service/doctor/promo можно передавать скрытыми полями
         service_id_post = request.POST.get("service_id") or request.POST.get("service") or service_id
         doctor_id_post = request.POST.get("doctor_id") or request.POST.get("doctor") or doctor_id
+        promo_slug_post = request.POST.get("promo") or promo_slug
+
+        promo = (
+            get_object_or_404(Promo, slug=promo_slug_post, is_active=True)
+            if promo_slug_post else None
+        )
+        promo_services_qs = (
+            promo.services.filter(is_active=True, category__is_active=True)
+            if promo else None
+        )
 
         service = (
             get_object_or_404(Service, id=service_id_post, is_active=True, category__is_active=True)
@@ -93,24 +118,20 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
+            service_queryset=promo_services_qs if promo_services_qs is not None else None,  # ✅ ограничение услуг
         )
-
-        # 🔒 если у тебя service обязательная (как в модели сейчас) — не даём сохранить без услуги
-        if service is None:
-            form.add_error("service", "Выберите услугу для записи.")
 
         if form.is_valid():
             appointment: Appointment = form.save(commit=False)
 
-            # обязательное поле в модели
             appointment.service = service
             appointment.doctor = doctor
+            appointment.promo = promo  # ✅ сохраняем акцию (может быть None)
             appointment.preferred_datetime = form.cleaned_data["preferred_datetime"]
 
             try:
                 appointment.save()
             except IntegrityError:
-                # если остались уникальные ограничения/конфликты — показываем аккуратно
                 form.add_error("preferred_time", "На это время уже есть запись. Выберите другое время.")
             else:
                 payload = AppointmentNotification(
@@ -122,7 +143,6 @@ def appointment_create(request):
                 notify_email(payload)
                 notify_telegram(payload)
 
-                # очищаем черновик/return_url
                 request.session.pop("appointment_draft", None)
                 request.session.pop("services_return_url", None)
 
@@ -134,6 +154,7 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
+            service_queryset=promo_services_qs if promo_services_qs is not None else None,  # ✅ ограничение услуг
             initial={
                 "full_name": draft.get("full_name", ""),
                 "phone": draft.get("phone", ""),
@@ -150,6 +171,7 @@ def appointment_create(request):
             "form": form,
             "service": service,
             "doctor": doctor,
+            "promo": promo,  # ✅
             "locked_service": locked_service,
             "locked_doctor": locked_doctor,
         },
@@ -161,11 +183,6 @@ def appointment_create(request):
 def appointment_slots(request):
     """
     GET /appointments/slots/?date=YYYY-MM-DD&doctor=<id>&service=<id>
-
-    Логика:
-    - если есть doctor -> берём DoctorSchedule и строим слоты врача
-    - иначе -> стандартные слоты услуги
-    - потом вычитаем занятые и отдаём available=true/false
     """
     date_str = request.GET.get("date")
     service_id = request.GET.get("service")

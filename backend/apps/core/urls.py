@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import home, set_city
+from .views import set_city, contacts
+
+app_name = "core"
 
 urlpatterns = [
-    path("", home, name="home"),
     path("set-city/<int:city_id>/", set_city, name="set_city"),
+    path("contacts/", contacts, name="contacts"),
 ]

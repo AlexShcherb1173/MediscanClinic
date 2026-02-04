@@ -1,10 +1,11 @@
 from django.db import models
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from apps.services.models import Service
 from apps.staff.models import Doctor
+from apps.promos.models import Promo
 
 
 phone_validator = RegexValidator(
@@ -40,11 +41,26 @@ class Appointment(models.Model):
         verbose_name="Врач",
     )
 
+    # ✅ Акция — опционально (но удобно для аналитики)
+    promo = models.ForeignKey(
+        Promo,
+        related_name="appointments",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Акция",
+    )
+
     full_name = models.CharField("Имя", max_length=120)
     phone = models.CharField("Телефон", max_length=24, validators=[phone_validator])
+    email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
 
     preferred_datetime = models.DateTimeField("Желаемые дата/время")
     comment = models.TextField("Комментарий", blank=True)
+
+    reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
+    reminder_email_sent = models.BooleanField("Email-напоминание отправлено", default=False)
+    reminder_telegram_sent = models.BooleanField("Telegram-напоминание отправлено", default=False)
 
     status = models.CharField(
         "Статус",
@@ -55,6 +71,9 @@ class Appointment(models.Model):
 
     created_at = models.DateTimeField("Создана", auto_now_add=True)
 
+    reminder_24h_sent = models.BooleanField("Напоминание 24ч отправлено", default=False)
+    reminder_2h_sent = models.BooleanField("Напоминание 2ч отправлено", default=False)
+
     class Meta:
         verbose_name = "Запись"
         verbose_name_plural = "Записи"
@@ -64,6 +83,7 @@ class Appointment(models.Model):
             models.Index(fields=["preferred_datetime"]),
             models.Index(fields=["doctor"]),
             models.Index(fields=["service"]),
+            models.Index(fields=["promo"]),  # ✅
         ]
         constraints = [
             # ❌ нельзя две записи к одному врачу в одно время
@@ -87,9 +107,7 @@ class Appointment(models.Model):
         """
         super().clean()
         if not self.service and not self.doctor:
-            raise ValidationError(
-                "Необходимо выбрать услугу или врача для записи."
-            )
+            raise ValidationError("Необходимо выбрать услугу или врача для записи.")
 
     def __str__(self) -> str:
         parts = [self.full_name]
@@ -99,6 +117,9 @@ class Appointment(models.Model):
 
         if self.service:
             parts.append(f"на услугу «{self.service.name}»")
+
+        if self.promo:
+            parts.append(f"(акция: {self.promo.title})")
 
         parts.append(self.preferred_datetime.strftime("%Y-%m-%d %H:%M"))
         return " → ".join(parts)

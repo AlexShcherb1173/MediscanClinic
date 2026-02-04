@@ -23,16 +23,17 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    path("", include("apps.pages.urls")),          # ← главная тут
+    # Главная: только pages
+    path("", include(("apps.pages.urls", "pages"), namespace="pages")),
+
     path("services/", include("apps.services.urls")),
     path("appointments/", include("apps.appointments.urls")),
 
-    path("core/", include("apps.core.urls")),      # ← core НЕ в корне
-    path("doctors/", include("apps.staff.urls", namespace="staff")),
+    path("core/", include(("apps.core.urls", "core"), namespace="core")),
+    path("doctors/", include(("apps.staff.urls", "staff"), namespace="staff")),
+    path("promos/", include(("apps.promos.urls", "promos"), namespace="promos")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

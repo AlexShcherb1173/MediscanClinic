@@ -1,6 +1,18 @@
 {% extends "base.html" %}
-{% block title %}{{ page.title }}{% endblock %}
+{% block title %}{{ page.title }} — Mediscan{% endblock %}
+
 {% block content %}
-<h1>{{ page.title }}</h1>
-<div>{{ page.content|linebreaks }}</div>
+<nav class="text-sm text-slate-500 mb-4">
+  <a href="{% url 'pages:home' %}" class="hover:text-slate-900">Главная</a>
+  <span class="mx-2">/</span>
+  <span class="text-slate-700">{{ page.title }}</span>
+</nav>
+
+<div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+  <h1 class="text-3xl font-bold text-slate-900">{{ page.title }}</h1>
+
+  <div class="mt-6 prose max-w-none">
+    {{ page.content|linebreaks }}
+  </div>
+</div>
 {% endblock %}

@@ -1,5 +1,8 @@
 import logging
 from dataclasses import dataclass
+from django.conf import settings
+
+from .tasks import send_telegram_text_task, send_email_task
 
 logger = logging.getLogger("appointments")
 
@@ -13,22 +16,28 @@ class AppointmentNotification:
 
 
 def notify_email(payload: AppointmentNotification) -> None:
-    # заглушка
-    logger.info(
-        "[EMAIL] New appointment: %s, %s, service=%s, datetime=%s",
-        payload.full_name,
-        payload.phone,
-        payload.service_name,
-        payload.preferred_datetime_iso,
+    subject = "Mediscan: новая запись"
+    body = (
+        f"Имя: {payload.full_name}\n"
+        f"Телефон: {payload.phone}\n"
+        f"Услуга: {payload.service_name}\n"
+        f"Дата/время: {payload.preferred_datetime_iso}\n"
     )
+    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+    if to_email:
+        send_email_task.delay(subject, body, to_email)
 
 
 def notify_telegram(payload: AppointmentNotification) -> None:
-    # заглушка
-    logger.info(
-        "[TELEGRAM] New appointment: %s, %s, service=%s, datetime=%s",
-        payload.full_name,
-        payload.phone,
-        payload.service_name,
-        payload.preferred_datetime_iso,
+    text = (
+        "🩺 *Новая запись*\n"
+        f"*Имя:* {payload.full_name}\n"
+        f"*Телефон:* {payload.phone}\n"
+        f"*Услуга:* {payload.service_name}\n"
+        f"*Дата/время:* {payload.preferred_datetime_iso}\n"
     )
+    send_telegram_text_task.delay(text)
+
+
+def notify_telegram_text(text: str) -> None:
+    send_telegram_text_task.delay(text)

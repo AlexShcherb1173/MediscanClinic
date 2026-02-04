@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
+from apps.services.models import Service
+
 
 class Promo(models.Model):
     title = models.CharField("Заголовок", max_length=160)
@@ -20,6 +22,14 @@ class Promo(models.Model):
         help_text="Напр.: /services/?q=МРТ или https://…",
     )
 
+    # ✅ Услуги по акции
+    services = models.ManyToManyField(
+        Service,
+        verbose_name="Услуги по акции",
+        related_name="promos",
+        blank=True,
+    )
+
     starts_at = models.DateTimeField("Начало", blank=True, null=True)
     ends_at = models.DateTimeField("Окончание", blank=True, null=True)
 
@@ -28,6 +38,14 @@ class Promo(models.Model):
 
     created_at = models.DateTimeField("Создана", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлена", auto_now=True)
+
+    # ✅ Услуги по акции (можно 1 или несколько)
+    services = models.ManyToManyField(
+        Service,
+        blank=True,
+        related_name="promos",
+        verbose_name="Услуги по акции",
+    )
 
     class Meta:
         verbose_name = "Акция"

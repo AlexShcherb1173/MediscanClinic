@@ -27,3 +27,20 @@ class SiteSettings(models.Model):
 
     def __str__(self) -> str:
         return "Site settings"
+
+class License(models.Model):
+    title = models.CharField("Название", max_length=160)
+    file = models.FileField("Файл (PDF/изображение)", upload_to="licenses/")
+    preview = models.ImageField("Превью (опционально)", upload_to="licenses/previews/", blank=True, null=True)
+
+    is_active = models.BooleanField("Показывать", default=True)
+    sort_order = models.PositiveIntegerField("Сортировка", default=100)
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Лицензия/сертификат"
+        verbose_name_plural = "Лицензии/сертификаты"
+        ordering = ("sort_order", "-created_at")
+
+    def __str__(self) -> str:
+        return self.title

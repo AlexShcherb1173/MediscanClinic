@@ -10,3 +10,6 @@ class PromoAdmin(admin.ModelAdmin):
     ordering = ("sort_order", "-created_at")
     prepopulated_fields = {"slug": ("title",)}
     list_editable = ("is_active", "sort_order")
+
+    # ✅ выбор услуг M2M
+    filter_horizontal = ("services",)

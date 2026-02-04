@@ -21,19 +21,29 @@ class AppointmentCreateForm(forms.ModelForm):
 
     class Meta:
         model = Appointment
-        fields = (
+        fields = fields = (
             "service",
             "doctor",
             "full_name",
             "phone",
+            "email",
             "comment",
         )
 
-    def __init__(self, *args, service_id=None, doctor_id=None, lock_service=False, lock_doctor=False, **kwargs):
+    def __init__(
+        self,
+        *args,
+        service_id=None,
+        doctor_id=None,
+        lock_service=False,
+        lock_doctor=False,
+        service_queryset=None,   # ✅ новое
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
 
-        # ✅ активные queryset'ы
-        self.fields["service"].queryset = Service.objects.filter(
+        # ✅ активные queryset'ы (или ограниченные из акции)
+        self.fields["service"].queryset = service_queryset or Service.objects.filter(
             is_active=True,
             category__is_active=True,
         )
