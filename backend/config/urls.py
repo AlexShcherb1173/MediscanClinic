@@ -32,6 +32,7 @@ urlpatterns = [
     path("core/", include(("apps.core.urls", "core"), namespace="core")),
     path("doctors/", include(("apps.staff.urls", "staff"), namespace="staff")),
     path("promos/", include(("apps.promos.urls", "promos"), namespace="promos")),
+    path("contacts/", include("apps.contacts.urls", namespace="contacts")),
 ]
 
 if settings.DEBUG:
