@@ -1,0 +1,6 @@
+<option value="">Выберите время</option>
+{% for s in slots %}
+  <option value="{{ s.id }}">{{ s.starts_at|date:"H:i" }}</option>
+{% empty %}
+  <option value="">Нет доступных слотов</option>
+{% endfor %}

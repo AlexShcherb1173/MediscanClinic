@@ -14,6 +14,30 @@ phone_validator = RegexValidator(
 )
 
 
+class AppointmentSlot(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="slots")
+    starts_at = models.DateTimeField("Начало слота")
+    ends_at = models.DateTimeField("Конец слота")
+    is_active = models.BooleanField("Активен", default=True)
+    is_booked = models.BooleanField("Занят", default=False)
+
+    class Meta:
+        ordering = ("starts_at",)
+        indexes = [
+            models.Index(fields=["service", "starts_at"]),
+            models.Index(fields=["is_active", "is_booked"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["service", "starts_at"],
+                name="uniq_service_starts_at",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.service} — {self.starts_at:%d.%m %H:%M}"
+
+
 class Appointment(models.Model):
     class Status(models.TextChoices):
         NEW = "new", "Новая"
@@ -21,7 +45,7 @@ class Appointment(models.Model):
         COMPLETED = "completed", "Завершена"
         CANCELED = "canceled", "Отменена"
 
-    # ✅ Услуга — теперь НЕ обязательна
+    # ✅ Услуга — опционально (но чаще будет заполнена)
     service = models.ForeignKey(
         Service,
         on_delete=models.PROTECT,
@@ -31,7 +55,19 @@ class Appointment(models.Model):
         blank=True,
     )
 
-    # ✅ Врач — опционально
+    # ✅ Слот (основной источник времени записи)
+    slot = models.ForeignKey(
+        "appointments.AppointmentSlot",
+        on_delete=models.PROTECT,
+        related_name="appointments",
+        verbose_name="Слот",
+        null=True,
+        blank=True,
+    )
+
+    # ✅ preferred_datetime оставляем для удобства индексов/ограничений/фильтров
+    preferred_datetime = models.DateTimeField("Дата и время", null=True, blank=True)
+
     doctor = models.ForeignKey(
         Doctor,
         related_name="appointments",
@@ -41,7 +77,6 @@ class Appointment(models.Model):
         verbose_name="Врач",
     )
 
-    # ✅ Акция — опционально (но удобно для аналитики)
     promo = models.ForeignKey(
         Promo,
         related_name="appointments",
@@ -55,7 +90,6 @@ class Appointment(models.Model):
     phone = models.CharField("Телефон", max_length=24, validators=[phone_validator])
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
 
-    preferred_datetime = models.DateTimeField("Желаемые дата/время")
     comment = models.TextField("Комментарий", blank=True)
 
     reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
@@ -83,31 +117,41 @@ class Appointment(models.Model):
             models.Index(fields=["preferred_datetime"]),
             models.Index(fields=["doctor"]),
             models.Index(fields=["service"]),
-            models.Index(fields=["promo"]),  # ✅
+            models.Index(fields=["promo"]),
         ]
         constraints = [
-            # ❌ нельзя две записи к одному врачу в одно время
             models.UniqueConstraint(
                 fields=["doctor", "preferred_datetime"],
-                condition=Q(doctor__isnull=False),
+                condition=Q(doctor__isnull=False) & Q(preferred_datetime__isnull=False),
                 name="uniq_doctor_datetime",
             ),
-            # ❌ нельзя две записи на одну услугу в одно время
             models.UniqueConstraint(
                 fields=["service", "preferred_datetime"],
-                condition=Q(service__isnull=False),
+                condition=Q(service__isnull=False) & Q(preferred_datetime__isnull=False),
                 name="uniq_service_datetime",
             ),
         ]
 
     def clean(self):
-        """
-        Бизнес-валидация:
-        - должна быть выбрана услуга или врач
-        """
         super().clean()
+
+        # slot обязателен для новой UX-логики
+        if not self.slot:
+            raise ValidationError("Выберите время записи (слот).")
+
+        # должна быть выбрана услуга или врач
         if not self.service and not self.doctor:
             raise ValidationError("Необходимо выбрать услугу или врача для записи.")
+
+    def save(self, *args, **kwargs):
+        # ✅ всегда синхронизируем preferred_datetime со слотом
+        if self.slot and self.slot.starts_at:
+            self.preferred_datetime = self.slot.starts_at
+            # также удобно подтянуть service из слота, если не заполнена
+            if not self.service_id and getattr(self.slot, "service_id", None):
+                self.service_id = self.slot.service_id
+
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         parts = [self.full_name]
@@ -121,5 +165,7 @@ class Appointment(models.Model):
         if self.promo:
             parts.append(f"(акция: {self.promo.title})")
 
-        parts.append(self.preferred_datetime.strftime("%Y-%m-%d %H:%M"))
+        if self.preferred_datetime:
+            parts.append(self.preferred_datetime.strftime("%Y-%m-%d %H:%M"))
+
         return " → ".join(parts)

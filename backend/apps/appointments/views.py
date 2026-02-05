@@ -1,50 +1,67 @@
-from datetime import datetime, timedelta, time as dtime
+from datetime import timedelta
 
-from django.db import IntegrityError
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from apps.services.models import Service
-from apps.staff.models import Doctor, DoctorSchedule
-from apps.promos.models import Promo  # ✅
+from apps.staff.models import Doctor
+from apps.promos.models import Promo
 
 from .forms import AppointmentCreateForm
-from .models import Appointment
+from .models import Appointment, AppointmentSlot
 from .notifications import AppointmentNotification, notify_email, notify_telegram
 
 
-# ======= slots helpers =======
-def generate_default_slots() -> list[dtime]:
-    """
-    Стандартные слоты по услуге (если врач не выбран).
-    Каждые 20 минут 08:00–20:40.
-    """
-    start = dtime(8, 0)
-    end = dtime(20, 40)
-    step = timedelta(minutes=20)
+# ---------- calendar (для виджета дат/HTMX) ----------
+@require_GET
+def calendar_view(request):
+    service_id = request.GET.get("service")
+    today = timezone.localdate()
+    days = [today + timedelta(days=i) for i in range(0, 21)]  # 3 недели
 
-    slots: list[dtime] = []
-    current = datetime.combine(timezone.localdate(), start)
-
-    while current.time() <= end:
-        slots.append(current.time())
-        current += step
-
-    return slots
+    return render(
+        request,
+        "appointments/_calendar.html",
+        {
+            "days": days,
+            "selected": request.GET.get("date") or str(today),
+            "service_id": service_id,
+        },
+    )
 
 
-# ======= create appointment =======
+# ---------- HTMX: slot options (HTML <option>...) ----------
+@require_GET
+def slots(request):
+    service_id = request.GET.get("service")
+    date_str = request.GET.get("date")  # YYYY-MM-DD
+
+    qs = AppointmentSlot.objects.filter(is_active=True, is_booked=False)
+
+    if service_id:
+        qs = qs.filter(service_id=service_id)
+
+    if date_str:
+        qs = qs.filter(starts_at__date=date_str)
+
+    qs = qs.order_by("starts_at")
+
+    return render(request, "appointments/_slot_options.html", {"slots": qs})
+
+
+# ---------- create appointment ----------
 def appointment_create(request):
     service_id = request.GET.get("service")
     doctor_id = request.GET.get("doctor")
-    promo_slug = request.GET.get("promo")  # ✅
+    promo_slug = request.GET.get("promo")
 
     locked_service = bool(service_id)
     locked_doctor = bool(doctor_id)
 
-    # ✅ если пришли с next — запоминаем, чтобы "Изменить услугу" вернуло назад
     next_url = request.GET.get("next")
     if next_url:
         request.session["services_return_url"] = next_url
@@ -52,12 +69,10 @@ def appointment_create(request):
     promo = None
     promo_services_qs = None
 
-    # ✅ контекст "акция"
     if promo_slug:
         promo = get_object_or_404(Promo, slug=promo_slug, is_active=True)
         promo_services_qs = promo.services.filter(is_active=True, category__is_active=True)
 
-        # если service не передали явно, а по акции 1 услуга — подставим и зафиксируем
         if not service_id and promo_services_qs.exists() and promo_services_qs.count() == 1:
             service_id = str(promo_services_qs.first().id)
             locked_service = True
@@ -71,27 +86,10 @@ def appointment_create(request):
         if doctor_id else None
     )
 
-    draft = request.session.get("appointment_draft", {})
-
     if request.method == "POST":
-        # ✅ кнопка "Изменить услугу/врача": сохраняем черновик и уходим назад
-        if request.POST.get("_action") == "change_service":
-            request.session["appointment_draft"] = {
-                "full_name": request.POST.get("full_name", ""),
-                "phone": request.POST.get("phone", ""),
-                "comment": request.POST.get("comment", ""),
-                "preferred_date": request.POST.get("preferred_date", ""),
-                "preferred_time": request.POST.get("preferred_time", ""),
-            }
-
-            return_url = request.session.get("services_return_url")
-            if return_url:
-                return redirect(return_url)
-            return redirect("services:list")
-
         # service/doctor/promo можно передавать скрытыми полями
-        service_id_post = request.POST.get("service_id") or request.POST.get("service") or service_id
-        doctor_id_post = request.POST.get("doctor_id") or request.POST.get("doctor") or doctor_id
+        service_id_post = request.POST.get("service") or service_id
+        doctor_id_post = request.POST.get("doctor") or doctor_id
         promo_slug_post = request.POST.get("promo") or promo_slug
 
         promo = (
@@ -118,34 +116,46 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
-            service_queryset=promo_services_qs if promo_services_qs is not None else None,  # ✅ ограничение услуг
+            service_queryset=promo_services_qs if promo_services_qs is not None else None,
         )
 
         if form.is_valid():
-            appointment: Appointment = form.save(commit=False)
-
-            appointment.service = service
-            appointment.doctor = doctor
-            appointment.promo = promo  # ✅ сохраняем акцию (может быть None)
-            appointment.preferred_datetime = form.cleaned_data["preferred_datetime"]
+            slot = form.cleaned_data["slot"]
 
             try:
-                appointment.save()
+                with transaction.atomic():
+                    # ✅ блокировка слота от гонок
+                    slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot.pk)
+                    if slot_locked.is_booked or not slot_locked.is_active:
+                        raise ValidationError("Этот слот только что заняли. Выберите другое время.")
+
+                    slot_locked.is_booked = True
+                    slot_locked.save(update_fields=["is_booked"])
+
+                    appointment: Appointment = form.save(commit=False)
+                    appointment.slot = slot_locked
+                    appointment.service = service or slot_locked.service
+                    appointment.doctor = doctor
+                    appointment.promo = promo
+                    appointment.preferred_datetime = slot_locked.starts_at
+                    appointment.save()
+
+            except ValidationError as e:
+                form.add_error("slot", str(e))
             except IntegrityError:
-                form.add_error("preferred_time", "На это время уже есть запись. Выберите другое время.")
+                form.add_error("slot", "На это время уже есть запись. Выберите другое время.")
             else:
                 payload = AppointmentNotification(
                     full_name=appointment.full_name,
                     phone=appointment.phone,
                     service_name=appointment.service.name if appointment.service else "",
-                    preferred_datetime_iso=appointment.preferred_datetime.isoformat(),
+                    preferred_datetime_iso=appointment.preferred_datetime.isoformat()
+                    if appointment.preferred_datetime else "",
                 )
                 notify_email(payload)
                 notify_telegram(payload)
 
-                request.session.pop("appointment_draft", None)
                 request.session.pop("services_return_url", None)
-
                 return redirect("appointments:success", pk=appointment.pk)
 
     else:
@@ -154,13 +164,9 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
-            service_queryset=promo_services_qs if promo_services_qs is not None else None,  # ✅ ограничение услуг
+            service_queryset=promo_services_qs if promo_services_qs is not None else None,
             initial={
-                "full_name": draft.get("full_name", ""),
-                "phone": draft.get("phone", ""),
-                "comment": draft.get("comment", ""),
-                "preferred_date": draft.get("preferred_date", ""),
-                "preferred_time": draft.get("preferred_time", ""),
+                "preferred_date": timezone.localdate(),
             },
         )
 
@@ -171,71 +177,11 @@ def appointment_create(request):
             "form": form,
             "service": service,
             "doctor": doctor,
-            "promo": promo,  # ✅
+            "promo": promo,
             "locked_service": locked_service,
             "locked_doctor": locked_doctor,
         },
     )
-
-
-# ======= slots API (doctor first, fallback to service default) =======
-@require_GET
-def appointment_slots(request):
-    """
-    GET /appointments/slots/?date=YYYY-MM-DD&doctor=<id>&service=<id>
-    """
-    date_str = request.GET.get("date")
-    service_id = request.GET.get("service")
-    doctor_id = request.GET.get("doctor")
-
-    if not date_str:
-        return JsonResponse({"slots": []})
-
-    try:
-        day = datetime.strptime(date_str, "%Y-%m-%d").date()
-    except ValueError:
-        return JsonResponse({"slots": []})
-
-    # --- 1) строим слоты ---
-    if doctor_id:
-        schedules = DoctorSchedule.objects.filter(
-            doctor_id=doctor_id,
-            weekday=day.weekday(),
-        )
-
-        slots: list[dtime] = []
-        step = timedelta(minutes=20)
-
-        for s in schedules:
-            current = datetime.combine(day, s.time_from)
-            end = datetime.combine(day, s.time_to)
-            while current < end:
-                slots.append(current.time())
-                current += step
-    else:
-        slots = generate_default_slots()
-
-    # --- 2) занятые ---
-    taken_qs = Appointment.objects.filter(preferred_datetime__date=day)
-
-    if doctor_id:
-        taken_qs = taken_qs.filter(doctor_id=doctor_id)
-    elif service_id:
-        taken_qs = taken_qs.filter(service_id=service_id)
-
-    taken_times = {dt.time() for dt in taken_qs.values_list("preferred_datetime", flat=True)}
-
-    # --- 3) отдаём в JSON ---
-    result = [
-        {
-            "value": t.strftime("%H:%M"),
-            "label": t.strftime("%H:%M"),
-            "available": t not in taken_times,
-        }
-        for t in slots
-    ]
-
-    return JsonResponse({"slots": result})
 
 
 def appointment_success(request, pk: int):
