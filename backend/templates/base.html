@@ -26,7 +26,7 @@
     <!-- Top row -->
     <div class="h-16 flex items-center justify-between gap-4">
       <!-- Logo -->
-      <a href="{% url 'pages:home' %}" class="flex items-center gap-3">
+      <a href="{% url 'pages:home' %}" class="flex items-center gap-3 shrink-0">
         <div class="h-10 w-10 rounded-2xl bg-white/15 border border-white/20"></div>
         <div class="leading-tight">
           <div class="font-semibold text-lg text-white">Mediscan</div>
@@ -38,7 +38,6 @@
       <div class="hidden lg:flex items-center gap-6">
         <div class="flex items-center gap-2">
           <span class="text-sm text-blue-100">Город</span>
-
           <button type="button"
             class="inline-flex items-center gap-2 px-3 py-2 rounded-full
                    bg-white/10 hover:bg-white/20 text-sm text-white transition">
@@ -48,13 +47,13 @@
         </div>
 
         <a href="tel:+79856987282"
-           class="text-sm font-semibold text-white hover:underline">
+           class="text-sm font-semibold text-white hover:underline whitespace-nowrap">
           +7 (985) 698-72-82
         </a>
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 shrink-0">
         <button id="openSearch"
           class="hidden md:inline-flex items-center justify-center rounded-full
                  bg-white/10 hover:bg-white/20
@@ -62,12 +61,11 @@
           Поиск
         </button>
 
-        <!-- Main CTA -->
         <a href="{% url 'appointments:create' %}"
            class="inline-flex items-center justify-center rounded-full
                   bg-yellow-400 text-blue-900
                   px-4 py-2 text-sm font-semibold
-                  hover:bg-yellow-300 transition">
+                  hover:bg-yellow-300 transition whitespace-nowrap">
           Записаться
         </a>
 
@@ -85,13 +83,22 @@
           ЛК
         </a>
 
-        <!-- Second row: main menu -->
-    {% with p=request.path %}
-      <div class="pb-4 flex flex-wrap gap-2">
-        {% with base="px-4 py-2 rounded-full text-sm transition" %}
-          {% with inactive="bg-white/10 hover:bg-white/20 text-white" %}
-            {% with active="bg-yellow-400 text-blue-900 font-semibold hover:bg-yellow-300" %}
+        <a href="#"
+           class="hidden sm:inline-flex rounded-full
+                  bg-white/10 hover:bg-white/20
+                  px-4 py-2 text-sm text-white transition">
+          Корзина
+        </a>
+      </div>
+    </div>
 
+    <!-- Second row: main menu -->
+    {% with p=request.path %}
+      {% with base="px-4 py-2 rounded-full text-sm transition font-semibold" %}
+        {% with inactive="bg-white/10 hover:bg-white/20 text-white" %}
+          {% with active="bg-yellow-400 text-blue-900 hover:bg-yellow-300" %}
+
+            <nav class="pb-4 flex flex-wrap gap-2">
               <a href="/services/"
                  class="{{ base }} {% if p|slice:":10" == "/services/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
                 Услуги
@@ -107,30 +114,23 @@
                 Врачи
               </a>
 
-              {# Контакты (отдельное приложение contacts) #}
               <a href="{% url 'contacts:home' %}"
                  class="{{ base }} {% if p|slice:":10" == "/contacts/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
                 Контакты
               </a>
 
-              <a href="/#feedback" class="{{ base }} {{ inactive }}">
-                Обратная связь
-              </a>
+              <a href="/#feedback" class="{{ base }} {{ inactive }}">Обратная связь</a>
+              <a href="/#telegram" class="{{ base }} {{ inactive }}">Telegram-бот</a>
 
-              <a href="/#telegram" class="{{ base }} {{ inactive }}">
-                Telegram-бот
-              </a>
-
-              {# О компании (pages:page_detail slug=about) #}
               <a href="{% url 'pages:page_detail' 'about' %}"
-                 class="{{ base }} {% if request.resolver_match and request.resolver_match.view_name == 'pages:page_detail' and request.resolver_match.kwargs.slug == 'about' %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+                 class="{{ base }} {% if p|slice:":11" == "/page/about/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
                 О компании
               </a>
+            </nav>
 
-            {% endwith %}
           {% endwith %}
         {% endwith %}
-      </div>
+      {% endwith %}
     {% endwith %}
 
   </div>

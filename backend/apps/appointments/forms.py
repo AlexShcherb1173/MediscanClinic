@@ -1,26 +1,27 @@
-from datetime import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.services.models import Service
 from apps.staff.models import Doctor
-
 from .models import Appointment, AppointmentSlot
 
 
 class AppointmentCreateForm(forms.ModelForm):
-    # дата нужна для фильтра слотов (в Appointment она хранится через slot.starts_at)
+    # дата не хранится напрямую в Appointment (мы берём её из slot.starts_at),
+    # но нужна для UI/фильтра слотов
     preferred_date = forms.DateField(
         label="Дата",
-        widget=forms.DateInput(attrs={"type": "date", "id": "date-input"}),
+        required=True,
+        widget=forms.HiddenInput(),  # управляем датой через календарь
     )
 
     slot = forms.ModelChoiceField(
         label="Время записи",
         queryset=AppointmentSlot.objects.none(),
+        required=True,
         empty_label="Выберите время",
-        widget=forms.Select(attrs={"id": "slot-select"}),
+        widget=forms.Select(),
     )
 
     class Meta:
@@ -31,9 +32,9 @@ class AppointmentCreateForm(forms.ModelForm):
             "full_name",
             "phone",
             "email",
+            "comment",
             "preferred_date",
             "slot",
-            "comment",
         )
 
     def __init__(
@@ -48,92 +49,81 @@ class AppointmentCreateForm(forms.ModelForm):
     ):
         super().__init__(*args, **kwargs)
 
-        # queryset услуг (или ограничение по акции)
+        # услуги
         self.fields["service"].queryset = service_queryset or Service.objects.filter(
             is_active=True,
             category__is_active=True,
         )
-
         self.fields["doctor"].queryset = Doctor.objects.filter(is_active=True)
 
-        # initial дата: сегодня
-        if not self.initial.get("preferred_date"):
-            self.initial["preferred_date"] = timezone.localdate()
+        # определяем выбранные service/date для queryset слотов
+        selected_service = (
+            self.data.get("service") or self.initial.get("service") or service_id
+        )
+        selected_date = (
+            self.data.get("preferred_date") or self.initial.get("preferred_date")
+        )
 
-        # фиксируем услугу/врача при переходе из promo или doctors
+        qs = AppointmentSlot.objects.filter(is_active=True, is_booked=False)
+
+        if selected_service:
+            qs = qs.filter(service_id=selected_service)
+
+        if selected_date:
+            # preferred_date приходит как "YYYY-MM-DD"
+            qs = qs.filter(starts_at__date=selected_date)
+
+        self.fields["slot"].queryset = qs.order_by("starts_at")
+
+        # фиксация услуги (например, пришли из акции)
         if service_id:
             self.fields["service"].initial = service_id
             if lock_service:
                 self.fields["service"].widget = forms.HiddenInput()
+                self.fields["service"].required = False
 
+        # фиксация врача (если нужно)
         if doctor_id:
             self.fields["doctor"].initial = doctor_id
             if lock_doctor:
                 self.fields["doctor"].widget = forms.HiddenInput()
+                self.fields["doctor"].required = False
 
-        # ---- queryset слотов под текущие service + preferred_date ----
-        service = None
-        if self.data.get("service"):
-            service = self.data.get("service")
-        elif self.initial.get("service"):
-            service = self.initial.get("service")
-
-        preferred_date = None
-        if self.data.get("preferred_date"):
-            preferred_date = self.data.get("preferred_date")
-        elif self.initial.get("preferred_date"):
-            preferred_date = self.initial.get("preferred_date")
-
-        qs = AppointmentSlot.objects.filter(is_active=True, is_booked=False)
-
-        if service:
-            qs = qs.filter(service_id=service)
-
-        if preferred_date:
-            # preferred_date может быть date или строкой YYYY-MM-DD
-            if hasattr(preferred_date, "strftime"):
-                date_str = preferred_date.strftime("%Y-%m-%d")
-            else:
-                date_str = str(preferred_date)
-            qs = qs.filter(starts_at__date=date_str)
-
-        self.fields["slot"].queryset = qs.order_by("starts_at")
-
-        # ---- классы UI по умолчанию ----
-        for name, f in self.fields.items():
+        # классы UI
+        for f in self.fields.values():
             f.widget.attrs.setdefault(
                 "class",
-                "w-full rounded-2xl border px-4 py-3 text-slate-900 shadow-sm "
-                "border-slate-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                "w-full rounded-2xl border border-slate-200 px-4 py-3 "
+                "text-slate-900 shadow-sm bg-white "
+                "focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
             )
 
-        self.fields["service"].widget.attrs.setdefault("id", "service-select")
-
-    def clean_preferred_date(self):
-        d = self.cleaned_data.get("preferred_date")
-        if d and d < timezone.localdate():
-            raise ValidationError("Нельзя выбрать прошедшую дату.")
-        return d
-
     def clean_slot(self):
-        slot = self.cleaned_data.get("slot")
+        slot: AppointmentSlot = self.cleaned_data.get("slot")
         service = self.cleaned_data.get("service")
 
         if not slot:
             return slot
 
-        # слот должен относиться к выбранной услуге
+        if not slot.is_active:
+            raise ValidationError("Этот слот недоступен. Выберите другой.")
+        if slot.is_booked:
+            raise ValidationError("Этот слот уже занят. Выберите другой.")
+
+        # слот должен соответствовать услуге
         if service and slot.service_id != service.id:
             raise ValidationError("Этот слот не относится к выбранной услуге.")
 
-        if slot.is_booked:
-            raise ValidationError("Этот слот уже занят. Выберите другое время.")
-
-        if not slot.is_active:
-            raise ValidationError("Этот слот недоступен. Выберите другое время.")
-
         # нельзя в прошлое
         if slot.starts_at and slot.starts_at < timezone.now():
-            raise ValidationError("Нельзя записаться в прошлое время.")
+            raise ValidationError("Нельзя записаться на прошедшее время.")
 
         return slot
+
+    def clean(self):
+        cleaned = super().clean()
+        slot: AppointmentSlot = cleaned.get("slot")
+        if slot:
+            # для дальнейшего сохранения в view
+            cleaned["preferred_datetime"] = slot.starts_at
+        return cleaned

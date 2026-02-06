@@ -27,14 +27,8 @@ class AppointmentSlot(models.Model):
             models.Index(fields=["service", "starts_at"]),
             models.Index(fields=["is_active", "is_booked"]),
         ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["service", "starts_at"],
-                name="uniq_service_starts_at",
-            )
-        ]
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.service} — {self.starts_at:%d.%m %H:%M}"
 
 
@@ -45,7 +39,7 @@ class Appointment(models.Model):
         COMPLETED = "completed", "Завершена"
         CANCELED = "canceled", "Отменена"
 
-    # ✅ Услуга — опционально (но чаще будет заполнена)
+    # Услуга — можно хранить явно (удобно), но фактически она = slot.service
     service = models.ForeignKey(
         Service,
         on_delete=models.PROTECT,
@@ -55,9 +49,8 @@ class Appointment(models.Model):
         blank=True,
     )
 
-    # ✅ Слот (основной источник времени записи)
     slot = models.ForeignKey(
-        "appointments.AppointmentSlot",
+        AppointmentSlot,
         on_delete=models.PROTECT,
         related_name="appointments",
         verbose_name="Слот",
@@ -65,9 +58,7 @@ class Appointment(models.Model):
         blank=True,
     )
 
-    # ✅ preferred_datetime оставляем для удобства индексов/ограничений/фильтров
-    preferred_datetime = models.DateTimeField("Дата и время", null=True, blank=True)
-
+    # Врач — опционально
     doctor = models.ForeignKey(
         Doctor,
         related_name="appointments",
@@ -77,6 +68,7 @@ class Appointment(models.Model):
         verbose_name="Врач",
     )
 
+    # Акция — опционально
     promo = models.ForeignKey(
         Promo,
         related_name="appointments",
@@ -89,12 +81,16 @@ class Appointment(models.Model):
     full_name = models.CharField("Имя", max_length=120)
     phone = models.CharField("Телефон", max_length=24, validators=[phone_validator])
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
-
     comment = models.TextField("Комментарий", blank=True)
+
+    # ✅ важно: это поле нужно для индексов/напоминаний/поиска
+    preferred_datetime = models.DateTimeField("Дата/время записи", null=True, blank=True)
 
     reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
     reminder_email_sent = models.BooleanField("Email-напоминание отправлено", default=False)
     reminder_telegram_sent = models.BooleanField("Telegram-напоминание отправлено", default=False)
+    reminder_24h_sent = models.BooleanField("Напоминание 24ч отправлено", default=False)
+    reminder_2h_sent = models.BooleanField("Напоминание 2ч отправлено", default=False)
 
     status = models.CharField(
         "Статус",
@@ -104,9 +100,6 @@ class Appointment(models.Model):
     )
 
     created_at = models.DateTimeField("Создана", auto_now_add=True)
-
-    reminder_24h_sent = models.BooleanField("Напоминание 24ч отправлено", default=False)
-    reminder_2h_sent = models.BooleanField("Напоминание 2ч отправлено", default=False)
 
     class Meta:
         verbose_name = "Запись"
@@ -118,54 +111,31 @@ class Appointment(models.Model):
             models.Index(fields=["doctor"]),
             models.Index(fields=["service"]),
             models.Index(fields=["promo"]),
+            models.Index(fields=["slot"]),
         ]
         constraints = [
+            # ✅ главное: один слот = одна запись
             models.UniqueConstraint(
-                fields=["doctor", "preferred_datetime"],
-                condition=Q(doctor__isnull=False) & Q(preferred_datetime__isnull=False),
-                name="uniq_doctor_datetime",
-            ),
-            models.UniqueConstraint(
-                fields=["service", "preferred_datetime"],
-                condition=Q(service__isnull=False) & Q(preferred_datetime__isnull=False),
-                name="uniq_service_datetime",
+                fields=["slot"],
+                condition=Q(slot__isnull=False),
+                name="uniq_appointment_slot",
             ),
         ]
 
     def clean(self):
         super().clean()
-
-        # slot обязателен для новой UX-логики
+        # либо слот, либо врач/услуга — но раз мы выбрали архитектуру "слот обязателен", проверим слот
         if not self.slot:
-            raise ValidationError("Выберите время записи (слот).")
-
-        # должна быть выбрана услуга или врач
-        if not self.service and not self.doctor:
-            raise ValidationError("Необходимо выбрать услугу или врача для записи.")
-
-    def save(self, *args, **kwargs):
-        # ✅ всегда синхронизируем preferred_datetime со слотом
-        if self.slot and self.slot.starts_at:
-            self.preferred_datetime = self.slot.starts_at
-            # также удобно подтянуть service из слота, если не заполнена
-            if not self.service_id and getattr(self.slot, "service_id", None):
-                self.service_id = self.slot.service_id
-
-        super().save(*args, **kwargs)
+            raise ValidationError("Выберите слот для записи.")
 
     def __str__(self) -> str:
         parts = [self.full_name]
-
         if self.doctor:
             parts.append(f"к врачу {self.doctor.full_name}")
-
         if self.service:
             parts.append(f"на услугу «{self.service.name}»")
-
         if self.promo:
             parts.append(f"(акция: {self.promo.title})")
-
         if self.preferred_datetime:
             parts.append(self.preferred_datetime.strftime("%Y-%m-%d %H:%M"))
-
         return " → ".join(parts)
