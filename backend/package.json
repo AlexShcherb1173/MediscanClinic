@@ -7,7 +7,7 @@
     "postcss": "^8.4.47"
   },
   "scripts": {
-    "build:css": "tailwindcss -i ./backend/static_src/app.css -o ./backend/static/css/app.css --minify",
-    "watch:css": "tailwindcss -i ./backend/static_src/app.css -o ./backend/static/css/app.css --watch"
-  }
+  "build:css": "npx tailwindcss -i ./static_src/app.css -o ./static/css/app.css --minify",
+  "watch:css": "npx tailwindcss -i ./static_src/app.css -o ./static/css/app.css --watch"
+}
 }

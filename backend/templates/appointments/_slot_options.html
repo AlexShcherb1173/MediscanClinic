@@ -6,5 +6,5 @@
     {{ s.starts_at|date:"H:i" }}
   </option>
 {% empty %}
-  <option value="">Нет доступных слотов</option>
+  <option value="" disabled>Нет доступных слотов</option>
 {% endfor %}

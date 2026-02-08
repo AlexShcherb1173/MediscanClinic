@@ -39,14 +39,6 @@ class Promo(models.Model):
     created_at = models.DateTimeField("Создана", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлена", auto_now=True)
 
-    # ✅ Услуги по акции (можно 1 или несколько)
-    services = models.ManyToManyField(
-        Service,
-        blank=True,
-        related_name="promos",
-        verbose_name="Услуги по акции",
-    )
-
     class Meta:
         verbose_name = "Акция"
         verbose_name_plural = "Акции"

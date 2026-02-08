@@ -6,6 +6,7 @@
       "name": "Терапевт"
     }
   },
+
   {
     "model": "staff.specialty",
     "pk": 2,
@@ -13,9 +14,98 @@
       "name": "Кардиолог"
     }
   },
+
   {
     "model": "staff.specialty",
     "pk": 3,
+    "fields": {
+      "name": "Невролог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 4,
+    "fields": {
+      "name": "Эндокринолог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 5,
+    "fields": {
+      "name": "Гастроэнтеролог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 6,
+    "fields": {
+      "name": "Дерматолог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 7,
+    "fields": {
+      "name": "Отоларинголог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 8,
+    "fields": {
+      "name": "Офтальмолог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 9,
+    "fields": {
+      "name": "Хирург"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 10,
+    "fields": {
+      "name": "Уролог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 11,
+    "fields": {
+      "name": "Гинеколог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 12,
+    "fields": {
+      "name": "Аллерголог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 13,
+    "fields": {
+      "name": "Пульмонолог"
+    }
+  },
+
+  {
+    "model": "staff.specialty",
+    "pk": 14,
     "fields": {
       "name": "УЗИ-диагностика"
     }
@@ -26,118 +116,264 @@
     "pk": 1,
     "fields": {
       "full_name": "Иванова Анна Сергеевна",
-      "photo": "",
+      "photo": "doctors/Ivanova.jpg",
       "bio": "Врач-терапевт, ведёт первичный приём, профилактические осмотры, интерпретацию анализов. Акцент на доказательной медицине и понятных рекомендациях.",
       "experience_years": 8,
       "is_active": true,
       "specialties": [1]
     }
   },
+
   {
     "model": "staff.doctor",
     "pk": 2,
     "fields": {
       "full_name": "Петров Максим Олегович",
-      "photo": "",
+      "photo": "doctors/Petrov.jpg",
       "bio": "Врач-кардиолог. Диагностика и ведение пациентов с гипертонией, ИБС, нарушениями ритма. Подбор терапии и рекомендации по образу жизни.",
       "experience_years": 11,
       "is_active": true,
       "specialties": [2]
     }
   },
+
   {
     "model": "staff.doctor",
     "pk": 3,
     "fields": {
-      "full_name": "Сидорова Елена Викторовна",
-      "photo": "",
-      "bio": "Врач УЗИ-диагностики. Выполняет УЗИ органов брюшной полости, щитовидной железы, мягких тканей. Внимательный подход и аккуратное описание результатов.",
-      "experience_years": 6,
+      "full_name": "Смирнова Елена Викторовна",
+      "photo": "doctors/smirnova.jpg",
+      "bio": "Врач-невролог, диагностика головных болей, остеохондроза, невралгий и нарушений сна. Комплексный подход к лечению и восстановлению качества жизни.",
+      "experience_years": 11,
       "is_active": true,
-      "specialties": [3, 1]
+      "specialties": [3]
     }
   },
 
   {
-    "model": "staff.doctorschedule",
-    "pk": 1,
-    "fields": {
-      "doctor": 1,
-      "weekday": 0,
-      "time_from": "09:00:00",
-      "time_to": "13:00:00"
-    }
-  },
-  {
-    "model": "staff.doctorschedule",
-    "pk": 2,
-    "fields": {
-      "doctor": 1,
-      "weekday": 2,
-      "time_from": "14:00:00",
-      "time_to": "18:00:00"
-    }
-  },
-  {
-    "model": "staff.doctorschedule",
-    "pk": 3,
-    "fields": {
-      "doctor": 1,
-      "weekday": 4,
-      "time_from": "09:00:00",
-      "time_to": "13:00:00"
-    }
-  },
-
-  {
-    "model": "staff.doctorschedule",
+    "model": "staff.doctor",
     "pk": 4,
     "fields": {
-      "doctor": 2,
-      "weekday": 1,
-      "time_from": "10:00:00",
-      "time_to": "14:00:00"
-    }
-  },
-  {
-    "model": "staff.doctorschedule",
-    "pk": 5,
-    "fields": {
-      "doctor": 2,
-      "weekday": 3,
-      "time_from": "15:00:00",
-      "time_to": "19:00:00"
+      "full_name": "Кузнецов Андрей Павлович",
+      "photo": "doctors/Kuznecov.jpg",
+      "bio": "Врач-гастроэнтеролог, диагностика и лечение заболеваний желудочно-кишечного тракта. Подбор диеты, обследований и медикаментозной терапии.",
+      "experience_years": 12,
+      "is_active": true,
+      "specialties": [5]
     }
   },
 
   {
-    "model": "staff.doctorschedule",
+    "model": "staff.doctor",
+    "pk": 5,
+    "fields": {
+      "full_name": "Попова Мария Андреевна",
+      "photo": "doctors/Popova.jpg",
+      "bio": "Врач-эндокринолог, ведение пациентов с диабетом, заболеваниями щитовидной железы и гормональными нарушениями. Индивидуальный подбор терапии и мониторинг показателей.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [4]
+    }
+  },
+
+  {
+    "model": "staff.doctor",
     "pk": 6,
     "fields": {
-      "doctor": 3,
-      "weekday": 0,
-      "time_from": "09:00:00",
-      "time_to": "12:00:00"
+      "full_name": "Васильев Дмитрий Сергеевич",
+      "photo": "doctors/Vasilyev.jpg",
+      "bio": "Врач-хирург, амбулаторный приём, диагностика хирургических заболеваний, перевязки и малые операции. Консультации по подготовке к хирургическому лечению.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [9]
     }
   },
+
   {
-    "model": "staff.doctorschedule",
+    "model": "staff.doctor",
     "pk": 7,
     "fields": {
-      "doctor": 3,
-      "weekday": 2,
-      "time_from": "09:00:00",
-      "time_to": "12:00:00"
+      "full_name": "Морозова Ольга Николаевна",
+      "photo": "doctors/Morozova.jpg",
+      "bio": "Врач-дерматолог, диагностика и лечение кожных заболеваний, дерматоскопия новообразований. Подбор ухода и профилактика рецидивов.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [6]
     }
   },
+
   {
-    "model": "staff.doctorschedule",
+    "model": "staff.doctor",
     "pk": 8,
     "fields": {
-      "doctor": 3,
-      "weekday": 5,
-      "time_from": "10:00:00",
-      "time_to": "14:00:00"
+      "full_name": "Фёдоров Игорь Алексеевич",
+      "photo": "doctors/Fedorov.jpg",
+      "bio": "Врач-уролог, диагностика и лечение заболеваний мочеполовой системы. Консультации по мужскому здоровью и профилактике хронических заболеваний.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [10]
     }
-  }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 9,
+    "fields": {
+      "full_name": "Николаева Татьяна Владимировна",
+      "photo": "doctors/Nikolaeva.jpg",
+      "bio": "Врач-гинеколог, профилактические осмотры, диагностика и лечение гинекологических заболеваний. Подбор терапии и рекомендации по женскому здоровью.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [11]
+    }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 10,
+    "fields": {
+      "full_name": "Орлов Сергей Михайлович",
+      "photo": "doctors/Orlov.jpg",
+      "bio": "Врач-оториноларинголог (ЛОР), лечение заболеваний уха, горла и носа, промывания и амбулаторные процедуры. Подбор терапии при хронических ЛОР-заболеваниях.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [7]
+    }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 11,
+    "fields": {
+      "full_name": "Захарова Юлия Константиновна",
+      "photo": "doctors/Zaharova.jpg",
+      "bio": "Врач-офтальмолог, проверка зрения, диагностика заболеваний глаз и подбор коррекции. Консультации по профилактике зрительных нарушений.",
+      "experience_years": 11,
+      "is_active": true,
+      "specialties": [8]
+    }
+  },
+
+  {
+  "model": "staff.doctor",
+  "pk": 12,
+  "fields": {
+    "full_name": "Белов Артём Евгеньевич",
+    "photo": "doctors/Belov.jpg",
+    "bio": "Врач-пульмонолог, диагностика и лечение заболеваний дыхательной системы, интерпретацию спирометрии. Подбор терапии при астме и бронхитах.",
+    "experience_years": 6,
+    "is_active": true,
+    "specialties": [13]
+    }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 13,
+    "fields": {
+      "full_name": "Комарова Наталья Игоревна",
+      "photo": "doctors/Komarova.jpg",
+      "bio": "Врач-аллерголог, диагностика аллергических реакций и подбор терапии. Консультации по профилактике и контролю хронических аллергий.",
+      "experience_years": 6,
+      "is_active": true,
+      "specialties": [12]
+    }
+  },
+
+  {
+    "model": "staff.doctor",
+    "pk": 14,
+    "fields": {
+      "full_name": "Громов Александр Викторович",
+      "photo": "doctors/Gromov.jpg",
+      "bio": "Врач ультразвуковой диагностики, проведение УЗИ внутренних органов, щитовидной железы и сердца. Подробные заключения и рекомендации по результатам исследований.",
+      "experience_years": 6,
+      "is_active": true,
+      "specialties": [14]
+    }
+  },
+
+  { "model": "staff.doctorschedule", "pk": 1, "fields": { "doctor": 1, "weekday": 0, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 2, "fields": { "doctor": 1, "weekday": 2, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 3, "fields": { "doctor": 1, "weekday": 3, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 4, "fields": { "doctor": 1, "weekday": 5, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 5, "fields": { "doctor": 1, "weekday": 6, "time_from": "09:00:00", "time_to": "17:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 6, "fields": { "doctor": 2, "weekday": 0, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 7, "fields": { "doctor": 2, "weekday": 1, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 8, "fields": { "doctor": 2, "weekday": 4, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 9, "fields": { "doctor": 2, "weekday": 5, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 10, "fields": { "doctor": 2, "weekday": 6, "time_from": "10:00:00", "time_to": "18:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 11, "fields": { "doctor": 3, "weekday": 1, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 12, "fields": { "doctor": 3, "weekday": 2, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 13, "fields": { "doctor": 3, "weekday": 3, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 14, "fields": { "doctor": 3, "weekday": 4, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 15, "fields": { "doctor": 3, "weekday": 6, "time_from": "11:00:00", "time_to": "19:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 16, "fields": { "doctor": 4, "weekday": 0, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 17, "fields": { "doctor": 4, "weekday": 2, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 18, "fields": { "doctor": 4, "weekday": 4, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 19, "fields": { "doctor": 4, "weekday": 5, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 20, "fields": { "doctor": 4, "weekday": 6, "time_from": "12:00:00", "time_to": "20:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 21, "fields": { "doctor": 5, "weekday": 0, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 22, "fields": { "doctor": 5, "weekday": 1, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 23, "fields": { "doctor": 5, "weekday": 3, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 24, "fields": { "doctor": 5, "weekday": 5, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 25, "fields": { "doctor": 5, "weekday": 6, "time_from": "09:00:00", "time_to": "17:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 26, "fields": { "doctor": 6, "weekday": 1, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 27, "fields": { "doctor": 6, "weekday": 2, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 28, "fields": { "doctor": 6, "weekday": 4, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 29, "fields": { "doctor": 6, "weekday": 5, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 30, "fields": { "doctor": 6, "weekday": 6, "time_from": "10:00:00", "time_to": "18:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 31, "fields": { "doctor": 7, "weekday": 0, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 32, "fields": { "doctor": 7, "weekday": 2, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 33, "fields": { "doctor": 7, "weekday": 3, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 34, "fields": { "doctor": 7, "weekday": 4, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 35, "fields": { "doctor": 7, "weekday": 5, "time_from": "11:00:00", "time_to": "19:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 36, "fields": { "doctor": 8, "weekday": 0, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 37, "fields": { "doctor": 8, "weekday": 1, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 38, "fields": { "doctor": 8, "weekday": 3, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 39, "fields": { "doctor": 8, "weekday": 4, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 40, "fields": { "doctor": 8, "weekday": 6, "time_from": "12:00:00", "time_to": "20:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 41, "fields": { "doctor": 9, "weekday": 0, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 42, "fields": { "doctor": 9, "weekday": 1, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 43, "fields": { "doctor": 9, "weekday": 2, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 44, "fields": { "doctor": 9, "weekday": 5, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 45, "fields": { "doctor": 9, "weekday": 6, "time_from": "09:00:00", "time_to": "17:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 46, "fields": { "doctor": 10, "weekday": 1, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 47, "fields": { "doctor": 10, "weekday": 3, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 48, "fields": { "doctor": 10, "weekday": 4, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 49, "fields": { "doctor": 10, "weekday": 5, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 50, "fields": { "doctor": 10, "weekday": 6, "time_from": "10:00:00", "time_to": "18:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 51, "fields": { "doctor": 11, "weekday": 0, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 52, "fields": { "doctor": 11, "weekday": 2, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 53, "fields": { "doctor": 11, "weekday": 4, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 54, "fields": { "doctor": 11, "weekday": 5, "time_from": "11:00:00", "time_to": "19:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 55, "fields": { "doctor": 11, "weekday": 6, "time_from": "11:00:00", "time_to": "19:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 56, "fields": { "doctor": 12, "weekday": 0, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 57, "fields": { "doctor": 12, "weekday": 1, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 58, "fields": { "doctor": 12, "weekday": 2, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 59, "fields": { "doctor": 12, "weekday": 3, "time_from": "12:00:00", "time_to": "20:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 60, "fields": { "doctor": 12, "weekday": 6, "time_from": "12:00:00", "time_to": "20:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 61, "fields": { "doctor": 13, "weekday": 0, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 62, "fields": { "doctor": 13, "weekday": 1, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 63, "fields": { "doctor": 13, "weekday": 4, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 64, "fields": { "doctor": 13, "weekday": 5, "time_from": "09:00:00", "time_to": "17:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 65, "fields": { "doctor": 13, "weekday": 6, "time_from": "09:00:00", "time_to": "17:00:00" } },
+
+  { "model": "staff.doctorschedule", "pk": 66, "fields": { "doctor": 14, "weekday": 0, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 67, "fields": { "doctor": 14, "weekday": 2, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 68, "fields": { "doctor": 14, "weekday": 3, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 69, "fields": { "doctor": 14, "weekday": 5, "time_from": "10:00:00", "time_to": "18:00:00" } },
+  { "model": "staff.doctorschedule", "pk": 70, "fields": { "doctor": 14, "weekday": 6, "time_from": "10:00:00", "time_to": "18:00:00" } }
 ]

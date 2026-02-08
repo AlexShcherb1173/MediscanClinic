@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import calendar
-from datetime import timedelta, date as dt_date
+from datetime import date as dt_date, timedelta, datetime, time
 
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
 
 from apps.promos.models import Promo
@@ -15,6 +16,32 @@ from apps.staff.models import Doctor
 from .forms import AppointmentCreateForm
 from .models import Appointment, AppointmentSlot
 from .notifications import AppointmentNotification, notify_email, notify_telegram
+
+
+# ---------------- Helpers ----------------
+def _safe_day(value: str | None) -> dt_date | None:
+    """Parse only ISO YYYY-MM-DD. Returns date or None."""
+    if not value:
+        return None
+    return parse_date(value)  # None if invalid
+
+
+def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead: int = 31) -> dt_date | None:
+    """
+    Find the nearest day (>= start_day) that has at least 1 free active slot.
+    Looks ahead up to days_ahead days.
+    """
+    qs = AppointmentSlot.objects.filter(
+        is_active=True,
+        is_booked=False,
+        starts_at__date__gte=start_day,
+        starts_at__date__lte=start_day + timedelta(days=days_ahead),
+    )
+    if service_id:
+        qs = qs.filter(service_id=service_id)
+
+    row = qs.order_by("starts_at").values_list("starts_at__date", flat=True).first()
+    return row
 
 
 # -------- Calendar (month grid) --------
@@ -27,16 +54,8 @@ def calendar_view(request):
     today = timezone.localdate()
 
     m = request.GET.get("m")  # "2026-02"
-    selected_raw = request.GET.get("preferred_date") or request.GET.get("date")
-
-    # selected -> date
-    if selected_raw:
-        try:
-            selected_date = dt_date.fromisoformat(selected_raw)
-        except ValueError:
-            selected_date = today
-    else:
-        selected_date = today
+    selected_raw = request.GET.get("preferred_date") or request.GET.get("date") or ""
+    selected_date = _safe_day(selected_raw) or today
 
     # month anchor
     if m:
@@ -49,7 +68,7 @@ def calendar_view(request):
         first = dt_date(selected_date.year, selected_date.month, 1)
 
     year, month = first.year, first.month
-    _, days_in_month = calendar.monthrange(year, month)  # weekday Monday=0..Sunday=6
+    _, days_in_month = calendar.monthrange(year, month)  # Monday=0..Sunday=6
     first_weekday = first.weekday()
 
     blanks = list(range(first_weekday))
@@ -85,15 +104,21 @@ def slots(request):
     )
     date_str = request.GET.get("preferred_date") or request.GET.get("date") or ""
 
-    qs = AppointmentSlot.objects.filter(is_active=True, is_booked=False)
+    day = parse_date(date_str) or timezone.localdate()
+
+    tz = timezone.get_current_timezone()
+    start_local = timezone.make_aware(datetime.combine(day, time.min), tz)
+    end_local = timezone.make_aware(datetime.combine(day, time.max), tz)
+
+    qs = AppointmentSlot.objects.filter(
+        is_active=True,
+        is_booked=False,
+        starts_at__gte=start_local,
+        starts_at__lte=end_local,
+    )
 
     if service_id:
         qs = qs.filter(service_id=service_id)
-
-    # ✅ безопасный парсинг даты
-    day = parse_date(date_str)  # понимает только YYYY-MM-DD
-    if day:
-        qs = qs.filter(starts_at__date=day)
 
     qs = qs.order_by("starts_at")
 
@@ -119,6 +144,9 @@ def appointment_create(request):
 
     if promo_slug:
         promo = get_object_or_404(Promo, slug=promo_slug, is_active=True)
+
+        # ВАЖНО: у тебя есть property is_current — можно использовать,
+        # но пока оставлю is_active, чтобы не ломать поведение.
         promo_services_qs = promo.services.filter(is_active=True, category__is_active=True)
 
         # если по акции только 1 услуга — подставим и зафиксируем
@@ -156,7 +184,6 @@ def appointment_create(request):
         if form.is_valid():
             slot: AppointmentSlot = form.cleaned_data["slot"]
 
-            # ✅ атомарно бронируем слот
             try:
                 with transaction.atomic():
                     slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot.pk)
@@ -174,15 +201,12 @@ def appointment_create(request):
                     appointment.doctor = doctor
                     appointment.promo = promo
                     appointment.preferred_datetime = slot_locked.starts_at
-
                     appointment.save()
 
             except IntegrityError:
-                # на случай если есть constraint, который сработал на save()
                 form.add_error("slot", "Этот слот только что заняли. Выберите другое время.")
                 return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
-            # уведомления
             payload = AppointmentNotification(
                 full_name=appointment.full_name,
                 phone=appointment.phone,
@@ -198,15 +222,15 @@ def appointment_create(request):
             return redirect("appointments:success", pk=appointment.pk)
 
     else:
-        # дефолтная дата = сегодня
-        init_date = draft.get("preferred_date")
-        if init_date:
-            try:
-                init_date = dt_date.fromisoformat(init_date)
-            except ValueError:
-                init_date = timezone.localdate()
-        else:
-            init_date = timezone.localdate()
+        # 1) берём дату из draft
+        init_day = _safe_day(draft.get("preferred_date")) or timezone.localdate()
+
+        # 2) если услуги выбраны — подвинем init_day на ближайшую дату со слотами
+        #    (иначе юзер всегда будет видеть "нет слотов", если today без слотов)
+        svc_id = service.id if service else None
+        nearest = _first_day_with_slots(svc_id, init_day, days_ahead=31)
+        if nearest:
+            init_day = nearest
 
         form = AppointmentCreateForm(
             service_id=service.id if service else None,
@@ -219,7 +243,7 @@ def appointment_create(request):
                 "phone": draft.get("phone", ""),
                 "email": draft.get("email", ""),
                 "comment": draft.get("comment", ""),
-                "preferred_date": init_date,  # ✅ date object
+                "preferred_date": init_day,  # ✅ date object
             },
         )
 

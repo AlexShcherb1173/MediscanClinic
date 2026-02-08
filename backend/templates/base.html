@@ -8,14 +8,12 @@
 
   <!-- ✅ Tailwind output (локально через static) -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
   <style>
-
     html { scroll-behavior: smooth; scroll-padding-top: 92px; }
   </style>
 </head>
-
-<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
 <body class="min-h-screen bg-sky-300 text-slate-900">
 
@@ -286,6 +284,13 @@
     }
   });
 })();
+</script>
+
+<script>
+document.body.addEventListener("htmx:configRequest", (e) => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+  if (token) e.detail.headers["X-CSRFToken"] = token;
+});
 </script>
 
 </body>

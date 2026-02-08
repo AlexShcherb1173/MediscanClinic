@@ -3,50 +3,664 @@
     "model": "services.service",
     "pk": 1,
     "fields": {
-      "category": 1,
-      "name": "УЗИ органов брюшной полости",
-      "slug": "uzi-bryushnoy-polosti",
-      "description": "Ультразвуковое исследование органов брюшной полости позволяет оценить состояние печени, желчного пузыря, поджелудочной железы, селезёнки и почек.",
+      "category": 3,
+      "name": "Консультация кардиолога",
+      "slug": "consultaciya-kardiologa",
+      "description": "Приём врача-кардиолога с оценкой жалоб, осмотром, анализом ЭКГ и рекомендациями по лечению.",
       "price_from": "2500.00",
-      "price_to": "3500.00",
+      "price_to": null,
       "is_active": true
     }
   },
+
   {
     "model": "services.service",
     "pk": 2,
     "fields": {
-      "category": 1,
-      "name": "МРТ головного мозга",
-      "slug": "mrt-golovnogo-mozga",
-      "description": "Магнитно-резонансная томография головного мозга — высокоточный метод диагностики заболеваний центральной нервной системы.",
-      "price_from": "5500.00",
-      "price_to": "8500.00",
+      "category": 3,
+      "name": "Консультация невролога",
+      "slug": "consultaciya-nevrologa",
+      "description": "Осмотр врача-невролога, диагностика неврологических нарушений и назначение терапии.",
+      "price_from": "2300.00",
+      "price_to": null,
       "is_active": true
     }
-  },
+   },
+
   {
     "model": "services.service",
     "pk": 3,
+   "fields": {
+      "category": 3,
+      "name": "Консультация эндокринолога",
+      "slug": "consultaciya-endokrinologa",
+      "description": "Диагностика гормональных нарушений, анализ симптомов и подбор плана обследования/лечения.",
+      "price_from": "2600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 4,
+    "fields": {
+      "category": 3,
+      "name": "Консультация гастроэнтеролога",
+      "slug": "consultaciya-gastroenterologa",
+      "description": "Приём врача с оценкой жалоб на ЖКТ, назначением анализов и рекомендациями по лечению.",
+      "price_from": "2400.00",
+      "price_to": null,
+      "is_active": true
+    }
+   },
+
+  {
+    "model": "services.service",
+    "pk": 5,
+    "fields": {
+      "category": 3,
+      "name": "Консультация дерматолога",
+      "slug": "consultaciya-dermatologa",
+      "description": "Осмотр кожи, постановка предварительного диагноза и назначение лечения/ухода.",
+      "price_from": "2100.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 6,
+    "fields": {
+      "category": 3,
+      "name": "Консультация отоларинголога (ЛОР)",
+      "slug": "consultaciya-lor",
+      "description": "Осмотр уха, горла и носа, рекомендации по лечению воспалительных и хронических заболеваний.",
+      "price_from": "2200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+    {
+  "model": "services.service",
+    "pk": 7,
+    "fields": {
+      "category": 3,
+      "name": "Консультация офтальмолога",
+      "slug": "consultaciya-oftalmologa",
+      "description": "Проверка зрения, осмотр глазного дна и подбор рекомендаций/лечения.",
+      "price_from": "2200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 8,
+    "fields": {
+      "category": 3,
+      "name": "Консультация хирурга",
+      "slug": "consultaciya-hirurga",
+      "description": "Осмотр хирурга, оценка состояния, рекомендации по лечению и необходимости вмешательства.",
+      "price_from": "2300.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 9,
+    "fields": {
+      "category": 3,
+      "name": "Консультация уролога",
+      "slug": "consultaciya-urologa",
+      "description": "Диагностика заболеваний мочеполовой системы, назначение обследований и лечения.",
+      "price_from": "2400.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 10,
+    "fields": {
+      "category": 3,
+      "name": "Консультация гинеколога",
+      "slug": "consultaciya-ginekologa",
+      "description": "Осмотр, сбор анамнеза, рекомендации по обследованиям и лечению.",
+      "price_from": "2500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 11,
+    "fields": {
+      "category": 3,
+      "name": "Консультация аллерголога",
+      "slug": "consultaciya-allergologa",
+      "description": "Выявление причин аллергии, подбор диагностики и схемы лечения.",
+      "price_from": "2600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 12,
+    "fields": {
+      "category": 3,
+      "name": "Консультация пульмонолога",
+      "slug": "consultaciya-pulmonologa",
+      "description": "Диагностика заболеваний дыхательной системы, интерпретация спирометрии и назначение лечения.",
+      "price_from": "2400.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 13,
+    "fields": {
+      "category": 3,
+      "name": "Онлайн-консультация врача",
+      "slug": "online-consultaciya-vracha",
+      "description": "Дистанционный приём по видеосвязи с рекомендациями и разбором анализов/симптомов.",
+      "price_from": "1700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 14,
     "fields": {
       "category": 2,
+      "description": "Лабораторное исследование крови для оценки общего состояния и выявления воспаления.",
+      "is_active": true,
       "name": "Общий анализ крови",
-      "slug": "obshiy-analiz-krovi",
-      "description": "Базовый лабораторный анализ, позволяющий оценить общее состояние организма и выявить воспалительные процессы.",
+      "price_from": "800.00",
+      "price_to": null,
+      "slug": "obshchiy-analiz-krovi"
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 15,
+    "fields": {
+      "category": 2,
+      "name": "Общий анализ мочи",
+      "slug": "obshchiy-analiz-mochi",
+      "description": "Исследование мочи для оценки работы почек и мочевыводящих путей.",
+      "price_from": "600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 16,
+    "fields": {
+      "category": 2,
+      "name": "Биохимический анализ крови",
+      "slug": "biohimicheskiy-analiz-krovi",
+      "description": "Комплексный анализ для оценки печени, почек, обмена веществ и ферментов.",
+      "price_from": "1800.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 17,
+    "fields": {
+      "category": 2,
+      "name": "Анализ крови на глюкозу",
+      "slug": "analiz-krovi-na-glyukozu",
+      "description": "Определение уровня глюкозы для диагностики нарушений углеводного обмена.",
+      "price_from": "500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 18,
+    "fields": {
+      "category": 2,
+      "name": "Липидный профиль",
+      "slug": "lipidnyy-profil",
+      "description": "Анализ холестерина и фракций для оценки сердечно-сосудистых рисков.",
+      "price_from": "1500.00",
+      "price_to": null,
+      "is_active": true
+   }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 19,
+    "fields": {
+      "category": 2,
+      "name": "Коагулограмма",
+      "slug": "koagulogramma",
+      "description": "Исследование показателей свёртываемости крови перед операциями и при терапии.",
+      "price_from": "1700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+ {
+    "model": "services.service",
+    "pk": 20,
+    "fields": {
+      "category": 2,
+      "name": "Анализ на ферритин",
+      "slug": "analiz-na-ferritin",
+      "description": "Оценка запасов железа и диагностика дефицитных состояний.",
+      "price_from": "900.00",
+      "price_to": null,
+      "is_active": true
+    }
+ },
+
+  {
+    "model": "services.service",
+    "pk": 21,
+    "fields": {
+      "category": 2,
+      "name": "Анализ на витамин D",
+      "slug": "analiz-na-vitamin-d",
+      "description": "Определение уровня витамина D для оценки дефицита и подбора дозировки.",
+      "price_from": "1800.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 22,
+    "fields": {
+      "category": 2,
+      "name": "Анализ на ТТГ",
+      "slug": "analiz-na-ttg",
+      "description": "Исследование тиреотропного гормона для оценки функции щитовидной железы.",
       "price_from": "700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 23,
+    "fields": {
+      "category": 2,
+      "name": "Анализ на свободный Т4",
+      "slug": "analiz-na-svobodnyy-t4",
+      "description": "Лабораторная оценка уровня гормона Т4 для диагностики нарушений щитовидной железы.",
+      "price_from": "700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 24,
+    "fields": {
+      "category": 1,
+      "name": "Электрокардиограмма (ЭКГ)",
+      "slug": "ekg",
+      "description": "Регистрация электрической активности сердца для диагностики аритмий и ишемии.",
+      "price_from": "1200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 25,
+    "fields": {
+      "category": 1,
+      "name": "ЭКГ с расшифровкой",
+      "slug": "ekg-s-rasshifrovkoy",
+      "description": "ЭКГ с заключением врача и рекомендациями при выявленных изменениях.",
+      "price_from": "1500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+ {
+    "model": "services.service",
+    "pk": 26,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ органов брюшной полости",
+      "slug": "uzi-organov-bryushnoy-polosti",
+      "description": "УЗ-диагностика печени, желчного пузыря, поджелудочной железы и селезёнки.",
+      "price_from": "2500.00",
+      "price_to": null,
+      "is_active": true
+    }
+ },
+
+  {
+    "model": "services.service",
+    "pk": 27,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ почек",
+      "slug": "uzi-pochek",
+      "description": "Ультразвуковое исследование почек для выявления воспаления, камней и других изменений.",
+      "price_from": "1800.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 28,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ щитовидной железы",
+      "slug": "uzi-shchitovidnoy-zhelezy",
+      "description": "УЗ-исследование для оценки структуры и выявления узловых образований.",
+      "price_from": "1700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 29,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ сердца (ЭхоКГ)",
+      "slug": "uzi-serdca-ehokg",
+      "description": "УЗ-диагностика сердца для оценки клапанов, сократимости и размеров камер.",
+      "price_from": "3200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 30,
+    "fields": {
+      "category": 1,
+      "name": "УЗИ малого таза",
+      "slug": "uzi-malogo-taza",
+      "description": "УЗ-исследование органов малого таза для диагностики воспалений и новообразований.",
+      "price_from": "2200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 31,
+    "fields": {
+      "category": 1,
+      "name": "Холтеровское мониторирование ЭКГ (24 часа)",
+      "slug": "holter-monitorirovanie-ekg-24-chasa",
+      "description": "Суточная запись ЭКГ для выявления скрытых аритмий и эпизодов ишемии.",
+      "price_from": "3500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 32,
+    "fields": {
+      "category": 1,
+      "name": "Суточное мониторирование артериального давления (СМАД)",
+      "slug": "smad",
+      "description": "Измерение давления в течение суток для диагностики гипертонии и контроля терапии.",
+      "price_from": "3000.00",
       "price_to": null,
       "is_active": true
     }
   },
   {
     "model": "services.service",
-    "pk": 4,
+    "pk": 33,
     "fields": {
-      "category": 3,
-      "name": "Консультация терапевта",
-      "slug": "consultaciya-terapevta",
-      "description": "Первичный приём врача-терапевта с осмотром, сбором анамнеза и рекомендациями по лечению.",
-      "price_from": "2000.00",
+      "category": 1,
+      "name": "Спирометрия",
+      "slug": "spirometriya",
+      "description": "Оценка функции внешнего дыхания при астме, ХОБЛ и других заболеваниях.",
+      "price_from": "1600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+  {
+    "model": "services.service",
+    "pk": 34,
+    "fields": {
+      "category": 4,
+      "name": "Забор крови из вены",
+      "slug": "zabor-krovi-iz-veny",
+      "description": "Забор венозной крови для лабораторных исследований с соблюдением стерильности.",
+      "price_from": "300.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 35,
+    "fields": {
+      "category": 4,
+      "name": "Внутримышечная инъекция",
+      "slug": "vnutrimyshechnaya-inekciya",
+      "description": "Введение лекарственного препарата внутримышечно по назначению врача.",
+      "price_from": "400.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 36,
+    "fields": {
+      "category": 4,
+      "name": "Внутривенная инъекция",
+      "slug": "vnutrivennaya-inekciya",
+      "description": "Введение препарата в вену медицинским специалистом.",
+      "price_from": "600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 37,
+    "fields": {
+      "category": 4,
+      "name": "Капельница (инфузионная терапия)",
+      "slug": "kapelnica-infuzionnaya-terapiya",
+      "description": "Внутривенное капельное введение растворов и препаратов по назначению врача.",
+      "price_from": "1500.00",
+      "price_to": null,
+      "is_active": true
+    }
+ },
+
+  {
+    "model": "services.service",
+    "pk": 38,
+    "fields": {
+      "category": 4,
+      "name": "Перевязка",
+      "slug": "perevyazka",
+      "description": "Смена повязки, обработка раны и контроль за заживлением.",
+      "price_from": "700.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 39,
+    "fields": {
+      "category": 4,
+      "name": "Обработка раны",
+      "slug": "obrabotka-rany",
+      "description": "Антисептическая обработка раневой поверхности и наложение стерильной повязки.",
+      "price_from": "600.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+ {
+    "model": "services.service",
+    "pk": 40,
+    "fields": {
+      "category": 4,
+      "name": "Снятие швов",
+      "slug": "snyatie-shvov",
+      "description": "Аккуратное удаление швов после операции/травмы с обработкой кожи.",
+      "price_from": "800.00",
+      "price_to": null,
+      "is_active": true
+    }
+ },
+
+  {
+    "model": "services.service",
+    "pk": 41,
+    "fields": {
+      "category": 4,
+      "name": "Измерение артериального давления",
+      "slug": "izmerenie-arterialnogo-davleniya",
+      "description": "Контроль артериального давления с фиксацией результата.",
+      "price_from": "200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 42,
+    "fields": {
+      "category": 4,
+      "name": "Измерение уровня глюкозы экспресс-методом",
+      "slug": "izmerenie-urovnya-glyukozy-ekspress",
+      "description": "Быстрое измерение сахара крови глюкометром.",
+      "price_from": "300.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 43,
+    "fields": {
+      "category": 4,
+      "name": "Ингаляция",
+      "slug": "ingalyaciya",
+      "description": "Проведение ингаляции через небулайзер для лечения заболеваний дыхательных путей.",
+      "price_from": "500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 44,
+    "fields": {
+      "category": 4,
+      "name": "Промывание носа (кукушка)",
+      "slug": "promyvanie-nosa-kukushka",
+      "description": "Промывание носовых пазух методом перемещения жидкости при ринитах и синуситах.",
+      "price_from": "1200.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 45,
+    "fields": {
+      "category": 4,
+      "name": "Удаление серной пробки",
+      "slug": "udalenie-sernoy-probki",
+      "description": "Аккуратное удаление серной пробки с восстановлением слуха и осмотром ЛОР-врача.",
+      "price_from": "900.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 46,
+    "fields": {
+      "category": 5,
+      "name": "Медицинская справка",
+      "slug": "medicinskaya-spravka",
+      "description": "Оформление медицинской справки по результатам осмотра и при необходимости анализов.",
+      "price_from": "1000.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 47,
+    "fields": {
+      "category": 4,
+      "name": "Чек-ап базовый",
+      "slug": "chek-ap-bazovyy",
+      "description": "Комплекс обследований: терапевт, базовые анализы, ЭКГ и рекомендации по результатам.",
+      "price_from": "6500.00",
+      "price_to": null,
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 48,
+    "fields": {
+      "category": 4,
+      "name": "Чек-ап расширенный",
+      "slug": "chek-ap-rasshirennyy",
+      "description": "Расширенный комплекс обследований с анализами, УЗИ и консультациями специалистов.",
+      "price_from": "15000.00",
       "price_to": null,
       "is_active": true
     }
