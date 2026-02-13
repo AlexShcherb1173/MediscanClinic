@@ -20,17 +20,12 @@ from .notifications import AppointmentNotification, notify_email, notify_telegra
 
 # ---------------- Helpers ----------------
 def _safe_day(value: str | None) -> dt_date | None:
-    """Parse only ISO YYYY-MM-DD. Returns date or None."""
     if not value:
         return None
-    return parse_date(value)  # None if invalid
+    return parse_date(value)
 
 
 def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead: int = 31) -> dt_date | None:
-    """
-    Find the nearest day (>= start_day) that has at least 1 free active slot.
-    Looks ahead up to days_ahead days.
-    """
     qs = AppointmentSlot.objects.filter(
         is_active=True,
         is_booked=False,
@@ -39,25 +34,18 @@ def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead
     )
     if service_id:
         qs = qs.filter(service_id=service_id)
-
-    row = qs.order_by("starts_at").values_list("starts_at__date", flat=True).first()
-    return row
+    return qs.order_by("starts_at").values_list("starts_at__date", flat=True).first()
 
 
 # -------- Calendar (month grid) --------
 @require_GET
 def calendar_view(request):
-    """
-    HTMX partial calendar (month grid)
-    GET /appointments/calendar/?m=YYYY-MM&preferred_date=YYYY-MM-DD
-    """
     today = timezone.localdate()
 
     m = request.GET.get("m")  # "2026-02"
     selected_raw = request.GET.get("preferred_date") or request.GET.get("date") or ""
     selected_date = _safe_day(selected_raw) or today
 
-    # month anchor
     if m:
         try:
             year, month = map(int, m.split("-"))
@@ -68,7 +56,7 @@ def calendar_view(request):
         first = dt_date(selected_date.year, selected_date.month, 1)
 
     year, month = first.year, first.month
-    _, days_in_month = calendar.monthrange(year, month)  # Monday=0..Sunday=6
+    _, days_in_month = calendar.monthrange(year, month)
     first_weekday = first.weekday()
 
     blanks = list(range(first_weekday))
@@ -93,18 +81,54 @@ def calendar_view(request):
     )
 
 
-# -------- HTMX: slot options --------
 @require_GET
 def slots(request):
     service_id = (
         request.GET.get("service")
-        or request.GET.get("service-select")
         or request.GET.get("service_id")
+        or request.GET.get("service-select")
         or ""
     )
     date_str = request.GET.get("preferred_date") or request.GET.get("date") or ""
+    day = parse_date(date_str)
 
-    day = parse_date(date_str) or timezone.localdate()
+    # ✅ читаем ФИО и телефон (придут из hx-include)
+    full_name = (request.GET.get("full_name") or request.GET.get("id_full_name") or "").strip()
+    phone = (request.GET.get("phone") or request.GET.get("id_phone") or "").strip()
+    patient_ready = (len(full_name) >= 3) and (len(phone) >= 6)
+
+    service_selected = bool(service_id)
+    date_selected = bool(day)
+
+    # ✅ если пациент не готов — не показываем слоты, а только подсказку
+    if not patient_ready:
+        return render(request, "appointments/_slots_tiles.html", {
+            "patient_ready": False,
+            "service_selected": False,
+            "date_selected": False,
+            "slot_items": [],
+            "selected_slot_id": "",
+        })
+
+    # услуга не выбрана
+    if not service_selected:
+        return render(request, "appointments/_slots_tiles.html", {
+            "patient_ready": True,
+            "service_selected": False,
+            "date_selected": False,
+            "slot_items": [],
+            "selected_slot_id": "",
+        })
+
+    # услуга выбрана, но дата ещё нет
+    if not date_selected:
+        return render(request, "appointments/_slots_tiles.html", {
+            "patient_ready": True,
+            "service_selected": True,
+            "date_selected": False,
+            "slot_items": [],
+            "selected_slot_id": "",
+        })
 
     tz = timezone.get_current_timezone()
     start_local = timezone.make_aware(datetime.combine(day, time.min), tz)
@@ -115,19 +139,30 @@ def slots(request):
         is_booked=False,
         starts_at__gte=start_local,
         starts_at__lte=end_local,
+        service_id=service_id,
+    ).order_by("starts_at")
+
+    slot_items = []
+    for slot in qs:
+        slot_items.append({
+            "id": str(slot.pk),
+            "label": timezone.localtime(slot.starts_at, tz).strftime("%H:%M"),
+        })
+
+    selected_slot_id = (
+            request.GET.get("slot")
+            or request.GET.get("selected_slot")
+            or request.GET.get("slot_id")
+            or ""
     )
 
-    if service_id:
-        qs = qs.filter(service_id=service_id)
-
-    qs = qs.order_by("starts_at")
-
-    selected_slot = request.GET.get("selected_slot") or ""
-    return render(
-        request,
-        "appointments/_slot_options.html",
-        {"slots": qs, "selected_slot": selected_slot},
-    )
+    return render(request, "appointments/_slots_tiles.html", {
+        "patient_ready": True,
+        "service_selected": True,
+        "date_selected": True,
+        "slot_items": slot_items,
+        "selected_slot_id": str(selected_slot_id),
+    })
 
 
 # -------- Create appointment --------
@@ -144,20 +179,15 @@ def appointment_create(request):
 
     if promo_slug:
         promo = get_object_or_404(Promo, slug=promo_slug, is_active=True)
-
-        # ВАЖНО: у тебя есть property is_current — можно использовать,
-        # но пока оставлю is_active, чтобы не ломать поведение.
         promo_services_qs = promo.services.filter(is_active=True, category__is_active=True)
 
-        # если по акции только 1 услуга — подставим и зафиксируем
         if not service_id and promo_services_qs.count() == 1:
             service_id = str(promo_services_qs.first().id)
             locked_service = True
 
     service = (
         get_object_or_404(Service, id=service_id, is_active=True, category__is_active=True)
-        if service_id
-        else None
+        if service_id else None
     )
     doctor = get_object_or_404(Doctor, id=doctor_id, is_active=True) if doctor_id else None
 
@@ -182,11 +212,11 @@ def appointment_create(request):
         )
 
         if form.is_valid():
-            slot: AppointmentSlot = form.cleaned_data["slot"]
+            slot_obj: AppointmentSlot = form.cleaned_data["slot"]
 
             try:
                 with transaction.atomic():
-                    slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot.pk)
+                    slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot_obj.pk)
 
                     if (not slot_locked.is_active) or slot_locked.is_booked:
                         form.add_error("slot", "Этот слот только что заняли. Выберите другое время.")
@@ -197,13 +227,13 @@ def appointment_create(request):
 
                     appointment: Appointment = form.save(commit=False)
                     appointment.slot = slot_locked
-                    appointment.service = slot_locked.service  # источник истины
+                    appointment.service = slot_locked.service
                     appointment.doctor = doctor
                     appointment.promo = promo
                     appointment.preferred_datetime = slot_locked.starts_at
                     appointment.save()
 
-            except IntegrityError:
+            except (IntegrityError, AppointmentSlot.DoesNotExist):
                 form.add_error("slot", "Этот слот только что заняли. Выберите другое время.")
                 return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
@@ -211,9 +241,7 @@ def appointment_create(request):
                 full_name=appointment.full_name,
                 phone=appointment.phone,
                 service_name=appointment.service.name if appointment.service else "",
-                preferred_datetime_iso=appointment.preferred_datetime.isoformat()
-                if appointment.preferred_datetime
-                else "",
+                preferred_datetime_iso=appointment.preferred_datetime.isoformat() if appointment.preferred_datetime else "",
             )
             notify_email(payload)
             notify_telegram(payload)
@@ -222,15 +250,20 @@ def appointment_create(request):
             return redirect("appointments:success", pk=appointment.pk)
 
     else:
-        # 1) берём дату из draft
-        init_day = _safe_day(draft.get("preferred_date")) or timezone.localdate()
+        # ВАЖНО: дату подставляем только если услуга уже выбрана (чтобы placeholder даты был виден)
+        initial = {
+            "full_name": draft.get("full_name", ""),
+            "phone": draft.get("phone", ""),
+            "email": draft.get("email", ""),
+            "comment": draft.get("comment", ""),
+        }
 
-        # 2) если услуги выбраны — подвинем init_day на ближайшую дату со слотами
-        #    (иначе юзер всегда будет видеть "нет слотов", если today без слотов)
-        svc_id = service.id if service else None
-        nearest = _first_day_with_slots(svc_id, init_day, days_ahead=31)
-        if nearest:
-            init_day = nearest
+        if service:
+            init_day = _safe_day(draft.get("preferred_date")) or timezone.localdate()
+            nearest = _first_day_with_slots(service.id, init_day, days_ahead=31)
+            if nearest:
+                init_day = nearest
+            initial["preferred_date"] = init_day
 
         form = AppointmentCreateForm(
             service_id=service.id if service else None,
@@ -238,13 +271,7 @@ def appointment_create(request):
             lock_service=locked_service,
             lock_doctor=locked_doctor,
             service_queryset=promo_services_qs if promo_services_qs is not None else None,
-            initial={
-                "full_name": draft.get("full_name", ""),
-                "phone": draft.get("phone", ""),
-                "email": draft.get("email", ""),
-                "comment": draft.get("comment", ""),
-                "preferred_date": init_day,  # ✅ date object
-            },
+            initial=initial,
         )
 
     return render(request, "appointments/create.html", {**base_ctx, "form": form})

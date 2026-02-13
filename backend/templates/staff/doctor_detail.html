@@ -1,4 +1,3 @@
-{# backend/templates/staff/doctor_detail.html #}
 {% extends "base.html" %}
 {% block title %}{{ doctor.full_name }} — Mediscan{% endblock %}
 
@@ -74,7 +73,7 @@
       {% endif %}
     </div>
 
-    {# Расписание (если передаёшь schedules в контекст) #}
+    {# Расписание #}
     <div class="mt-8">
       <h2 class="text-lg font-semibold text-slate-900">Расписание</h2>
 
@@ -83,9 +82,10 @@
           {% for row in schedules %}
             <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
               <div class="text-sm font-semibold text-slate-900">{{ row.weekday_label }}</div>
-              <div class="text-sm text-slate-700 mt-1">
+
+              <div class="text-sm text-slate-700 mt-2 flex flex-wrap gap-2">
                 {% for w in row.windows %}
-                  <span class="inline-flex rounded-full bg-white border border-slate-200 px-3 py-1 mr-2 mb-2">
+                  <span class="inline-flex rounded-full bg-white border border-slate-200 px-3 py-1">
                     {{ w.from }}–{{ w.to }}
                   </span>
                 {% endfor %}
