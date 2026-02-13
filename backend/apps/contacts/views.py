@@ -13,8 +13,8 @@ def contacts_home(request):
         "phone_tel": "+79856987282",
         "email": "lenovo2015549@gmail.com",
         "map_query": "г. Москва, Бережковская набережная, д. 16А5, стр. 3",
+        "telegram_username": "@ALEX_181173",
     }
-
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():

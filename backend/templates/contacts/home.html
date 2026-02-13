@@ -4,9 +4,8 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
   <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Контакты</h1>
-  <p class="mt-1 text-slate-600">Адрес, телефон и карта проезда.</p>
+  <p class="mt-1 text-slate-600">Адрес, телефон, Telegram и карта проезда.</p>
 
-  {# Django messages framework #}
   {% if messages %}
     <div class="mt-4 space-y-2">
       {% for m in messages %}
@@ -17,139 +16,124 @@
     </div>
   {% endif %}
 
-  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
-    <!-- Left card -->
+  <!-- ✅ ВАЖНО: items-stretch чтобы правая колонка тянулась по высоте -->
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+    <!-- LEFT: contacts + form -->
     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
       <div class="font-semibold text-slate-900">Адрес</div>
       <div class="mt-2 text-slate-700 leading-relaxed">
-        {{ address|default:"г. Москва, Бережковская набережная, д. 16А5, стр. 3" }}
+        {{ address }}
       </div>
 
       <div class="mt-5 font-semibold text-slate-900">Телефон / Email</div>
       <div class="mt-2 text-slate-700 space-y-1">
         <div>
-          {# phone_tel должен быть в формате +7985..., если нет — fallback #}
-          <a class="text-blue-700 hover:underline"
-             href="tel:{{ phone_tel|default:phone_display|default:'+79856987282' }}">
-            {{ phone_display|default:"+7 (985) 698-72-82" }}
-          </a>
+          <a class="text-blue-700 hover:underline" href="tel:{{ phone_tel }}">{{ phone_display }}</a>
         </div>
         <div>
-          <a class="text-blue-700 hover:underline"
-             href="mailto:{{ email|default:'lenovo2015549@gmail.com' }}">
-            {{ email|default:"lenovo2015549@gmail.com" }}
-          </a>
+          <a class="text-blue-700 hover:underline" href="mailto:{{ email }}">{{ email }}</a>
         </div>
       </div>
 
-      <!-- Telegram -->
-      <div class="mt-5 font-semibold text-slate-900">Telegram</div>
-      <div class="mt-2">
-        <a class="inline-flex items-center justify-center rounded-2xl bg-sky-500 hover:bg-sky-600 text-white
-                  px-5 py-3 font-semibold shadow-sm transition"
-           href="https://t.me/ALEX_181173"
-           target="_blank" rel="noreferrer">
-          Написать в Telegram @ALEX_181173
-        </a>
-      </div>
+      {% if telegram_username %}
+        <div class="mt-5 font-semibold text-slate-900">Telegram</div>
+        <div class="mt-2">
+          <a
+            class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900
+                   hover:bg-slate-50 transition"
+            href="https://t.me/{{ telegram_username|cut:'@' }}"
+            target="_blank"
+            rel="noreferrer"
+          >
+            @{{ telegram_username|cut:'@' }}
+            <span class="text-slate-400 font-normal">→</span>
+          </a>
+        </div>
+      {% endif %}
 
-      <div class="mt-6 rounded-2xl bg-sky-50 border border-sky-200 p-4 text-sm text-sky-900">
-        Форма обратной связи отправляет сообщения в <b>Email</b> + <b>Telegram</b>.
-      </div>
-    </div>
+      <!-- FORM -->
+      <div class="mt-6">
+        <div class="font-semibold text-slate-900">Форма обратной связи</div>
 
-    <!-- Right card -->
-    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-      <div class="font-semibold text-slate-900">Карта проезда (Google Maps)</div>
+        <form method="post" class="mt-4 space-y-3" novalidate>
+          {% csrf_token %}
 
-      <div class="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <iframe
-          title="Mediscan map"
-          class="w-full h-[260px]"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          src="https://www.google.com/maps?q={{ map_query|default:address|default:'Бережковская набережная 16А5 стр 3 Москва'|urlencode }}&output=embed"
-        ></iframe>
-      </div>
+          {% if form.non_field_errors %}
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
 
-      <div class="mt-6 font-semibold text-slate-900">Форма обратной связи</div>
-
-      <form method="post" class="mt-4 space-y-3" novalidate>
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-          <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-            {{ form.non_field_errors }}
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
+            <input
+              type="text"
+              name="{{ form.name.name }}"
+              value="{{ form.name.value|default_if_none:'' }}"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.name.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Ваше имя"
+            />
+            {% if form.name.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>
+            {% endif %}
           </div>
-        {% endif %}
 
-        <div>
-          <label for="id_name" class="block text-sm font-semibold text-slate-800 mb-1">
-            {{ form.name.label }}
-          </label>
-          <input
-            id="id_name"
-            type="text"
-            name="{{ form.name.name }}"
-            value="{{ form.name.value|default_if_none:'' }}"
-            autocomplete="name"
-            class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
-                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
-                   {% if form.name.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
-            placeholder="Ваше имя"
-          />
-          {% if form.name.errors %}
-            <div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>
-          {% endif %}
-        </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.email.label }}</label>
+            <input
+              type="email"
+              name="{{ form.email.name }}"
+              value="{{ form.email.value|default_if_none:'' }}"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.email.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Email"
+            />
+            {% if form.email.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
+            {% endif %}
+          </div>
 
-        <div>
-          <label for="id_email" class="block text-sm font-semibold text-slate-800 mb-1">
-            {{ form.email.label }}
-          </label>
-          <input
-            id="id_email"
-            type="email"
-            name="{{ form.email.name }}"
-            value="{{ form.email.value|default_if_none:'' }}"
-            autocomplete="email"
-            class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
-                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
-                   {% if form.email.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
-            placeholder="Email"
-          />
-          {% if form.email.errors %}
-            <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
-          {% endif %}
-        </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.message.label }}</label>
+            <textarea
+              name="{{ form.message.name }}"
+              rows="6"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.message.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Сообщение"
+            >{{ form.message.value|default_if_none:'' }}</textarea>
+            {% if form.message.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.message.errors }}</div>
+            {% endif %}
+          </div>
 
-        <div>
-          <label for="id_message" class="block text-sm font-semibold text-slate-800 mb-1">
-            {{ form.message.label }}
-          </label>
-          <textarea
-            id="id_message"
-            name="{{ form.message.name }}"
-            rows="5"
-            class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
-                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
-                   {% if form.message.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
-            placeholder="Сообщение"
-          >{{ form.message.value|default_if_none:'' }}</textarea>
-          {% if form.message.errors %}
-            <div class="mt-1 text-sm text-red-700">{{ form.message.errors }}</div>
-          {% endif %}
-        </div>
-
-        <button
-          type="submit"
-          class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
-                 px-6 py-3 font-semibold shadow-sm transition"
-        >
-          Отправить
-        </button>
-      </form>
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
+                   px-6 py-3 font-semibold shadow-sm transition"
+          >
+            Отправить
+          </button>
+        </form>
+      </div>
     </div>
+
+    <!-- ✅ RIGHT: карта на всю правую колонку -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative
+                min-h-[520px] lg:min-h-full h-full">
+      <iframe
+        title="Mediscan map"
+        class="absolute inset-0 w-full h-full"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        src="https://www.google.com/maps?q={{ map_query|urlencode }}&output=embed"
+      ></iframe>
+    </div>
+
   </div>
 </div>
 {% endblock %}
