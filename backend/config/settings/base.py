@@ -118,9 +118,11 @@ CELERY_BEAT_SCHEDULE = {
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "")
+TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 # Куда слать: твой user id или chat id группы (например -100123...)
-TELEGRAM_CHAT_ID = os.getenv("8424405225", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID","")
 
 EMAIL_BACKEND = os.getenv("SMTP_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.getenv("SMTP_HOST", "")
@@ -128,4 +130,13 @@ EMAIL_PORT = int(os.getenv("SMTP_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("SMTP_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("SMTP_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+def _env_str(name: str, default: str = "") -> str:
+    v = os.getenv(name, default)
+    # защита от случайных tuple/list
+    if isinstance(v, (tuple, list)):
+        v = v[0] if v else default
+    return str(v).strip()
+
+DEFAULT_FROM_EMAIL = _env_str("DEFAULT_FROM_EMAIL", "lenovo2015549@gmail.com")
+CONTACTS_ADMIN_EMAIL = _env_str("CONTACTS_ADMIN_EMAIL", DEFAULT_FROM_EMAIL)
