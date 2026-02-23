@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Мои записи — Mediscan{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">История записей</h1>
+      <div class="text-slate-600 text-sm mt-1">
+        Все ваши записи в клинике
+      </div>
+    </div>
+
+    <div class="flex gap-2 flex-wrap">
+      <a href="{% url 'cabinet:dashboard' %}"
+         class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition">
+        ← В кабинет
+      </a>
+
+      <a href="{% url 'appointments:create' %}"
+         class="inline-flex items-center justify-center rounded-full bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-extrabold hover:bg-yellow-300 transition">
+        Записаться
+      </a>
+    </div>
+  </div>
+
+  <!-- Appointments list -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+
+    {% if appointments %}
+      <div class="space-y-4">
+        {% for a in appointments %}
+          <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+              <div>
+                <div class="text-lg font-semibold text-slate-900">
+                  {% if a.service %}
+                    {{ a.service.name }}
+                  {% else %}
+                    Запись
+                  {% endif %}
+                </div>
+
+                <div class="text-sm text-slate-600 mt-1">
+                  {% if a.preferred_datetime %}
+                    {{ a.preferred_datetime|date:"d.m.Y H:i" }}
+                  {% endif %}
+
+                  {% if a.doctor %}
+                    <span class="text-slate-400">•</span>
+                    {{ a.doctor.full_name }}
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Status badge -->
+              <div class="text-xs font-semibold px-3 py-1 rounded-full
+                {% if a.status == 'new' %}
+                  bg-blue-50 text-blue-700
+                {% elif a.status == 'confirmed' %}
+                  bg-amber-50 text-amber-700
+                {% elif a.status == 'completed' %}
+                  bg-emerald-50 text-emerald-700
+                {% elif a.status == 'canceled' %}
+                  bg-red-50 text-red-700
+                {% else %}
+                  bg-slate-100 text-slate-700
+                {% endif %}">
+                {{ a.get_status_display }}
+              </div>
+
+            </div>
+
+            {% if a.comment %}
+              <div class="mt-4 text-sm text-slate-700 border-t border-slate-100 pt-4">
+                Комментарий: {{ a.comment }}
+              </div>
+            {% endif %}
+
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-slate-600">
+        У вас пока нет записей.
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

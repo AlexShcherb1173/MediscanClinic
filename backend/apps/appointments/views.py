@@ -102,33 +102,45 @@ def slots(request):
 
     # ✅ если пациент не готов — не показываем слоты, а только подсказку
     if not patient_ready:
-        return render(request, "appointments/_slots_tiles.html", {
-            "patient_ready": False,
-            "service_selected": False,
-            "date_selected": False,
-            "slot_items": [],
-            "selected_slot_id": "",
-        })
+        return render(
+            request,
+            "appointments/_slots_tiles.html",
+            {
+                "patient_ready": False,
+                "service_selected": False,
+                "date_selected": False,
+                "slot_items": [],
+                "selected_slot_id": "",
+            },
+        )
 
     # услуга не выбрана
     if not service_selected:
-        return render(request, "appointments/_slots_tiles.html", {
-            "patient_ready": True,
-            "service_selected": False,
-            "date_selected": False,
-            "slot_items": [],
-            "selected_slot_id": "",
-        })
+        return render(
+            request,
+            "appointments/_slots_tiles.html",
+            {
+                "patient_ready": True,
+                "service_selected": False,
+                "date_selected": False,
+                "slot_items": [],
+                "selected_slot_id": "",
+            },
+        )
 
     # услуга выбрана, но дата ещё нет
     if not date_selected:
-        return render(request, "appointments/_slots_tiles.html", {
-            "patient_ready": True,
-            "service_selected": True,
-            "date_selected": False,
-            "slot_items": [],
-            "selected_slot_id": "",
-        })
+        return render(
+            request,
+            "appointments/_slots_tiles.html",
+            {
+                "patient_ready": True,
+                "service_selected": True,
+                "date_selected": False,
+                "slot_items": [],
+                "selected_slot_id": "",
+            },
+        )
 
     tz = timezone.get_current_timezone()
     start_local = timezone.make_aware(datetime.combine(day, time.min), tz)
@@ -142,27 +154,29 @@ def slots(request):
         service_id=service_id,
     ).order_by("starts_at")
 
-    slot_items = []
-    for slot in qs:
-        slot_items.append({
-            "id": str(slot.pk),
-            "label": timezone.localtime(slot.starts_at, tz).strftime("%H:%M"),
-        })
+    slot_items = [
+        {"id": str(slot.pk), "label": timezone.localtime(slot.starts_at, tz).strftime("%H:%M")}
+        for slot in qs
+    ]
 
     selected_slot_id = (
-            request.GET.get("slot")
-            or request.GET.get("selected_slot")
-            or request.GET.get("slot_id")
-            or ""
+        request.GET.get("slot")
+        or request.GET.get("selected_slot")
+        or request.GET.get("slot_id")
+        or ""
     )
 
-    return render(request, "appointments/_slots_tiles.html", {
-        "patient_ready": True,
-        "service_selected": True,
-        "date_selected": True,
-        "slot_items": slot_items,
-        "selected_slot_id": str(selected_slot_id),
-    })
+    return render(
+        request,
+        "appointments/_slots_tiles.html",
+        {
+            "patient_ready": True,
+            "service_selected": True,
+            "date_selected": True,
+            "slot_items": slot_items,
+            "selected_slot_id": str(selected_slot_id),
+        },
+    )
 
 
 # -------- Create appointment --------
@@ -226,6 +240,10 @@ def appointment_create(request):
                     slot_locked.save(update_fields=["is_booked"])
 
                     appointment: Appointment = form.save(commit=False)
+
+                    # ✅ привязка к пользователю (если авторизован)
+                    appointment.user = request.user if request.user.is_authenticated else None
+
                     appointment.slot = slot_locked
                     appointment.service = slot_locked.service
                     appointment.doctor = doctor

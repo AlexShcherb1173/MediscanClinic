@@ -194,14 +194,22 @@
   </div>
 
   <!-- CTA strip -->
-  <div class="mt-6 bg-gradient-to-r from-blue-50 to-white border border-slate-200 rounded-[28px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+  <div class="relative mt-6 bg-gradient-to-r from-blue-50 to-white border border-slate-200 rounded-[28px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
     <div>
       <div class="text-sm font-semibold">Не знаете, что выбрать?</div>
       <div class="text-sm text-slate-600 mt-1">Подскажем по симптомам или направлению врача.</div>
     </div>
-    <a href="#feedback" class="inline-flex rounded-full bg-blue-600 text-white px-6 py-3 text-sm font-medium hover:bg-blue-700">
-      Задать вопрос
-    </a>
+  <button
+  type="button"
+  data-open-ask-question
+  onclick="event.preventDefault(); event.stopPropagation();"
+  class="relative z-10 inline-flex items-center justify-center rounded-full
+         bg-blue-600 hover:bg-blue-700
+         px-6 py-3 text-sm font-semibold text-white
+         shadow-sm transition active:scale-95"
+>
+  Задать вопрос
+</button>
   </div>
 </section>
 

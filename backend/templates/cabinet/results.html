@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Мои результаты — Mediscan{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Результаты исследований</h1>
+      <div class="text-slate-600 text-sm mt-1">
+        Все загруженные администратором документы
+      </div>
+    </div>
+
+    <div class="flex gap-2 flex-wrap">
+      <a href="{% url 'cabinet:dashboard' %}"
+         class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition">
+        ← В кабинет
+      </a>
+
+      <button type="button" data-open-feedback
+        class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition">
+        Обратная связь
+      </button>
+    </div>
+  </div>
+
+  <!-- Results list -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+    {% if results %}
+      <div class="space-y-4">
+        {% for r in results %}
+          <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <div class="text-lg font-semibold text-slate-900">
+                  {{ r.title }}
+                </div>
+
+                <div class="text-sm text-slate-600 mt-1">
+                  {% if r.result_date %}
+                    Дата исследования: {{ r.result_date|date:"d.m.Y" }}
+                  {% endif %}
+                  <span class="text-slate-400">•</span>
+                  Загружено {{ r.created_at|date:"d.m.Y H:i" }}
+                </div>
+              </div>
+
+              {% if r.file %}
+                <a href="{{ r.file.url }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
+                  Открыть файл →
+                </a>
+              {% endif %}
+            </div>
+
+            {% if r.comment %}
+              <div class="mt-4 text-sm text-slate-700 border-t border-slate-100 pt-4">
+                {{ r.comment }}
+              </div>
+            {% endif %}
+
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-slate-600">
+        Пока нет загруженных результатов.
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

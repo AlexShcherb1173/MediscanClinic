@@ -1,20 +1,50 @@
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .forms import ContactForm
+from .forms import ContactForm, AskQuestionForm
 from .notifications import notify_contact_email, notify_contact_telegram
 
 
+def _send_feedback(form: ContactForm) -> None:
+    name = form.cleaned_data["name"]
+    email = form.cleaned_data["email"]
+    message_text = form.cleaned_data["message"]
+
+    subject = f"Mediscan: сообщение с сайта (Обратная связь) от {name}"
+    text = (
+        f"Новое сообщение с формы Обратной связи\n\n"
+        f"Имя: {name}\n"
+        f"Email: {email}\n\n"
+        f"Сообщение:\n{message_text}\n"
+    )
+
+    notify_contact_email(subject, text)
+
+    tg_text = (
+        "<b>Mediscan — Обратная связь</b>\n"
+        "<b>Новое сообщение</b>\n\n"
+        f"<b>Имя:</b> {name}\n"
+        f"<b>Email:</b> {email}\n\n"
+        f"<b>Текст:</b>\n{message_text}"
+    )
+    notify_contact_telegram(tg_text)
+
+
 def contacts_home(request):
+    address = "г. Москва, Бережковская набережная, д. 16А5, стр. 5"
+
     base_ctx = {
-        "address": "г. Москва, Бережковская набережная, д. 16А5, стр. 3",
+        "address": address,
         "phone_display": "+7(985)698-72-82",
         "phone_tel": "+79856987282",
         "email": "lenovo2015549@gmail.com",
-        "map_query": "г. Москва, Бережковская набережная, д. 16А5, стр. 3",
         "telegram_username": "@ALEX_181173",
+        "map_query": address,
+        "ymaps_api_key": getattr(settings, "YMAPS_API_KEY", ""),
     }
+
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -30,7 +60,6 @@ def contacts_home(request):
                 f"Сообщение:\n{message_text}\n"
             )
 
-            # Email + Telegram админу
             notify_contact_email(subject, text)
 
             tg_text = (
@@ -47,5 +76,64 @@ def contacts_home(request):
 
         return render(request, "contacts/home.html", {**base_ctx, "form": form})
 
-    # GET
     return render(request, "contacts/home.html", {**base_ctx, "form": ContactForm()})
+
+
+def feedback_home(request):
+    base_ctx = {
+        "phone_display": "+7(985)698-72-82",
+        "phone_tel": "+79856987282",
+        "email": "lenovo2015549@gmail.com",
+        "telegram_username": "@ALEX_181173",
+    }
+
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            _send_feedback(form)
+            messages.success(request, "Сообщение отправлено! Мы скоро свяжемся с вами.")
+            return redirect(reverse("contacts:feedback"))
+        return render(request, "contacts/feedback.html", {**base_ctx, "form": form})
+
+    return render(request, "contacts/feedback.html", {**base_ctx, "form": ContactForm()})
+
+
+def ask_question(request):
+    base_ctx = {
+        "phone_display": "+7(985)698-72-82",
+        "phone_tel": "+79856987282",
+        "email": "lenovo2015549@gmail.com",
+        "telegram_username": "@ALEX_181173",
+    }
+
+    if request.method == "POST":
+        form = AskQuestionForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            contact = form.cleaned_data["contact"]
+            question = form.cleaned_data["question"]
+
+            subject = f"Mediscan: вопрос с сайта от {name}"
+            text = (
+                "Новый вопрос с сайта\n\n"
+                f"Имя: {name}\n"
+                f"Контакт: {contact}\n\n"
+                f"Вопрос:\n{question}\n"
+            )
+            notify_contact_email(subject, text)
+
+            tg_text = (
+                "<b>Mediscan — Вопрос с сайта</b>\n"
+                "<b>Новый вопрос</b>\n\n"
+                f"<b>Имя:</b> {name}\n"
+                f"<b>Контакт:</b> {contact}\n\n"
+                f"<b>Вопрос:</b>\n{question}"
+            )
+            notify_contact_telegram(tg_text)
+
+            messages.success(request, "Вопрос отправлен! Мы скоро ответим.")
+            return redirect(reverse("contacts:ask_question"))
+
+        return render(request, "contacts/ask_question.html", {**base_ctx, "form": form})
+
+    return render(request, "contacts/ask_question.html", {**base_ctx, "form": AskQuestionForm()})

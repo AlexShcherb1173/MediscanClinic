@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.core.validators import RegexValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -39,7 +40,6 @@ class Appointment(models.Model):
         COMPLETED = "completed", "Завершена"
         CANCELED = "canceled", "Отменена"
 
-    # Услуга — можно хранить явно (удобно), но фактически она = slot.service
     service = models.ForeignKey(
         Service,
         on_delete=models.PROTECT,
@@ -58,7 +58,6 @@ class Appointment(models.Model):
         blank=True,
     )
 
-    # Врач — опционально
     doctor = models.ForeignKey(
         Doctor,
         related_name="appointments",
@@ -68,7 +67,6 @@ class Appointment(models.Model):
         verbose_name="Врач",
     )
 
-    # Акция — опционально
     promo = models.ForeignKey(
         Promo,
         related_name="appointments",
@@ -78,12 +76,20 @@ class Appointment(models.Model):
         verbose_name="Акция",
     )
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="appointments",
+        verbose_name="Пользователь",
+    )
+
     full_name = models.CharField("Имя", max_length=120)
     phone = models.CharField("Телефон", max_length=24, validators=[phone_validator])
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
     comment = models.TextField("Комментарий", blank=True)
 
-    # ✅ важно: это поле нужно для индексов/напоминаний/поиска
     preferred_datetime = models.DateTimeField("Дата/время записи", null=True, blank=True)
 
     reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
@@ -114,7 +120,6 @@ class Appointment(models.Model):
             models.Index(fields=["slot"]),
         ]
         constraints = [
-            # ✅ главное: один слот = одна запись
             models.UniqueConstraint(
                 fields=["slot"],
                 condition=Q(slot__isnull=False),
@@ -124,7 +129,6 @@ class Appointment(models.Model):
 
     def clean(self):
         super().clean()
-        # либо слот, либо врач/услуга — но раз мы выбрали архитектуру "слот обязателен", проверим слот
         if not self.slot:
             raise ValidationError("Выберите слот для записи.")
 

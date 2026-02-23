@@ -664,5 +664,19 @@
       "price_to": null,
       "is_active": true
     }
+  },
+
+  {
+    "model": "services.service",
+    "pk": 49,
+    "fields": {
+      "category": 1,
+      "name": "МРТ",
+      "slug": "mrt",
+      "description": "Диагностика на магнито-резонансном томографе",
+      "price_from": "20000.00",
+      "price_to": null,
+      "is_active": true
+    }
   }
 ]

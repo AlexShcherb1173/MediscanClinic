@@ -24,7 +24,33 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+
    ]
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+LOGIN_REDIRECT_URL = "cabinet:dashboard"
+LOGOUT_REDIRECT_URL = "pages:home"
+
+# allauth (new settings, вместо deprecated)
+ACCOUNT_LOGIN_METHODS = {"email"}  # login только по email
+
+# поля регистрации (звёздочка = required)
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+# если ты не используешь username вообще:
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 INSTALLED_APPS += [
     "apps.core",
@@ -35,6 +61,8 @@ INSTALLED_APPS += [
     "apps.appointments",
     "apps.patients",
     "apps.contacts",
+    "apps.results",
+    "apps.cabinet",
 ]
 
 MIDDLEWARE = [
@@ -46,6 +74,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -140,3 +170,5 @@ def _env_str(name: str, default: str = "") -> str:
 
 DEFAULT_FROM_EMAIL = _env_str("DEFAULT_FROM_EMAIL", "lenovo2015549@gmail.com")
 CONTACTS_ADMIN_EMAIL = _env_str("CONTACTS_ADMIN_EMAIL", DEFAULT_FROM_EMAIL)
+
+YMAPS_API_KEY = os.getenv("YMAPS_API_KEY", "")

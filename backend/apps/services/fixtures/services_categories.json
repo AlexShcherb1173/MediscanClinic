@@ -35,7 +35,7 @@
     "fields": {
       "name": "Процедуры",
       "slug": "proceduri",
-      "order": 3,
+      "order": 4,
       "is_active": true
     }
   },
@@ -45,8 +45,9 @@
     "fields": {
       "name": "Документы",
       "slug": "documenti",
-      "order": 3,
+      "order": 5,
       "is_active": true
     }
+
   }
 ]

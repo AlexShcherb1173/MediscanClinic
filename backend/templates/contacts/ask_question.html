@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Задать вопрос — Mediscan{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Задать вопрос</h1>
+  <p class="mt-1 text-slate-600">Опишите вопрос — мы ответим по указанному контакту.</p>
+
+  <div class="mt-6 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+      <div class="text-lg font-extrabold text-slate-900">Форма вопроса</div>
+      <div class="text-sm text-slate-500">Отправляем администратору на Email и в Telegram.</div>
+    </div>
+
+    <div class="p-6">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div id="form-non-field-errors" data-non-field-errors>
+          {% if form.non_field_errors %}
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mt-4 space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
+            <input
+              type="text" name="{{ form.name.name }}"
+              value="{{ form.name.value|default_if_none:'' }}"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.name.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Ваше имя"
+            />
+            <div id="error-name" data-error-for="name">
+              {% if form.name.errors %}<div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.contact.label }}</label>
+            <input
+              type="text" name="{{ form.contact.name }}"
+              value="{{ form.contact.value|default_if_none:'' }}"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.contact.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Телефон или email"
+            />
+            <div id="error-contact" data-error-for="contact">
+              {% if form.contact.errors %}<div class="mt-1 text-sm text-red-700">{{ form.contact.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.question.label }}</label>
+            <textarea
+              name="{{ form.question.name }}"
+              rows="7"
+              class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                     focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
+                     {% if form.question.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+              placeholder="Ваш вопрос"
+            >{{ form.question.value|default_if_none:'' }}</textarea>
+            <div id="error-question" data-error-for="question">
+              {% if form.question.errors %}<div class="mt-1 text-sm text-red-700">{{ form.question.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
+                   px-6 py-3 font-semibold shadow-sm transition"
+          >
+            Отправить вопрос
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
