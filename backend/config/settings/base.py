@@ -98,6 +98,10 @@ TEMPLATES = [
     }
 ]
 
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "apps.cabinet.context_processors.cabinet_badges",
+]
+
 WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
