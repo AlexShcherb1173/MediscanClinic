@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
+from django.shortcuts import redirect
 
 from apps.promos.models import Promo
 from apps.services.models import Service
@@ -17,6 +18,9 @@ from .forms import AppointmentCreateForm
 from .models import Appointment, AppointmentSlot
 from .notifications import AppointmentNotification, notify_email, notify_telegram
 
+
+def appointments_index(request):
+    return redirect("appointments:create")
 
 # ---------------- Helpers ----------------
 def _safe_day(value: str | None) -> dt_date | None:

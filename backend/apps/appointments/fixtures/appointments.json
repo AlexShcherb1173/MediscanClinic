@@ -1,0 +1,38 @@
+[
+  {
+    "model": "appointments.appointment",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "doctor": 1,
+      "service": 1,
+      "status": "confirmed",
+      "preferred_datetime": "2026-02-20T12:00:00Z",
+      "created_at": "2026-02-18T10:00:00Z"
+    }
+  },
+  {
+    "model": "appointments.appointment",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "doctor": 1,
+      "service": 1,
+      "status": "completed",
+      "preferred_datetime": "2026-01-15T09:00:00Z",
+      "created_at": "2026-01-10T08:30:00Z"
+    }
+  },
+  {
+    "model": "appointments.appointment",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "doctor": 1,
+      "service": 1,
+      "status": "cancelled",
+      "preferred_datetime": "2026-01-05T16:00:00Z",
+      "created_at": "2026-01-02T12:00:00Z"
+    }
+  }
+]

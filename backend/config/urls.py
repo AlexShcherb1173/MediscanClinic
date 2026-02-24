@@ -33,9 +33,9 @@ urlpatterns = [
     path("doctors/", include(("apps.staff.urls", "staff"), namespace="staff")),
     path("promos/", include(("apps.promos.urls", "promos"), namespace="promos")),
     path("contacts/", include("apps.contacts.urls", namespace="contacts")),
-    path("accounts/", include("allauth.urls")),
-    path("account/", include("apps.cabinet.urls")),
+    path("accounts/", include("apps.cabinet.urls")),
     path("results/", include("apps.results.urls")),
+    path("auth/", include("apps.accounts.urls")),
 ]
 
 if settings.DEBUG:

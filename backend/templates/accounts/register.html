@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Mediscan{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+    <h1 class="text-2xl font-extrabold text-slate-900">Регистрация</h1>
+    <div class="text-sm text-slate-600 mt-1">ФИО + телефон + email</div>
+
+    {% if form.non_field_errors %}
+      <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-800 mb-1">ФИО</label>
+        <input name="full_name" value="{{ form.full_name.value|default:'' }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          placeholder="Иванов Иван Иванович" />
+        {% if form.full_name.errors %}
+          <div class="mt-1 text-sm text-red-700">{{ form.full_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-800 mb-1">Телефон</label>
+        <input name="phone" value="{{ form.phone.value|default:'' }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          placeholder="+7 999 000-00-00" />
+        {% if form.phone.errors %}
+          <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+        <input name="email" value="{{ form.email.value|default:'' }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          placeholder="you@mail.com" />
+        {% if form.email.errors %}
+          <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-semibold text-slate-800 mb-1">Пароль</label>
+          <input type="password" name="password1"
+            class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+          {% if form.password1.errors %}
+            <div class="mt-1 text-sm text-red-700">{{ form.password1.errors }}</div>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-800 mb-1">Повтор</label>
+          <input type="password" name="password2"
+            class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+          {% if form.password2.errors %}
+            <div class="mt-1 text-sm text-red-700">{{ form.password2.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <button class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
+                     text-white px-6 py-3 font-semibold transition">
+        Создать аккаунт
+      </button>
+
+      <div class="text-sm text-slate-600">
+        Уже есть аккаунт?
+        <a href="{% url 'accounts:login' %}" class="text-blue-700 font-semibold hover:underline">Войти</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Вход — Mediscan{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+    <h1 class="text-2xl font-extrabold text-slate-900">Вход</h1>
+    <div class="text-sm text-slate-600 mt-1">Вход по телефону</div>
+
+    {% if form.non_field_errors %}
+      <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-800 mb-1">Телефон</label>
+        <input name="phone" value="{{ form.phone.value|default:'' }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          placeholder="+7 999 000-00-00" />
+        {% if form.phone.errors %}
+          <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-800 mb-1">Пароль</label>
+        <input type="password" name="password"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+        {% if form.password.errors %}
+          <div class="mt-1 text-sm text-red-700">{{ form.password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <button class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
+                     text-white px-6 py-3 font-semibold transition">
+        Войти
+      </button>
+
+      <div class="text-sm text-slate-600">
+        Нет аккаунта?
+        <a href="{% url 'accounts:register' %}" class="text-blue-700 font-semibold hover:underline">Зарегистрироваться</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

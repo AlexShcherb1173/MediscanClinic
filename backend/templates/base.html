@@ -112,17 +112,29 @@
         Записаться
       </a>
 
-      <!-- ✅ привязали -->
       <a href="{% url 'cabinet:results' %}"
-         class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill">
-        Результаты
-      </a>
+   class="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill">
+  <span>Результаты</span>
+
+  {% if unread_results_count|default:0 %}
+    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-extrabold">
+      {{ unread_results_count }}
+    </span>
+  {% endif %}
+</a>
 
       <!-- ✅ привязали -->
-      <a href="{% url 'cabinet:dashboard' %}"
-         class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill">
-        ЛК
-      </a>
+     {% if request.user.is_authenticated %}
+  <a href="{% url 'cabinet:dashboard' %}"
+     class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill">
+    ЛК
+  </a>
+{% else %}
+  <a href="{% url 'accounts:login' %}"
+     class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill">
+    Войти
+  </a>
+{% endif %}
     </div>
 
     <!-- SECOND ROW: menu (NO city here) -->
@@ -155,7 +167,6 @@
                 Обратная связь
               </button>
 
-              <a href="/#telegram" class="{{ base }} {{ inactive }}">Telegram-бот</a>
 
               <a href="{% url 'pages:page_detail' 'about' %}"
                  class="{{ base }} {% if p|slice:':12' == '/page/about/' %}{{ active }}{% else %}{{ inactive }}{% endif %}">
@@ -210,7 +221,10 @@
       </div>
 
       <div class="md:col-span-3">
-        <div class="text-sm font-semibold text-yellow-900">Карта сайта</div>
+         <a href="{% url 'pages:sitemap' %}"
+     class="text-sm font-semibold text-yellow-900 hover:text-yellow-700 transition">
+    Карта сайта
+  </a>
         <div class="mt-3 space-y-2 text-sm text-yellow-800">
           <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'about' %}">О компании</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="/services/">Услуги</a>

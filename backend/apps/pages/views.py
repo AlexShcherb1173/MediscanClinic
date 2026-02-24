@@ -6,6 +6,7 @@ from apps.services.models import Service
 from apps.core.models import City, SiteSettings
 from apps.staff.models import Doctor
 from apps.core.models import License
+from django.shortcuts import render
 
 
 # Слаги, которые рендерим шаблонами (без Page из БД)
@@ -18,6 +19,9 @@ STATIC_TEMPLATES = {
     "personal-data": "pages/personal-data.html",
 }
 
+
+def sitemap_view(request):
+    return render(request, "pages/sitemap.html")
 
 def page_detail(request, slug: str):
     # 1) Спец-страница "about" (как у тебя) — с докторами и лицензиями

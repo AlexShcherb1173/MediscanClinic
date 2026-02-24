@@ -9,9 +9,7 @@
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold text-slate-900">Результаты исследований</h1>
-      <div class="text-slate-600 text-sm mt-1">
-        Все загруженные администратором документы
-      </div>
+      <div class="text-slate-600 text-sm mt-1">Все загруженные администратором документы</div>
     </div>
 
     <div class="flex gap-2 flex-wrap">
@@ -33,37 +31,47 @@
       <div class="space-y-4">
         {% for r in results %}
           <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
+            <div class="flex flex-col gap-3">
 
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <!-- Title + meta -->
               <div>
-                <div class="text-lg font-semibold text-slate-900">
+                <div class="text-base md:text-lg font-semibold text-slate-900">
                   {{ r.title }}
                 </div>
 
-                <div class="text-sm text-slate-600 mt-1">
+                <div class="mt-1 text-xs md:text-sm text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
                   {% if r.result_date %}
-                    Дата исследования: {{ r.result_date|date:"d.m.Y" }}
+                    <span>Дата: {{ r.result_date|date:"d.m.Y" }}</span>
+                    <span class="text-slate-300">•</span>
                   {% endif %}
-                  <span class="text-slate-400">•</span>
-                  Загружено {{ r.created_at|date:"d.m.Y H:i" }}
+
+                  <span>Загружено: {{ r.created_at|date:"d.m.Y H:i" }}</span>
+
+                  {% if not r.is_viewed %}
+                    <span class="ml-0 md:ml-2 inline-flex items-center rounded-full bg-red-50 text-red-700 px-2 py-0.5 text-xs font-semibold">
+                      Новое
+                    </span>
+                  {% endif %}
                 </div>
               </div>
 
-              {% if r.file %}
-                <a href="{{ r.file.url }}"
-                   target="_blank"
-                   class="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
-                  Открыть файл →
-                </a>
+              <!-- Comment (optional) -->
+              {% if r.comment %}
+                <div class="text-sm text-slate-700 leading-relaxed">
+                  {{ r.comment }}
+                </div>
               {% endif %}
-            </div>
 
-            {% if r.comment %}
-              <div class="mt-4 text-sm text-slate-700 border-t border-slate-100 pt-4">
-                {{ r.comment }}
+              <!-- Actions -->
+              <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end pt-1">
+                <a href="{% url 'results:download' r.pk %}"
+                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
+                  Скачать PDF →
+                </a>
               </div>
-            {% endif %}
 
+
+            </div>
           </div>
         {% endfor %}
       </div>

@@ -1,9 +1,13 @@
+import os
+import uuid
 from django.conf import settings
 from django.db import models
 
+
 def result_upload_to(instance, filename: str) -> str:
-    # Не даём угадывать путь: можно дополнительно сделать UUID-имя файла
-    return f"results/user_{instance.patient_id}/{filename}"
+    ext = os.path.splitext(filename)[1].lower()
+    safe_name = f"{uuid.uuid4().hex}{ext}"
+    return f"results/user_{instance.patient_id}/{safe_name}"
 
 
 class ResearchResult(models.Model):
@@ -14,20 +18,17 @@ class ResearchResult(models.Model):
         verbose_name="Пациент",
     )
 
-    # title = models.CharField("Название", max_length=255)
-    # result_date = models.DateField("Дата исследования", blank=True, null=True)
-    #
-    # # файл/скан/пдф
-    # file = models.FileField("Файл результата", upload_to="results/%Y/%m/", blank=True, null=True)
-    #
-    # # текстовая расшифровка (если нужно)
-    # comment = models.TextField("Комментарий", blank=True)
-    #
-    # created_at = models.DateTimeField("Загружено", auto_now_add=True)
     title = models.CharField("Название", max_length=255)
     result_date = models.DateField("Дата исследования", null=True, blank=True)
 
-    file = models.FileField("Файл (PDF)", upload_to=result_upload_to)
+    # ⚠ временно оставляем nullable, пока не почистишь NULL в БД
+    file = models.FileField(
+        "Файл (PDF)",
+        upload_to=result_upload_to,
+        null=True,
+        blank=True,
+    )
+
     comment = models.TextField("Комментарий", blank=True)
 
     # ⭐ для бейджа "новое"
