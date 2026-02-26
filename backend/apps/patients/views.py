@@ -1,3 +1,6 @@
-from django.shortcuts import render
+"""
+Views for patients application.
 
-# Create your views here.
+Currently empty on purpose (data is used via relations).
+If you create patient-facing pages later, place them here.
+"""

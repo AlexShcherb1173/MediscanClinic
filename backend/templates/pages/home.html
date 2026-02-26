@@ -5,8 +5,10 @@
 {% block content %}
 
 <!-- HERO -->
-<section class="rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 border border-blue-100 p-10 shadow-sm">
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<section
+  class="relative z-0 isolate rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 border border-blue-100 p-10 shadow-sm overflow-hidden"
+>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
     <!-- LEFT -->
     <div class="lg:col-span-7">
@@ -61,67 +63,58 @@
       </div>
     </div>
 
-    <!-- RIGHT QUICK -->
-    <div class="lg:col-span-5 grid grid-cols-2 gap-4">
-      {# ✅ Вместо "Результаты" + "Акции": одна анимированная карточка "Наши врачи" #}
-<a href="{% url 'staff:doctor_list' %}"
-   class="group relative block rounded-2xl border border-slate-200 bg-white overflow-hidden
-          shadow-sm hover:shadow-md transition"
-   style="min-height: 120px;"
->
-  {# фон-картинка врача (анимируем через JS) #}
-  <div class="absolute inset-0">
-    <img id="heroDoctorSlideImg"
-         src="{% if doctor_slider_items and doctor_slider_items.0.url %}{{ doctor_slider_items.0.url }}{% endif %}"
-         alt=""
-         class="w-full h-full object-cover opacity-90 scale-[1.03] group-hover:scale-[1.06] transition-transform duration-700"
-         loading="lazy">
-  </div>
+    <!-- RIGHT -->
+<div class="lg:col-span-5">
+  <a href="{% url 'staff:doctor_list' %}"
+     class="hero-doctor-card border border-slate-200 shadow-sm hover:shadow-md transition">
 
-  {# затемнение + “клиника” #}
-  <div class="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/30 to-transparent"></div>
+    <img
+      id="heroDoctorSlideImg"
+      class="hero-doctor-img"
+      src="{% if doctor_slider_items and doctor_slider_items.0.url %}{{ doctor_slider_items.0.url }}{% endif %}"
+      alt=""
+      loading="lazy"
+      decoding="async"
+    />
 
-  <div class="relative z-10 p-5">
-    <div class="text-xs font-semibold text-white/80">Врачи • клиника • консультации</div>
+    <div class="hero-doctor-overlay"></div>
 
-    <div class="mt-1 text-lg font-extrabold text-white leading-tight">
-      Наши врачи
+    <div class="hero-doctor-bubble">
+      <div class="rounded-2xl border border-white/40 bg-white/75 backdrop-blur px-4 py-4 shadow-sm">
+        <div class="text-xs font-semibold text-slate-600">Врачи • клиника • консультации</div>
+
+        <div class="mt-1 text-lg font-extrabold text-slate-900 leading-snug">
+          <span id="heroDoctorName">
+            {% if doctor_slider_items and doctor_slider_items.0.name %}
+              {{ doctor_slider_items.0.name }}
+            {% else %}
+              Наши врачи
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="mt-3">
+          <span class="inline-flex items-center justify-center rounded-full bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-extrabold">
+            Смотреть
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div class="mt-1 text-sm text-white/85">
-      <span id="heroDoctorName">
-        {% if doctor_slider_items and doctor_slider_items.0.name %}{{ doctor_slider_items.0.name }}{% else %}Профессиональная команда{% endif %}
-      </span>
-    </div>
-
-    <div class="mt-3 inline-flex items-center gap-2">
-      <span class="inline-flex items-center justify-center rounded-full bg-yellow-400 text-blue-900 px-3 py-1 text-xs font-extrabold">
-        Смотреть
-      </span>
-
-      {# мини-точки-индикаторы #}
-      <span class="inline-flex items-center gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-white/50"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-white/30"></span>
-      </span>
-    </div>
-  </div>
-</a>
+  </a>
+</div>
 
   </div>
 </section>
-
 <!-- PROMOS -->
-<section id="promos" class="mt-10">
+<section id="promos" class="relative z-10 mt-10">
   <div class="flex items-end justify-between">
     <div>
       <h2 class="text-xl font-semibold">Акции</h2>
       <p class="text-slate-600 text-sm mt-1">Актуальные предложения и комплексы.</p>
     </div>
     <a href="{% url 'promos:list' %}" class="text-sm font-medium text-blue-700 hover:underline">
-      Смотреть всё →
-    </a>
+      Смотреть всё →</a>
   </div>
 
   <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -176,12 +169,10 @@
       <p class="text-slate-600 text-sm mt-1">Быстрый доступ к направлениям.</p>
     </div>
     <a href="{% url 'services:list' %}" class="text-sm font-medium text-blue-700 hover:underline">
-      Все услуги →
-    </a>
+      Все услуги →</a>
   </div>
 
   <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
     <a href="{% url 'services:list' %}?q=УЗИ"
        class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
@@ -217,7 +208,6 @@
       <div class="mt-4 text-sm font-semibold text-slate-900">от 3 500 ₽</div>
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
-
   </div>
 
   <!-- CTA strip -->
@@ -253,8 +243,7 @@
   if (!items.length) return;
 
   let i = 0;
-
-  img.style.transition = "opacity 450ms ease";
+  img.style.opacity = "1";
 
   function apply(index) {
     const it = items[index];
@@ -263,13 +252,9 @@
       img.src = it.url;
       img.onload = () => { img.style.opacity = "1"; };
       if (nameEl && it.name) nameEl.textContent = it.name;
-    }, 480);
+    }, 350);
   }
 
-  // старт
-  img.style.opacity = "1";
-
-  // смена каждые 3.5 сек
   setInterval(() => {
     i = (i + 1) % items.length;
     apply(i);

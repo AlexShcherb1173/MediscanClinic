@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Регистрация — Mediscan{% endblock %}
 
 {% block content %}
@@ -17,33 +18,50 @@
       {% csrf_token %}
 
       <div>
-        <label class="block text-sm font-semibold text-slate-800 mb-1">ФИО</label>
-        <input name="full_name" value="{{ form.full_name.value|default:'' }}"
+        <label for="id_full_name" class="block text-sm font-semibold text-slate-800 mb-1">ФИО</label>
+        <input
+          id="id_full_name"
+          name="full_name"
+          value="{{ form.full_name.value|default:'' }}"
           class="w-full rounded-2xl border border-slate-200 px-4 py-3
                  focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-          placeholder="Иванов Иван Иванович" />
+          placeholder="Иванов Иван Иванович"
+          autocomplete="name"
+        />
         {% if form.full_name.errors %}
           <div class="mt-1 text-sm text-red-700">{{ form.full_name.errors }}</div>
         {% endif %}
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-slate-800 mb-1">Телефон</label>
-        <input name="phone" value="{{ form.phone.value|default:'' }}"
+        <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">Телефон</label>
+        <input
+          id="id_phone"
+          name="phone"
+          type="tel"
+          value="{{ form.phone.value|default:'' }}"
           class="w-full rounded-2xl border border-slate-200 px-4 py-3
                  focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-          placeholder="+7 999 000-00-00" />
+          placeholder="+7 999 000-00-00"
+          autocomplete="tel"
+        />
         {% if form.phone.errors %}
           <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
         {% endif %}
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
-        <input name="email" value="{{ form.email.value|default:'' }}"
+        <label for="id_email" class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+        <input
+          id="id_email"
+          name="email"
+          type="email"
+          value="{{ form.email.value|default:'' }}"
           class="w-full rounded-2xl border border-slate-200 px-4 py-3
                  focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
-          placeholder="you@mail.com" />
+          placeholder="you@mail.com"
+          autocomplete="email"
+        />
         {% if form.email.errors %}
           <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
         {% endif %}
@@ -51,27 +69,41 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label class="block text-sm font-semibold text-slate-800 mb-1">Пароль</label>
-          <input type="password" name="password1"
+          <label for="id_password1" class="block text-sm font-semibold text-slate-800 mb-1">Пароль</label>
+          <input
+            id="id_password1"
+            type="password"
+            name="password1"
             class="w-full rounded-2xl border border-slate-200 px-4 py-3
-                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            autocomplete="new-password"
+          />
           {% if form.password1.errors %}
             <div class="mt-1 text-sm text-red-700">{{ form.password1.errors }}</div>
           {% endif %}
         </div>
+
         <div>
-          <label class="block text-sm font-semibold text-slate-800 mb-1">Повтор</label>
-          <input type="password" name="password2"
+          <label for="id_password2" class="block text-sm font-semibold text-slate-800 mb-1">Повтор</label>
+          <input
+            id="id_password2"
+            type="password"
+            name="password2"
             class="w-full rounded-2xl border border-slate-200 px-4 py-3
-                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            autocomplete="new-password"
+          />
           {% if form.password2.errors %}
             <div class="mt-1 text-sm text-red-700">{{ form.password2.errors }}</div>
           {% endif %}
         </div>
       </div>
 
-      <button class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
-                     text-white px-6 py-3 font-semibold transition">
+      <button
+        type="submit"
+        class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
+               text-white px-6 py-3 font-semibold transition"
+      >
         Создать аккаунт
       </button>
 

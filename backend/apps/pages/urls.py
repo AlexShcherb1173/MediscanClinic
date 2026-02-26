@@ -1,6 +1,16 @@
+"""
+URL configuration for pages application.
+
+Routes:
+- Home page
+- Dynamic/static page by slug
+- Sitemap page
+"""
+
 from django.urls import path
-from .views import home, page_detail
-from .views import sitemap_view
+
+from .views import home, page_detail, sitemap_view
+
 
 app_name = "pages"
 

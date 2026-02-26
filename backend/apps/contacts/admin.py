@@ -1,3 +1,13 @@
+"""
+Admin configuration for contacts application.
+
+Allows sending AdminTelegramMessage objects to Telegram:
+- bulk action "send_to_telegram"
+- auto-send on save in admin
+"""
+
+from __future__ import annotations
+
 from django.contrib import admin, messages
 from django.utils import timezone
 
@@ -7,6 +17,7 @@ from .telegram import send_telegram_message
 
 @admin.action(description="Отправить выбранные сообщения в Telegram")
 def send_to_telegram(modeladmin, request, queryset):
+    """Bulk-send not yet sent messages to Telegram."""
     ok, fail = 0, 0
 
     for obj in queryset:
@@ -30,13 +41,18 @@ def send_to_telegram(modeladmin, request, queryset):
 
 @admin.register(AdminTelegramMessage)
 class AdminTelegramMessageAdmin(admin.ModelAdmin):
+    """Admin UI for AdminTelegramMessage."""
     list_display = ("id", "is_sent", "created_at", "sent_at")
     list_filter = ("is_sent", "created_at")
     search_fields = ("text",)
     actions = [send_to_telegram]
 
-    # ✅ авто-отправка при сохранении в админке
     def save_model(self, request, obj, form, change):
+        """
+        Auto-send message to Telegram after saving.
+
+        If sending fails, message stays unsent and error is shown.
+        """
         super().save_model(request, obj, form, change)
 
         if obj.is_sent:

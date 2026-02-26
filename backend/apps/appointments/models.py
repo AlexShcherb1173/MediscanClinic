@@ -1,21 +1,50 @@
-from django.db import models
+"""
+Models for appointments application.
+
+Contains:
+- AppointmentSlot: time slots available for booking per service
+- Appointment: booking record with patient data, optional doctor/promo/user
+
+Includes validation rules and DB constraints to prevent double-booking.
+"""
+
 from django.conf import settings
-from django.core.validators import RegexValidator, EmailValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator, RegexValidator
+from django.db import models
 from django.db.models import Q
 
+from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
-from apps.promos.models import Promo
 
 
 phone_validator = RegexValidator(
     regex=r"^\+?\d[\d\s\-\(\)]{8,20}$",
     message="Введите телефон в формате +79990000000 (можно пробелы/скобки/дефисы).",
 )
+"""
+Phone validator for appointment forms.
+
+Allows:
+- optional leading '+'
+- digits with spaces, dashes, parentheses
+- length in range ~ 9..21 chars depending on formatting
+"""
 
 
 class AppointmentSlot(models.Model):
+    """
+    Booking slot for a specific service.
+
+    Attributes:
+        service: Service which can be booked in this slot.
+        starts_at: Start datetime of the slot.
+        ends_at: End datetime of the slot.
+        is_active: Controls slot availability.
+        is_booked: Flag used to mark slot as occupied.
+    """
+
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="slots")
     starts_at = models.DateTimeField("Начало слота")
     ends_at = models.DateTimeField("Конец слота")
@@ -28,13 +57,31 @@ class AppointmentSlot(models.Model):
             models.Index(fields=["service", "starts_at"]),
             models.Index(fields=["is_active", "is_booked"]),
         ]
+        constraints = [
+            models.UniqueConstraint(fields=["service", "starts_at"], name="uniq_slot_service_starts_at"),
+        ]
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Human-readable slot representation."""
         return f"{self.service} — {self.starts_at:%d.%m %H:%M}"
 
 
 class Appointment(models.Model):
+    """
+    Appointment (booking) model.
+
+    Can be linked to:
+    - service
+    - time slot (required by `clean()` rule)
+    - doctor
+    - promo
+    - authenticated user
+
+    Also stores patient contact details and reminder flags.
+    """
+
     class Status(models.TextChoices):
+        """Allowed appointment statuses."""
         NEW = "new", "Новая"
         CONFIRMED = "confirmed", "Подтверждена"
         COMPLETED = "completed", "Завершена"
@@ -128,11 +175,18 @@ class Appointment(models.Model):
         ]
 
     def clean(self):
+        """
+        Model-level validation.
+
+        Current rule:
+            - a slot must be selected
+        """
         super().clean()
         if not self.slot:
             raise ValidationError("Выберите слот для записи.")
 
     def __str__(self) -> str:
+        """Readable representation for admin and logs."""
         parts = [self.full_name]
         if self.doctor:
             parts.append(f"к врачу {self.doctor.full_name}")

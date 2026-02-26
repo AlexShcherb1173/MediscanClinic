@@ -1,24 +1,44 @@
+"""
+Celery task for sending appointment reminders.
+
+This module implements a time-window based reminder sender:
+- about 24 hours before appointment (+/- window)
+- about 2 hours before appointment (+/- window)
+
+Channels:
+- Telegram (via Celery task)
+- Email (via Celery task)
+"""
+
 from datetime import timedelta
+
 from celery import shared_task
-from django.utils import timezone
-from django.db import transaction
 from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
 
 from .models import Appointment
-from .tasks import send_telegram_text_task, send_email_task
+from .tasks import send_email_task, send_telegram_text_task
 
 
 @shared_task
 def send_appointments_reminders() -> int:
     """
-    Находит записи, которые начнутся скоро (например, через 24 часа и через 2 часа),
-    и отправляет напоминания, если ещё не отправлялись.
+    Find upcoming appointments and send reminders if not sent yet.
+
+    For each configured window (24h, 2h):
+    - locks rows with select_for_update(skip_locked=True) inside a transaction
+    - sends Telegram/email using Celery tasks
+    - marks reminder flags and reminded_at
+
+    Returns:
+        int: number of reminder sends (counts per-channel).
     """
     now = timezone.now()
 
     windows = [
-        ("24h", now + timedelta(hours=24), 30),  # +/- 30 минут окно
-        ("2h",  now + timedelta(hours=2),  20),
+        ("24h", now + timedelta(hours=24), 30),  # +/- 30 min
+        ("2h", now + timedelta(hours=2), 20),    # +/- 20 min
     ]
 
     total = 0
@@ -27,17 +47,16 @@ def send_appointments_reminders() -> int:
         start = target - timedelta(minutes=minutes)
         end = target + timedelta(minutes=minutes)
 
-        qs = (
-            Appointment.objects
-            .select_for_update(skip_locked=True)
-            .filter(preferred_datetime__gte=start, preferred_datetime__lte=end)
-            .filter(status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED])
-        )
-
         with transaction.atomic():
+            qs = (
+                Appointment.objects
+                .select_for_update(skip_locked=True)
+                .filter(preferred_datetime__gte=start, preferred_datetime__lte=end)
+                .filter(status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED])
+                .select_related("service")
+            )
+
             for appt in qs:
-                # если уже отправляли хотя бы одно — можно решать логикой.
-                # Ниже: отправляем оба канала по отдельным флагам
                 service_name = appt.service.name if appt.service else "—"
                 dt_str = timezone.localtime(appt.preferred_datetime).strftime("%d.%m.%Y %H:%M")
 
@@ -70,6 +89,12 @@ def send_appointments_reminders() -> int:
 
                 if appt.reminder_email_sent or appt.reminder_telegram_sent:
                     appt.reminded_at = timezone.now()
-                    appt.save(update_fields=["reminder_email_sent","reminder_telegram_sent","reminded_at"])
+                    appt.save(
+                        update_fields=[
+                            "reminder_email_sent",
+                            "reminder_telegram_sent",
+                            "reminded_at",
+                        ]
+                    )
 
     return total

@@ -1,4 +1,13 @@
-# apps/accounts/context_processors.py
+"""
+Context processors for accounts application.
+
+Provides data for personal cabinet header/forms:
+- lk_full_name
+- lk_phone
+
+Includes fallbacks to related profiles/patients/person and last appointment.
+"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -7,10 +16,10 @@ from apps.appointments.models import Appointment
 
 
 def _user_full_name(user) -> str:
+    """Try to extract full name from user/profile or last Appointment."""
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
-    # 1) стандартный Django
     try:
         full = (user.get_full_name() or "").strip()
         if full:
@@ -18,12 +27,10 @@ def _user_full_name(user) -> str:
     except Exception:
         pass
 
-    # 2) кастомное поле user.full_name
     full = (getattr(user, "full_name", "") or "").strip()
     if full:
         return full
 
-    # 3) profile/patient/person
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
@@ -31,26 +38,26 @@ def _user_full_name(user) -> str:
             if full:
                 return full
 
-    # 4) fallback: последняя запись
     last = (
         Appointment.objects
         .filter(user=user)
         .exclude(full_name__isnull=True)
         .exclude(full_name__exact="")
-        .order_by("-id")  # если есть created_at — можно заменить на "-created_at"
+        .order_by("-id")
         .first()
     )
     if last:
         return (last.full_name or "").strip()
 
-    # fallback: email/username
     email = (getattr(user, "email", "") or "").strip()
     if email:
         return email
+
     return (getattr(user, "username", "") or "").strip()
 
 
 def _user_phone(user) -> str:
+    """Try to extract phone from user/profile or last Appointment."""
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
@@ -81,10 +88,7 @@ def _user_phone(user) -> str:
 
 def lk_user_data(request) -> dict[str, Any]:
     """
-    Данные для ЛК (ФИО/телефон). Работает даже если в User нет first/last name.
+    Add cabinet user data (full name and phone) to template context.
     """
     user = getattr(request, "user", None)
-    return {
-        "lk_full_name": _user_full_name(user),
-        "lk_phone": _user_phone(user),
-    }
+    return {"lk_full_name": _user_full_name(user), "lk_phone": _user_phone(user)}

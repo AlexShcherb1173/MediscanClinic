@@ -1,3 +1,7 @@
+"""
+App configuration for contacts application.
+"""
+
 from django.apps import AppConfig
 
 

@@ -1,3 +1,13 @@
+"""
+Views for results application.
+
+Provides:
+- my_results: list patient's own results
+- download_result: secure file download + mark as viewed
+"""
+
+from __future__ import annotations
+
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -10,33 +20,35 @@ from .models import ResearchResult
 
 @login_required
 def my_results(request):
-    # ✅ у модели поле patient, не user
-    qs = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")
+    """
+    Show current user's research results.
 
-    # если хочешь отдельную страницу результатов вне ЛК — оставляй results/my_results.html
-    # но если всё в ЛК — лучше рендерить cabinet/results.html
+    Currently renders cabinet template to keep UX unified.
+    """
+    qs = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")
     return render(request, "cabinet/results.html", {"results": qs})
 
 
 @login_required
 def download_result(request, pk: int):
-    result = get_object_or_404(ResearchResult, pk=pk)
+    """
+    Download a research result file.
 
-    # 🔒 запрет чужих файлов
-    if result.patient_id != request.user.id:
-        raise Http404("Not found")
+    Security:
+        - only owner can download (others get 404)
+    Side effects:
+        - marks result as viewed on first download
+    """
+    result = get_object_or_404(ResearchResult, pk=pk, patient=request.user)
 
-    # ✅ если файла нет — 404
     if not result.file:
         raise Http404("File not found")
 
-    # ⭐ помечаем как просмотренное при скачивании
     if not result.is_viewed:
         result.is_viewed = True
         result.viewed_at = timezone.now()
         result.save(update_fields=["is_viewed", "viewed_at"])
 
-    # нормальное имя файла (uuid.pdf)
     filename = os.path.basename(result.file.name)
 
     return FileResponse(

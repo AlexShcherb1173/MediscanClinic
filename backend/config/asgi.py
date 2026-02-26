@@ -1,7 +1,14 @@
+"""
+ASGI config for the project.
+
+Exposes the ASGI callable as a module-level variable named `application`.
+Used by ASGI servers (Daphne/Uvicorn) and websockets, async features, etc.
+"""
+
 import os
 
-from django.core.wsgi import get_wsgi_application
+from django.core.asgi import get_asgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-application = get_wsgi_application()
+application = get_asgi_application()

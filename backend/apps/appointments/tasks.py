@@ -1,10 +1,22 @@
-# apps/appointments/tasks.py
+"""
+Celery tasks and helper functions for appointments.
+
+Includes:
+- Telegram sending task
+- Email sending task (supports multiple recipient formats)
+- SMS sending via sms.ru
+- Reminder scheduler logic (24h / 2h)
+
+Note:
+Some helper functions here (normalize_emails, smsru_send) are also used by other modules.
+Consider moving them into a separate utils module later to avoid circular coupling.
+"""
+
 from __future__ import annotations
 
 import re
 from ast import literal_eval
 from datetime import timedelta
-from typing import Iterable
 
 import requests
 from celery import shared_task
@@ -17,56 +29,45 @@ from .models import Appointment
 from .telegram_client import send_telegram_message
 
 
-# ---------------- Email helpers ----------------
 def normalize_emails(value) -> list[str]:
     """
-    Нормализует значение с email(ами) в список строк.
+    Normalize an input value into list of email strings.
 
-    Поддерживает:
+    Supports:
     - "a@b.com"
     - ["a@b.com", "c@d.com"]
-    - "['a@b.com']"  (криво сериализованный список)
+    - "['a@b.com']"  (stringified list)
     - ("a@b.com",)
     """
     if not value:
         return []
 
-    # уже коллекция
     if isinstance(value, (list, tuple, set)):
-        out: list[str] = []
-        for x in value:
-            s = str(x).strip()
-            if s:
-                out.append(s)
-        return out
+        return [str(x).strip() for x in value if str(x).strip()]
 
     s = str(value).strip()
     if not s:
         return []
 
-    # строка вида "['a@b.com']"
     if s.startswith("[") and s.endswith("]"):
         try:
             parsed = literal_eval(s)
             if isinstance(parsed, (list, tuple, set)):
-                out: list[str] = []
-                for x in parsed:
-                    sx = str(x).strip()
-                    if sx:
-                        out.append(sx)
-                return out
+                return [str(x).strip() for x in parsed if str(x).strip()]
         except Exception:
-            # если это невалидная строка-список — просто пойдём как одиночный адрес
             pass
 
     return [s]
 
 
-# ---------------- SMS helpers ----------------
 def normalize_phone_for_smsru(phone: str) -> str:
     """
-    sms.ru обычно принимает номер в виде 79XXXXXXXXX без '+'.
-    Приводим к цифрам и, если начинается с 8 и длина 11 — заменим на 7.
+    Normalize phone number for sms.ru.
+
+    sms.ru commonly expects number as 79XXXXXXXXX (digits only).
+    Converts:
+    - keeps digits
+    - if 11 digits and starts with 8 -> replaces leading 8 with 7
     """
     digits = re.sub(r"\D+", "", phone or "")
     if len(digits) == 11 and digits.startswith("8"):
@@ -76,7 +77,11 @@ def normalize_phone_for_smsru(phone: str) -> str:
 
 def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
     """
-    Возвращает (ok, info). info — текст ошибки или sms_id.
+    Send SMS via sms.ru API.
+
+    Returns:
+        (True, sms_id) on success
+        (False, error_message) on failure
     """
     api_id = getattr(settings, "SMS_RU_API_ID", "") or ""
     if not api_id:
@@ -87,12 +92,7 @@ def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
         return False, "Empty phone"
 
     url = "https://sms.ru/sms/send"
-    data = {
-        "api_id": api_id,
-        "to": to_norm,
-        "msg": message,
-        "json": 1,
-    }
+    data = {"api_id": api_id, "to": to_norm, "msg": message, "json": 1}
 
     sender = getattr(settings, "SMS_SENDER", "") or ""
     if sender:
@@ -115,19 +115,21 @@ def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
     return True, sms_info.get("sms_id", "OK")
 
 
-# ---------------- Tasks ----------------
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
 def send_telegram_text_task(self, text: str) -> None:
+    """Celery task: send text message to Telegram."""
     send_telegram_message(text)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
 def send_email_task(self, subject: str, body: str, to_email) -> None:
     """
-    to_email может быть:
-    - str
-    - list[str]
-    - "['a@b.com']" (строка)
+    Celery task: send email.
+
+    Args:
+        subject: email subject
+        body: email plain-text body
+        to_email: str or list[str] or stringified list
     """
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
 
@@ -140,6 +142,7 @@ def send_email_task(self, subject: str, body: str, to_email) -> None:
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
 def send_sms_task(self, to_phone: str, message: str) -> None:
+    """Celery task: send SMS (raises to retry if provider returns error)."""
     ok, info = smsru_send(to_phone, message)
     if not ok:
         raise RuntimeError(info)
@@ -148,10 +151,14 @@ def send_sms_task(self, to_phone: str, message: str) -> None:
 @shared_task
 def send_appointment_reminders() -> None:
     """
-    Проверяем будущие записи и шлём напоминания:
-    - за 24ч
-    - за 2ч
-    Каналы: Telegram + Email + SMS (sms.ru)
+    Scan upcoming appointments and send reminders:
+    - ~24 hours before
+    - ~2 hours before
+
+    Channels:
+    - Telegram
+    - Email
+    - SMS (if SMS_RU_API_ID configured)
     """
     now = timezone.now()
     until = now + timedelta(hours=48)
@@ -181,6 +188,11 @@ def send_appointment_reminders() -> None:
 
 
 def _send_and_mark(appt_id: int, kind: str) -> None:
+    """
+    Send reminders for a single appointment and mark the corresponding flag.
+
+    Runs inside transaction with row lock to prevent duplicate sends.
+    """
     with transaction.atomic():
         appt = (
             Appointment.objects
@@ -200,7 +212,6 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         dt_str = dt_local.strftime("%d.%m.%Y %H:%M")
         window_str = "24 часа" if kind == "24h" else "2 часа"
 
-        # -------- Telegram --------
         tg_text = (
             "⏰ *Напоминание о записи*\n"
             f"*Когда:* {dt_str}\n"
@@ -212,7 +223,6 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         )
         send_telegram_text_task.delay(tg_text)
 
-        # -------- Email --------
         to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
         recipients = normalize_emails(to_email)
         if recipients:
@@ -225,10 +235,8 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
                 f"Когда: {dt_str}\n"
                 f"Окно: {window_str}\n"
             )
-            # можно передавать как исходное значение, но лучше уже список
             send_email_task.delay(subject, body, recipients)
 
-        # -------- SMS --------
         sms_text = (
             f"Mediscan: напоминание. {dt_str}. "
             f"{service_name}. Врач: {doctor_name}. "
@@ -237,7 +245,6 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         if getattr(settings, "SMS_RU_API_ID", ""):
             send_sms_task.delay(appt.phone, sms_text)
 
-        # mark sent
         if kind == "24h":
             appt.reminder_24h_sent = True
         else:

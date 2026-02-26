@@ -1,4 +1,12 @@
+"""
+Management command to seed default static Page records.
+
+Creates or updates a set of predefined pages (about-*) with HTML content.
+The command is idempotent: it can be executed multiple times safely.
+"""
+
 from django.core.management.base import BaseCommand
+
 from apps.pages.models import Page
 
 
@@ -114,17 +122,39 @@ TEMPLATES = {
 """.strip(),
     },
 }
+"""
+Mapping of page slugs to template data for seeding.
+
+Each item provides:
+- title: page title
+- content: HTML content (Tailwind + prose classes recommended)
+"""
 
 
 class Command(BaseCommand):
+    """
+    Seed default CMS-like pages.
+
+    The command creates or updates Page objects based on the `TEMPLATES` mapping.
+    """
+
     help = "Create/update default Pages templates (about-*)"
 
     def handle(self, *args, **options):
+        """
+        Execute the command.
+
+        For each slug in `TEMPLATES`:
+        - create a Page if it does not exist
+        - otherwise update its fields
+
+        Prints a summary of created/updated objects.
+        """
         created = 0
         updated = 0
 
         for slug, data in TEMPLATES.items():
-            obj, is_created = Page.objects.update_or_create(
+            _, is_created = Page.objects.update_or_create(
                 slug=slug,
                 defaults={
                     "title": data["title"],
@@ -135,4 +165,6 @@ class Command(BaseCommand):
             created += int(is_created)
             updated += int(not is_created)
 
-        self.stdout.write(self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}")
+        )

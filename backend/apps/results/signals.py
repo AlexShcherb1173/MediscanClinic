@@ -1,3 +1,12 @@
+"""
+Signals for results application.
+
+Sends Telegram notification to patient's profile (if configured)
+when a new ResearchResult is created.
+"""
+
+from __future__ import annotations
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -6,7 +15,13 @@ from .telegram import send_telegram_message
 
 
 @receiver(post_save, sender=ResearchResult)
-def notify_new_result(sender, instance: ResearchResult, created: bool, **kwargs):
+def notify_new_result(sender, instance: ResearchResult, created: bool, **kwargs) -> None:
+    """
+    Notify patient via Telegram about newly uploaded research result.
+
+    Requires:
+        instance.patient.profile.telegram_chat_id to be set.
+    """
     if not created:
         return
 

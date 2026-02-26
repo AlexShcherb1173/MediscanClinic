@@ -1,9 +1,17 @@
+"""
+Admin configuration for custom User model.
+"""
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
 from .models import User
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    """Admin UI for phone-based User model."""
+
     ordering = ("id",)
     list_display = ("id", "full_name", "phone", "email", "is_staff", "is_active")
     search_fields = ("phone", "full_name", "email")

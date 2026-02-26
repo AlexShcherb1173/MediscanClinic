@@ -1,4 +1,9 @@
+"""
+URL configuration for results application.
+"""
+
 from django.urls import path
+
 from . import views
 
 app_name = "results"

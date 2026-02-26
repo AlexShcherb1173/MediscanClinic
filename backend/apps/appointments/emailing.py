@@ -1,3 +1,7 @@
+"""
+Email notifications for appointment reminders.
+"""
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -9,7 +13,16 @@ from .models import Appointment
 
 def send_reminder_email(appt: Appointment, kind: str) -> None:
     """
-    kind: '24h' | '2h'
+    Send reminder email for an appointment.
+
+    Args:
+        appt: Appointment instance.
+        kind: Reminder type: '24h' or '2h'.
+
+    Notes:
+        - If appointment has no email, function does nothing.
+        - If DEFAULT_FROM_EMAIL is not set, function does nothing.
+        - Uses fail_silently=True to avoid breaking reminder pipeline.
     """
     if not appt.email:
         return  # нет email — нечего слать
@@ -20,25 +33,26 @@ def send_reminder_email(appt: Appointment, kind: str) -> None:
     human = "24 часа" if kind == "24h" else "2 часа"
 
     subject = f"Mediscan: напоминание о записи через {human}"
-    body = "\n".join([
-        "Здравствуйте!",
-        "",
-        f"Напоминаем о вашей записи в Mediscan.",
-        f"Дата и время: {when}",
-        f"Услуга: {service_name}",
-        f"Врач: {doctor_name}",
-        "",
-        "Если нужно перенести запись — ответьте на это письмо или позвоните в клинику.",
-        "",
-        "Mediscan",
-    ])
+    body = "\n".join(
+        [
+            "Здравствуйте!",
+            "",
+            "Напоминаем о вашей записи в Mediscan.",
+            f"Дата и время: {when}",
+            f"Услуга: {service_name}",
+            f"Врач: {doctor_name}",
+            "",
+            "Если нужно перенести запись — ответьте на это письмо или позвоните в клинику.",
+            "",
+            "Mediscan",
+        ]
+    )
 
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
     if not from_email:
         return
 
-    # (опционально) копия на email клиники:
-    clinic_copy = getattr(settings, "APPOINTMENTS_COPY_TO_EMAIL", "")
+    clinic_copy = getattr(settings, "APPOINTMENTS_COPY_TO_EMAIL", "") or ""
 
     recipients = [appt.email]
     if clinic_copy:

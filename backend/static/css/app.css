@@ -1844,3 +1844,37 @@ body {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ===== HERO doctor slider (фикс вылезания картинки) ===== */
+.hero-doctor-card{
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;          /* как rounded-3xl */
+  height: clamp(320px, 40vw, 420px);
+  background: #fff;
+}
+
+.hero-doctor-card img.hero-doctor-img{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100% !important;        /* перебиваем global img{height:auto} */
+  max-width: none;                /* перебиваем global img{max-width:100%} */
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.hero-doctor-overlay{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15,23,42,.40), rgba(15,23,42,.10), rgba(15,23,42,0));
+}
+
+.hero-doctor-bubble{
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  z-index: 2;
+  max-width: 86%;
+}

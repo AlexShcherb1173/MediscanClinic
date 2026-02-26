@@ -1,3 +1,7 @@
+"""
+App configuration for patients application.
+"""
+
 from django.apps import AppConfig
 
 

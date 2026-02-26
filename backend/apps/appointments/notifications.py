@@ -1,17 +1,35 @@
-# apps/appointments/notifications.py
+"""
+Notification entrypoints for appointments.
+
+Provides high-level functions to notify about:
+- new appointment (email/telegram)
+- arbitrary telegram text
+
+Primary channel uses Celery tasks; falls back gracefully if Celery/Redis unavailable.
+"""
+
 import logging
 from dataclasses import dataclass
 
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .tasks import send_telegram_text_task, send_email_task, normalize_emails
+from .tasks import normalize_emails, send_email_task, send_telegram_text_task
 
 logger = logging.getLogger("appointments")
 
 
 @dataclass(frozen=True)
 class AppointmentNotification:
+    """
+    Notification payload for new appointment.
+
+    Attributes:
+        full_name: Patient full name.
+        phone: Patient phone.
+        service_name: Service name.
+        preferred_datetime_iso: ISO datetime string for appointment time.
+    """
     full_name: str
     phone: str
     service_name: str
@@ -19,6 +37,11 @@ class AppointmentNotification:
 
 
 def notify_email(payload: AppointmentNotification) -> None:
+    """
+    Notify clinic by email about a new appointment.
+
+    Uses Celery task; falls back to synchronous send_mail if task queue is unavailable.
+    """
     subject = "Mediscan: новая запись"
     body = (
         f"Имя: {payload.full_name}\n"
@@ -33,16 +56,17 @@ def notify_email(payload: AppointmentNotification) -> None:
         return
 
     try:
-        # передаём recipients (list[str]) — и в таске это тоже ок
         send_email_task.delay(subject, body, recipients)
     except Exception as e:
-        # fallback: не ломаем запись
         logger.exception("Celery/Redis unavailable, sending email sync: %s", e)
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
         send_mail(subject, body, from_email, recipients, fail_silently=True)
 
 
 def notify_telegram(payload: AppointmentNotification) -> None:
+    """
+    Notify clinic by Telegram about a new appointment.
+    """
     text = (
         "🩺 *Новая запись*\n"
         f"*Имя:* {payload.full_name}\n"
@@ -57,6 +81,9 @@ def notify_telegram(payload: AppointmentNotification) -> None:
 
 
 def notify_telegram_text(text: str) -> None:
+    """
+    Send arbitrary text to Telegram (best-effort, via Celery task).
+    """
     try:
         send_telegram_text_task.delay(text)
     except Exception as e:

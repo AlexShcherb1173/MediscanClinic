@@ -1,25 +1,46 @@
+"""
+Views for contacts application.
+
+Pages:
+- contacts_home: Contacts page with map + contact form
+- feedback_home: Feedback page with contact form
+- ask_question: Ask a question page
+
+All POST handlers:
+- validate form
+- send email + telegram notifications
+- show success message and redirect back to the same page
+"""
+
+from __future__ import annotations
+
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .forms import ContactForm, AskQuestionForm
+from .forms import AskQuestionForm, ContactForm
 from .notifications import notify_contact_email, notify_contact_telegram
 
 
 def _send_feedback(form: ContactForm) -> None:
+    """
+    Send feedback form message via email and Telegram.
+
+    Args:
+        form: validated ContactForm
+    """
     name = form.cleaned_data["name"]
     email = form.cleaned_data["email"]
     message_text = form.cleaned_data["message"]
 
     subject = f"Mediscan: сообщение с сайта (Обратная связь) от {name}"
     text = (
-        f"Новое сообщение с формы Обратной связи\n\n"
+        "Новое сообщение с формы Обратной связи\n\n"
         f"Имя: {name}\n"
         f"Email: {email}\n\n"
         f"Сообщение:\n{message_text}\n"
     )
-
     notify_contact_email(subject, text)
 
     tg_text = (
@@ -33,8 +54,10 @@ def _send_feedback(form: ContactForm) -> None:
 
 
 def contacts_home(request):
+    """
+    Contacts page with map and contact form.
+    """
     address = "г. Москва, Бережковская набережная, д. 16А5, стр. 5"
-
     base_ctx = {
         "address": address,
         "phone_display": "+7(985)698-72-82",
@@ -54,7 +77,7 @@ def contacts_home(request):
 
             subject = f"Mediscan: сообщение с сайта (Контакты) от {name}"
             text = (
-                f"Новое сообщение с формы Контакты\n\n"
+                "Новое сообщение с формы Контакты\n\n"
                 f"Имя: {name}\n"
                 f"Email: {email}\n\n"
                 f"Сообщение:\n{message_text}\n"
@@ -80,6 +103,9 @@ def contacts_home(request):
 
 
 def feedback_home(request):
+    """
+    Feedback page (simplified contacts).
+    """
     base_ctx = {
         "phone_display": "+7(985)698-72-82",
         "phone_tel": "+79856987282",
@@ -99,6 +125,9 @@ def feedback_home(request):
 
 
 def ask_question(request):
+    """
+    Ask-question page.
+    """
     base_ctx = {
         "phone_display": "+7(985)698-72-82",
         "phone_tel": "+79856987282",

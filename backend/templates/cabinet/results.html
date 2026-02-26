@@ -3,9 +3,8 @@
 {% block title %}Мои результаты — Mediscan{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="max-w-6xl mx-auto space-y-6">
 
-  <!-- Header -->
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold text-slate-900">Результаты исследований</h1>
@@ -25,58 +24,53 @@
     </div>
   </div>
 
-  <!-- Results list -->
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
     {% if results %}
       <div class="space-y-4">
         {% for r in results %}
           <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
-            <div class="flex flex-col gap-3">
+            <div class="space-y-3">
 
-              <!-- Title + meta -->
               <div>
                 <div class="text-base md:text-lg font-semibold text-slate-900">
                   {{ r.title }}
                 </div>
 
-                <div class="mt-1 text-xs md:text-sm text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div class="mt-1 text-sm text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
                   {% if r.result_date %}
                     <span>Дата: {{ r.result_date|date:"d.m.Y" }}</span>
-                    <span class="text-slate-300">•</span>
                   {% endif %}
 
+                  <span class="text-slate-300">•</span>
                   <span>Загружено: {{ r.created_at|date:"d.m.Y H:i" }}</span>
 
                   {% if not r.is_viewed %}
-                    <span class="ml-0 md:ml-2 inline-flex items-center rounded-full bg-red-50 text-red-700 px-2 py-0.5 text-xs font-semibold">
+                    <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 px-2 py-0.5 text-xs font-semibold">
                       Новое
                     </span>
                   {% endif %}
                 </div>
               </div>
 
-              <!-- Comment (optional) -->
               {% if r.comment %}
-                <div class="text-sm text-slate-700 leading-relaxed">
+                <div class="text-sm text-slate-700">
                   {{ r.comment }}
                 </div>
               {% endif %}
 
-              <!-- Actions -->
-              <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end pt-1">
+              <div class="flex justify-end">
                 <a href="{% url 'results:download' r.pk %}"
-                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
+                   class="inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
                   Скачать PDF →
                 </a>
               </div>
-
 
             </div>
           </div>
         {% endfor %}
       </div>
     {% else %}
-      <div class="text-slate-600">
+      <div class="text-slate-600 text-sm">
         Пока нет загруженных результатов.
       </div>
     {% endif %}

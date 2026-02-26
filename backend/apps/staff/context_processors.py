@@ -1,40 +1,40 @@
+"""
+Context processors for staff application.
+
+Provides global template context for the homepage hero slider:
+- doctor_slider_items: list of doctors with photos (url + name)
+"""
+
 from __future__ import annotations
 
 from typing import Any
-
-from django.conf import settings
 
 from .models import Doctor
 
 
 def doctor_slider_items(request) -> dict[str, Any]:
     """
-    Глобальный контекст для шаблонов: список врачей с фото
-    для hero-слайдера (используем media/doctors/...).
+    Add doctors with photos for hero slider.
+
+    Returns:
+        dict with key "doctor_slider_items" -> list[{"url": str, "name": str}]
     """
     qs = (
         Doctor.objects
         .filter(is_active=True)
         .exclude(photo="")
         .only("id", "full_name", "photo")
-        .order_by("?")[:12]  # случайные 12, чтобы было “живее”
+        .order_by("?")[:12]
     )
 
-    items = []
+    items: list[dict[str, str]] = []
     for d in qs:
         try:
-            url = d.photo.url  # MEDIA_URL + путь
+            url = d.photo.url
         except Exception:
             url = ""
 
-        if not url:
-            continue
-
-        items.append(
-            {
-                "url": url,
-                "name": d.full_name,
-            }
-        )
+        if url:
+            items.append({"url": url, "name": d.full_name})
 
     return {"doctor_slider_items": items}

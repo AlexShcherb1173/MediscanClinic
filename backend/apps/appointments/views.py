@@ -1,7 +1,19 @@
+"""
+Views for appointments application.
+
+Includes:
+- calendar_view: renders month grid (partial)
+- slots: returns available slots tiles (partial for HTMX)
+- appointment_create: create booking with transaction-safe slot locking
+- appointment_success: success page (should be access-protected)
+
+Also contains helper functions for parsing dates/ints and user auto-fill.
+"""
+
 from __future__ import annotations
 
 import calendar
-from datetime import date as dt_date, timedelta, datetime, time
+from datetime import date as dt_date, datetime, time, timedelta
 
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,17 +31,49 @@ from .notifications import AppointmentNotification, notify_email, notify_telegra
 
 
 def appointments_index(request):
+    """
+    Simple index redirect for appointments section.
+    """
     return redirect("appointments:create")
 
 
 # ---------------- Helpers ----------------
+def _safe_int(value: str | None) -> int | None:
+    """
+    Convert string to int safely. Returns None for invalid values.
+    """
+    if value is None:
+        return None
+    value = str(value).strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _safe_day(value: str | None) -> dt_date | None:
+    """
+    Parse a YYYY-MM-DD string into a date. Returns None for invalid values.
+    """
     if not value:
         return None
     return parse_date(value)
 
 
 def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead: int = 31) -> dt_date | None:
+    """
+    Find the nearest date (starting from start_day) that has free active slots.
+
+    Args:
+        service_id: optional service filter
+        start_day: starting date for search
+        days_ahead: look-ahead window
+
+    Returns:
+        date of the first available slot or None
+    """
     qs = AppointmentSlot.objects.filter(
         is_active=True,
         is_booked=False,
@@ -43,13 +87,18 @@ def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead
 
 def _user_full_name(user) -> str:
     """
-    Достаём ФИО из разных мест, + fallback на последнюю запись (Appointment),
-    если в профиле/юзере ФИО не хранится.
+    Get user's full name from various possible sources.
+
+    Strategy:
+    1) user.get_full_name()
+    2) user.full_name
+    3) related objects: profile/patient/person (full_name or fio)
+    4) last Appointment.full_name for that user
+    5) fallback: email or username
     """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
-    # 1) стандартный Django get_full_name()
     try:
         full = (user.get_full_name() or "").strip()
         if full:
@@ -57,12 +106,10 @@ def _user_full_name(user) -> str:
     except Exception:
         pass
 
-    # 2) кастомное поле user.full_name
     full = (getattr(user, "full_name", "") or "").strip()
     if full:
         return full
 
-    # 3) profile/patient/person
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
@@ -70,19 +117,16 @@ def _user_full_name(user) -> str:
             if full:
                 return full
 
-    # 4) fallback: последняя запись пользователя
     last = (
-        Appointment.objects
-        .filter(user=user)
+        Appointment.objects.filter(user=user)
         .exclude(full_name__isnull=True)
         .exclude(full_name__exact="")
-        .order_by("-created_at", "-id")  # created_at если есть, иначе id
+        .order_by("-created_at", "-id")
         .first()
     )
     if last:
         return (last.full_name or "").strip()
 
-    # fallback: email/username
     email = (getattr(user, "email", "") or "").strip()
     if email:
         return email
@@ -91,17 +135,20 @@ def _user_full_name(user) -> str:
 
 def _user_phone(user) -> str:
     """
-    Телефон из user/profile/patient/person, + fallback на последнюю запись.
+    Get user's phone from user or related profile objects.
+
+    Strategy:
+    1) user.phone
+    2) related profile/patient/person phone
+    3) last Appointment.phone for that user
     """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
-    # 1) user.phone
     phone = (getattr(user, "phone", "") or "").strip()
     if phone:
         return phone
 
-    # 2) profile/patient/person
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
@@ -109,10 +156,8 @@ def _user_phone(user) -> str:
             if phone:
                 return phone
 
-    # 3) fallback: последняя запись пользователя
     last = (
-        Appointment.objects
-        .filter(user=user)
+        Appointment.objects.filter(user=user)
         .exclude(phone__isnull=True)
         .exclude(phone__exact="")
         .order_by("-created_at", "-id")
@@ -127,6 +172,13 @@ def _user_phone(user) -> str:
 # -------- Calendar (month grid) --------
 @require_GET
 def calendar_view(request):
+    """
+    Render month grid partial for appointment date selection.
+
+    Query params:
+        m: month in format YYYY-MM (optional)
+        preferred_date/date: selected day (YYYY-MM-DD)
+    """
     today = timezone.localdate()
 
     m = request.GET.get("m")  # "2026-02"
@@ -170,16 +222,23 @@ def calendar_view(request):
 
 @require_GET
 def slots(request):
-    service_id = (
+    """
+    Render available time slots (HTMX partial).
+
+    Requires "patient_ready" (full_name + phone) and selected service/date.
+    Returns JSON-like list (id/label) embedded into template context.
+    """
+    service_id_raw = (
         request.GET.get("service")
         or request.GET.get("service_id")
         or request.GET.get("service-select")
         or ""
     )
+    service_id = _safe_int(service_id_raw)
+
     date_str = request.GET.get("preferred_date") or request.GET.get("date") or ""
     day = parse_date(date_str)
 
-    # ✅ читаем ФИО и телефон (придут из hx-include)
     full_name = (request.GET.get("full_name") or request.GET.get("id_full_name") or "").strip()
     phone = (request.GET.get("phone") or request.GET.get("id_phone") or "").strip()
     patient_ready = (len(full_name) >= 3) and (len(phone) >= 6)
@@ -263,8 +322,22 @@ def slots(request):
     )
 
 
-# -------- Create appointment --------
 def appointment_create(request):
+    """
+    Create an appointment.
+
+    Supports optional locking via query params:
+        service=<id>   -> lock service field
+        doctor=<id>    -> lock doctor field
+        promo=<slug>   -> restrict services to promo.services
+
+    Uses transaction + select_for_update() to prevent double booking:
+    - locks slot row
+    - checks active/not booked
+    - marks slot as booked
+    - creates Appointment record
+    - sends notifications (email + telegram)
+    """
     service_id = request.GET.get("service")
     doctor_id = request.GET.get("doctor")
     promo_slug = request.GET.get("promo")
@@ -324,7 +397,6 @@ def appointment_create(request):
                     slot_locked.save(update_fields=["is_booked"])
 
                     appointment: Appointment = form.save(commit=False)
-
                     appointment.user = request.user if request.user.is_authenticated else None
 
                     appointment.slot = slot_locked
@@ -348,10 +420,13 @@ def appointment_create(request):
             notify_telegram(payload)
 
             request.session.pop("appointment_draft", None)
+            # store last pk for anonymous access to success page
+            request.session["last_appointment_pk"] = appointment.pk
+            request.session.save()
+
             return redirect("appointments:success", pk=appointment.pk)
 
     else:
-        # ✅ автозаполнение: draft -> user/profile -> last appointment
         user_full_name = _user_full_name(request.user)
         user_phone = _user_phone(request.user)
         user_email = (getattr(request.user, "email", "") or "").strip() if request.user.is_authenticated else ""
@@ -383,5 +458,20 @@ def appointment_create(request):
 
 
 def appointment_success(request, pk: int):
+    """
+    Render appointment success page.
+
+    Security:
+    - Authenticated users can view only their own appointments.
+    - Anonymous users can view only the last appointment created in this session.
+    """
     appointment = get_object_or_404(Appointment, pk=pk)
+
+    if request.user.is_authenticated:
+        if appointment.user_id != request.user.id:
+            return redirect("appointments:create")
+    else:
+        if request.session.get("last_appointment_pk") != appointment.pk:
+            return redirect("appointments:create")
+
     return render(request, "appointments/success.html", {"appointment": appointment})

@@ -1,5 +1,17 @@
+"""
+URL configuration for appointments application.
+
+Routes:
+- index redirect
+- create appointment page
+- HTMX endpoints: slots and calendar
+- success page
+"""
+
 from django.urls import path
+
 from . import views
+
 
 app_name = "appointments"
 

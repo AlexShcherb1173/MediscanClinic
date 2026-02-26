@@ -1,4 +1,12 @@
+"""
+Celery application configuration.
+
+- Loads Django settings via CELERY_ namespace
+- Autodiscovers tasks.py in installed apps
+"""
+
 import os
+
 from celery import Celery
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")

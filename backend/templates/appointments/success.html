@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Заявка отправлена — Mediscan{% endblock %}
 
 {% block content %}
@@ -12,13 +13,15 @@
 
     <div class="mt-4 text-sm text-slate-600 space-y-1">
       <div><b>Услуга:</b> {{ appointment.service.name }}</div>
-      <div><b>Дата/время:</b> {{ appointment.preferred_datetime }}</div>
+      <div><b>Дата/время:</b> {{ appointment.preferred_datetime|date:"d.m.Y H:i" }}</div>
       <div><b>Статус:</b> {{ appointment.get_status_display }}</div>
     </div>
 
     <div class="mt-6">
-      <a href="{% url 'services:list' %}"
-         class="inline-flex items-center justify-center rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
+      <a
+        href="{% url 'services:list' %}"
+        class="inline-flex items-center justify-center rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800"
+      >
         Вернуться к услугам
       </a>
     </div>

@@ -158,7 +158,9 @@
                     class="shrink-0 w-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition
                            flex items-center justify-center text-slate-600"
                     aria-label="Открыть календарь"
-                  >▾</button>
+                  >
+                    ▾
+                  </button>
                 </div>
 
                 <div
@@ -200,33 +202,33 @@
               </label>
 
               <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
-  <span id="slot-display" class="text-slate-400">
-    {% if form.slot.value and form.preferred_date.value %}
-      Выбрано
-    {% else %}
-      Выберите время
-    {% endif %}
-  </span>
-</div>
+                <span id="slot-display" class="text-slate-400">
+                  {% if form.slot.value and form.preferred_date.value %}
+                    Выбрано
+                  {% else %}
+                    Выберите время
+                  {% endif %}
+                </span>
+              </div>
 
-              <!-- ВАЖНО: тут grid, чтобы плитки не были столбиком -->
+              <!-- ✅ ВАЖНО: grid тут, чтобы плитки не были столбиком -->
               <div
-  id="slot-tiles"
-  class="mt-2"
-  data-url="{% url 'appointments:slots' %}"
-  hx-get="{% url 'appointments:slots' %}"
-  hx-trigger="load,
-              change from:#service-select,
-              change from:#preferred-date,
-              input from:#id_full_name delay:300ms,
-              input from:#id_phone delay:300ms,
-              refresh"
-  hx-target="#slot-tiles"
-  hx-swap="innerHTML"
-  hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
->
-  <div class="text-sm text-slate-500 col-span-full">Загрузка слотов…</div>
-</div>
+                id="slot-tiles"
+                class="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
+                data-url="{% url 'appointments:slots' %}"
+                hx-get="{% url 'appointments:slots' %}"
+                hx-trigger="load,
+                            change from:#service-select,
+                            change from:#preferred-date,
+                            input from:#id_full_name delay:300ms,
+                            input from:#id_phone delay:300ms,
+                            refresh"
+                hx-target="#slot-tiles"
+                hx-swap="innerHTML"
+                hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
+              >
+                <div class="text-sm text-slate-500 col-span-full">Загрузка слотов…</div>
+              </div>
 
               {% if form.slot.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
@@ -262,17 +264,16 @@
             </div>
 
             <button
-  type="submit"
-  id="submit-btn"
-  disabled
-  class="inline-flex items-center justify-center rounded-2xl
-         px-6 py-3 font-semibold shadow-sm transition
-         bg-gray-300 text-gray-500 cursor-not-allowed"
->
-  Отправить заявку
-</button>
+              type="submit"
+              id="submit-btn"
+              disabled
+              class="inline-flex items-center justify-center rounded-2xl
+                     px-6 py-3 font-semibold shadow-sm transition
+                     bg-gray-300 text-gray-500 cursor-not-allowed"
+            >
+              Отправить заявку
+            </button>
           </div>
-
         </form>
       </div>
     </div>
@@ -284,7 +285,7 @@
         <ul class="mt-3 space-y-2 text-sm text-slate-600">
           <li class="flex gap-2"><span>✅</span><span>Выбираете ФИО, телефон, услугу, дату и время — 1–2 минуты</span></li>
           <li class="flex gap-2"><span>📞</span><span>Мы подтверждаем запись по телефону</span></li>
-          <li class="flex gap-2"><span>⏰</span><span>Напоминание в Telegram / Email/ SMS</span></li>
+          <li class="flex gap-2"><span>⏰</span><span>Напоминание в Telegram / Email / SMS</span></li>
         </ul>
 
         <div class="mt-5 rounded-2xl bg-sky-50 border border-sky-200 p-4 text-sm text-sky-900">
@@ -300,20 +301,20 @@
   const serviceSelect = document.getElementById("service-select");
 
   const fullNameInput = document.getElementById("id_full_name");
-  const phoneInput    = document.getElementById("id_phone");
+  const phoneInput = document.getElementById("id_phone");
 
-  const dateArea    = document.getElementById("date-area");
+  const dateArea = document.getElementById("date-area");
   const dateDisplay = document.getElementById("date-display");
   const datePopover = document.getElementById("date-popover");
   const dateOpenBtn = document.getElementById("date-open-btn");
-  const dateCloseBtn= document.getElementById("date-close-btn");
+  const dateCloseBtn = document.getElementById("date-close-btn");
   const preferredDate = document.getElementById("preferred-date");
 
-  const slotInput   = document.getElementById("slot-input");
+  const slotInput = document.getElementById("slot-input");
   const slotDisplay = document.getElementById("slot-display");
-  const slotTiles   = document.getElementById("slot-tiles");
+  const slotTiles = document.getElementById("slot-tiles");
 
-  const submitBtn   = document.getElementById("submit-btn");
+  const submitBtn = document.getElementById("submit-btn");
 
   function hasService() {
     return !!(serviceSelect && serviceSelect.value);
@@ -333,10 +334,10 @@
 
   function isFormReady() {
     const fullName = (fullNameInput?.value || "").trim();
-    const phone    = (phoneInput?.value || "").trim();
-    const service  = serviceSelect?.value || "";
-    const date     = preferredDate?.value || "";
-    const slot     = slotInput?.value || "";
+    const phone = (phoneInput?.value || "").trim();
+    const service = serviceSelect?.value || "";
+    const date = preferredDate?.value || "";
+    const slot = slotInput?.value || "";
     return fullName.length >= 3 && phone.length >= 6 && service && date && slot;
   }
 
@@ -345,17 +346,16 @@
 
     if (isFormReady()) {
       submitBtn.disabled = false;
-      submitBtn.classList.remove("bg-gray-300","text-gray-500","cursor-not-allowed");
-      submitBtn.classList.add("bg-blue-600","hover:bg-blue-700","text-white");
+      submitBtn.classList.remove("bg-gray-300", "text-gray-500", "cursor-not-allowed");
+      submitBtn.classList.add("bg-blue-600", "hover:bg-blue-700", "text-white");
     } else {
       submitBtn.disabled = true;
-      submitBtn.classList.remove("bg-blue-600","hover:bg-blue-700","text-white");
-      submitBtn.classList.add("bg-gray-300","text-gray-500","cursor-not-allowed");
+      submitBtn.classList.remove("bg-blue-600", "hover:bg-blue-700", "text-white");
+      submitBtn.classList.add("bg-gray-300", "text-gray-500", "cursor-not-allowed");
     }
   }
 
   window.updateSubmitState = updateSubmitState;
-
 
   function openCalendar(e) {
     if (e) e.stopPropagation();
@@ -384,17 +384,14 @@
   }
 
   function refreshSlots() {
-  if (!slotTiles || !window.htmx) return;
-  // триггерим htmx, а он сам соберёт значения через hx-include
-  window.htmx.trigger(slotTiles, "refresh");
+    if (!slotTiles || !window.htmx) return;
+    window.htmx.trigger(slotTiles, "refresh");
   }
 
-  window.selectDate = function(iso, pretty){
-    // ставим дату
+  window.selectDate = function (iso, pretty) {
     if (preferredDate) preferredDate.value = iso;
-    if (dateDisplay)   dateDisplay.value = pretty;
+    if (dateDisplay) dateDisplay.value = pretty;
 
-    // сбрасываем слот при смене даты
     if (slotInput) slotInput.value = "";
     if (slotDisplay) {
       slotDisplay.textContent = "Выберите время";
@@ -402,13 +399,9 @@
       slotDisplay.classList.remove("text-slate-900");
     }
 
-    // закрываем календарь
     closeCalendar();
-
-    // обновляем слоты
     refreshSlots();
 
-    // обновляем submit
     if (typeof window.updateSubmitState === "function") {
       window.updateSubmitState();
     }
@@ -422,18 +415,15 @@
 
     if (lock) {
       closeCalendar();
-      clearDateAndSlot(); // сбросит слот/дату и обновит кнопку
-      // слоты пусть покажут подсказку (сервер сам отрисует)
+      clearDateAndSlot();
       refreshSlots();
       return;
     }
 
-    // если разлочили — покажем подсказки/слоты (но только если выбрана услуга/дата)
     refreshSlots();
     updateSubmitState();
   }
 
-  // --- handlers ---
   dateDisplay?.addEventListener("click", openCalendar);
   dateOpenBtn?.addEventListener("click", openCalendar);
   dateCloseBtn?.addEventListener("click", closeCalendar);
@@ -450,7 +440,6 @@
   phoneInput?.addEventListener("input", syncLocks);
 
   serviceSelect?.addEventListener("change", () => {
-    // если пациент не заполнен — просто обновим подсказки
     if (!hasRequiredPatient()) {
       syncLocks();
       return;
@@ -458,7 +447,6 @@
 
     clearDateAndSlot();
 
-    // подгрузим календарь под выбранную услугу
     if (window.htmx) {
       window.htmx.ajax("GET", "{% url 'appointments:calendar' %}", {
         target: "#calendar-wrap",
@@ -472,7 +460,6 @@
     updateSubmitState();
   });
 
-  // init
   syncLocks();
   updateSubmitState();
 })();

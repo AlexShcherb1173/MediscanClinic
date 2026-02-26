@@ -1,4 +1,43 @@
+"""
+sms.ru client wrapper.
+
+Provides `smsru_send` function that sends SMS via sms.ru API and returns:
+- (True, sms_id) on success
+- (False, error_message) on failure
+
+The function is designed for server-side usage and logs details for debugging.
+"""
+
+from __future__ import annotations
+
+import logging
+
+import requests
+from django.conf import settings
+
+from .utils import normalize_phone_for_smsru  # поправь импорт под твой реальный модуль/путь
+
+logger = logging.getLogger("appointments.sms")
+
+
 def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
+    """
+    Send SMS message via sms.ru.
+
+    Args:
+        to_phone: Raw phone number (can contain +, spaces, brackets).
+        message: SMS text.
+
+    Returns:
+        Tuple[bool, str]:
+            - (True, sms_id) if sent successfully
+            - (False, error_message) if failed
+
+    Notes:
+        - Requires SMS_RU_API_ID in settings.
+        - Optional sender name: SMS_SENDER
+        - Uses timeouts and handles HTTP/JSON errors.
+    """
     api_id = getattr(settings, "SMS_RU_API_ID", "") or ""
     if not api_id:
         logger.warning("sms.ru: SMS_RU_API_ID is empty")

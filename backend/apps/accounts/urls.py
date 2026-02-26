@@ -1,4 +1,14 @@
+"""
+URL configuration for accounts application.
+
+Routes:
+- login
+- register
+- logout
+"""
+
 from django.urls import path
+
 from . import views
 
 app_name = "accounts"
