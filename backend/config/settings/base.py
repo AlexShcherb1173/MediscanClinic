@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.results",
     "apps.cabinet",
     "apps.accounts",
+
 ]
 
 SITE_ID = 1
@@ -86,6 +87,8 @@ TEMPLATES = [
                 "apps.services.context_processors.popular_services",
                 "apps.core.context_processors.core_context",
                 "apps.cabinet.context_processors.cabinet_badges",
+                "apps.accounts.context_processors.lk_user_data",
+                "apps.staff.context_processors.doctor_slider_items",
             ],
         },
     }
@@ -168,3 +171,16 @@ CONTACTS_ADMIN_EMAIL = _env_str("CONTACTS_ADMIN_EMAIL", DEFAULT_FROM_EMAIL)
 
 # ---------------- Yandex Maps ----------------
 YMAPS_API_KEY = os.getenv("YMAPS_API_KEY", "")
+
+SMS_RU_API_ID = os.getenv("SMS_RU_API_ID", "")
+SMS_SENDER = os.getenv("SMS_SENDER", "")
+SMS_RU_TEST = os.getenv("SMS_RU_TEST", "0") == "1"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "appointments.sms": {"handlers": ["console"], "level": "INFO"},
+    },
+}

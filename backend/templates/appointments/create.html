@@ -202,7 +202,6 @@
               <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
   <span id="slot-display" class="text-slate-400">
     {% if form.slot.value and form.preferred_date.value %}
-      {# если очень хочешь — можно показать "Выбрано", но лучше label выставлять кликом по плитке #}
       Выбрано
     {% else %}
       Выберите время
@@ -285,7 +284,7 @@
         <ul class="mt-3 space-y-2 text-sm text-slate-600">
           <li class="flex gap-2"><span>✅</span><span>Выбираете ФИО, телефон, услугу, дату и время — 1–2 минуты</span></li>
           <li class="flex gap-2"><span>📞</span><span>Мы подтверждаем запись по телефону</span></li>
-          <li class="flex gap-2"><span>⏰</span><span>Напоминание в Telegram / Email</span></li>
+          <li class="flex gap-2"><span>⏰</span><span>Напоминание в Telegram / Email/ SMS</span></li>
         </ul>
 
         <div class="mt-5 rounded-2xl bg-sky-50 border border-sky-200 p-4 text-sm text-sky-900">

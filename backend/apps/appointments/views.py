@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
-from django.shortcuts import redirect
 
 from apps.promos.models import Promo
 from apps.services.models import Service
@@ -21,6 +20,7 @@ from .notifications import AppointmentNotification, notify_email, notify_telegra
 
 def appointments_index(request):
     return redirect("appointments:create")
+
 
 # ---------------- Helpers ----------------
 def _safe_day(value: str | None) -> dt_date | None:
@@ -39,6 +39,89 @@ def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead
     if service_id:
         qs = qs.filter(service_id=service_id)
     return qs.order_by("starts_at").values_list("starts_at__date", flat=True).first()
+
+
+def _user_full_name(user) -> str:
+    """
+    Достаём ФИО из разных мест, + fallback на последнюю запись (Appointment),
+    если в профиле/юзере ФИО не хранится.
+    """
+    if not user or not getattr(user, "is_authenticated", False):
+        return ""
+
+    # 1) стандартный Django get_full_name()
+    try:
+        full = (user.get_full_name() or "").strip()
+        if full:
+            return full
+    except Exception:
+        pass
+
+    # 2) кастомное поле user.full_name
+    full = (getattr(user, "full_name", "") or "").strip()
+    if full:
+        return full
+
+    # 3) profile/patient/person
+    for rel in ("profile", "patient", "person"):
+        obj = getattr(user, rel, None)
+        if obj is not None:
+            full = (getattr(obj, "full_name", "") or getattr(obj, "fio", "") or "").strip()
+            if full:
+                return full
+
+    # 4) fallback: последняя запись пользователя
+    last = (
+        Appointment.objects
+        .filter(user=user)
+        .exclude(full_name__isnull=True)
+        .exclude(full_name__exact="")
+        .order_by("-created_at", "-id")  # created_at если есть, иначе id
+        .first()
+    )
+    if last:
+        return (last.full_name or "").strip()
+
+    # fallback: email/username
+    email = (getattr(user, "email", "") or "").strip()
+    if email:
+        return email
+    return (getattr(user, "username", "") or "").strip()
+
+
+def _user_phone(user) -> str:
+    """
+    Телефон из user/profile/patient/person, + fallback на последнюю запись.
+    """
+    if not user or not getattr(user, "is_authenticated", False):
+        return ""
+
+    # 1) user.phone
+    phone = (getattr(user, "phone", "") or "").strip()
+    if phone:
+        return phone
+
+    # 2) profile/patient/person
+    for rel in ("profile", "patient", "person"):
+        obj = getattr(user, rel, None)
+        if obj is not None:
+            phone = (getattr(obj, "phone", "") or "").strip()
+            if phone:
+                return phone
+
+    # 3) fallback: последняя запись пользователя
+    last = (
+        Appointment.objects
+        .filter(user=user)
+        .exclude(phone__isnull=True)
+        .exclude(phone__exact="")
+        .order_by("-created_at", "-id")
+        .first()
+    )
+    if last:
+        return (last.phone or "").strip()
+
+    return ""
 
 
 # -------- Calendar (month grid) --------
@@ -104,7 +187,6 @@ def slots(request):
     service_selected = bool(service_id)
     date_selected = bool(day)
 
-    # ✅ если пациент не готов — не показываем слоты, а только подсказку
     if not patient_ready:
         return render(
             request,
@@ -118,7 +200,6 @@ def slots(request):
             },
         )
 
-    # услуга не выбрана
     if not service_selected:
         return render(
             request,
@@ -132,7 +213,6 @@ def slots(request):
             },
         )
 
-    # услуга выбрана, но дата ещё нет
     if not date_selected:
         return render(
             request,
@@ -209,7 +289,7 @@ def appointment_create(request):
     )
     doctor = get_object_or_404(Doctor, id=doctor_id, is_active=True) if doctor_id else None
 
-    draft = request.session.get("appointment_draft", {})
+    draft = request.session.get("appointment_draft", {}) or {}
 
     base_ctx = {
         "service": service,
@@ -245,7 +325,6 @@ def appointment_create(request):
 
                     appointment: Appointment = form.save(commit=False)
 
-                    # ✅ привязка к пользователю (если авторизован)
                     appointment.user = request.user if request.user.is_authenticated else None
 
                     appointment.slot = slot_locked
@@ -272,11 +351,15 @@ def appointment_create(request):
             return redirect("appointments:success", pk=appointment.pk)
 
     else:
-        # ВАЖНО: дату подставляем только если услуга уже выбрана (чтобы placeholder даты был виден)
+        # ✅ автозаполнение: draft -> user/profile -> last appointment
+        user_full_name = _user_full_name(request.user)
+        user_phone = _user_phone(request.user)
+        user_email = (getattr(request.user, "email", "") or "").strip() if request.user.is_authenticated else ""
+
         initial = {
-            "full_name": draft.get("full_name", ""),
-            "phone": draft.get("phone", ""),
-            "email": draft.get("email", ""),
+            "full_name": draft.get("full_name") or user_full_name or "",
+            "phone": draft.get("phone") or user_phone or "",
+            "email": draft.get("email") or user_email or "",
             "comment": draft.get("comment", ""),
         }
 
