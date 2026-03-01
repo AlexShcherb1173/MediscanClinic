@@ -30,6 +30,11 @@ class AppointmentCreateForm(forms.ModelForm):
     - supports locking service/doctor when coming from service/doctor pages
     """
 
+    phone = forms.CharField(
+        label="Телефон",
+        required=True,
+        max_length=32,
+    )
     preferred_date = forms.DateField(
         label="Дата",
         required=True,

@@ -12,12 +12,13 @@ from apps.contacts.telegram import send_telegram_message
 
 class ContactsFormsTests(TestCase):
     def test_contact_form_clean_name(self):
+        # " A " -> strip -> "A" (len=1) -> invalid
         f = ContactForm(data={"name": " A ", "email": "a@a.com", "message": "Hello"})
         self.assertFalse(f.is_valid())
         self.assertIn("name", f.errors)
 
         f2 = ContactForm(data={"name": "Анна", "email": "a@a.com", "message": "Hello"})
-        self.assertTrue(f2.is_valid())
+        self.assertTrue(f2.is_valid(), f2.errors)
         self.assertEqual(f2.cleaned_data["name"], "Анна")
 
     def test_ask_question_form_validation(self):
@@ -27,8 +28,15 @@ class ContactsFormsTests(TestCase):
         self.assertIn("contact", f.errors)
         self.assertIn("question", f.errors)
 
-        f2 = AskQuestionForm(data={"name": "Alex", "contact": "test@test.com", "question": "Hello?"})
-        self.assertTrue(f2.is_valid())
+        # Валидный email-контакт
+        f2 = AskQuestionForm(data={"name": "Alex", "contact": "TeSt@Test.com", "question": "Hello?"})
+        self.assertTrue(f2.is_valid(), f2.errors)
+        self.assertEqual(f2.cleaned_data["contact"], "test@test.com")
+
+        # Валидный phone-контакт (E.164 нормализуется)
+        f3 = AskQuestionForm(data={"name": "Alex", "contact": "8 (999) 123-45-67", "question": "Hello?"})
+        self.assertTrue(f3.is_valid(), f3.errors)
+        self.assertEqual(f3.cleaned_data["contact"], "+79991234567")
 
 
 class ContactsViewsTests(TestCase):
@@ -36,7 +44,8 @@ class ContactsViewsTests(TestCase):
     @patch("apps.contacts.views.notify_contact_telegram")
     def test_contacts_home_post_valid_sends_notifications_and_redirects(self, tg, em):
         url = reverse("contacts:home")
-        r = self.client.post(url, data={"name": "Alex", "email": "a@a.com", "message": "Hi"})
+        r = self.client.post(url, data={"name": "Alex", "email": "a@a.com", "message": "Hi"}, follow=False)
+
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r["Location"], url)
 
@@ -47,7 +56,8 @@ class ContactsViewsTests(TestCase):
     @patch("apps.contacts.views.notify_contact_telegram")
     def test_feedback_post_valid_sends_notifications_and_redirects(self, tg, em):
         url = reverse("contacts:feedback")
-        r = self.client.post(url, data={"name": "Alex", "email": "a@a.com", "message": "Hi"})
+        r = self.client.post(url, data={"name": "Alex", "email": "a@a.com", "message": "Hi"}, follow=False)
+
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r["Location"], url)
 
@@ -58,7 +68,12 @@ class ContactsViewsTests(TestCase):
     @patch("apps.contacts.views.notify_contact_telegram")
     def test_ask_question_post_valid_sends_notifications_and_redirects(self, tg, em):
         url = reverse("contacts:ask_question")
-        r = self.client.post(url, data={"name": "Alex", "contact": "+7999", "question": "How?"})
+
+        # ВАЖНО: contact должен быть валидным (email или E.164 телефон),
+        # question минимум 5 символов
+        payload = {"name": "Alex", "contact": "8 (999) 123-45-67", "question": "How are you?"}
+        r = self.client.post(url, data=payload, follow=False)
+
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r["Location"], url)
 

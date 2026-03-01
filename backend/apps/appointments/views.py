@@ -253,7 +253,7 @@ def slots(request):
     patient_ready = (len(full_name) >= 3) and (len(phone) >= 6)
 
     service_selected = bool(service_id)
-    date_selected = bool(date_str) and (day is not None)
+    date_selected = (day is not None)
 
     # ✅ запрет прошлого на сервере (если кто-то подставит вручную)
     today = timezone.localdate()
@@ -287,7 +287,22 @@ def slots(request):
             },
         )
 
-    if (not date_selected) or date_in_past:
+    if not date_selected:
+        return render(
+            request,
+            "appointments/_slots_tiles.html",
+            {
+                "patient_ready": True,
+                "service_selected": True,
+                "date_selected": False,
+                "date_in_past": False,
+                "slot_items": [],
+                "selected_slot_id": "",
+            },
+        )
+
+    # если дата выбрана, но в прошлом
+    if date_in_past:
         return render(
             request,
             "appointments/_slots_tiles.html",

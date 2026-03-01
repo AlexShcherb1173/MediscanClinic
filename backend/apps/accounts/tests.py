@@ -18,10 +18,11 @@ User = get_user_model()
 
 
 class AccountsUtilsTests(TestCase):
-    def test_normalize_phone_digits_only(self):
-        self.assertEqual(normalize_phone("+7(985) 698-72-82"), "79856987282")
-        self.assertEqual(normalize_phone("8 985 698-72-82"), "89856987282")
-        self.assertEqual(normalize_phone(""), "")
+    def test_normalize_phone_e164(self):
+        self.assertEqual(normalize_phone("+7(985) 698-72-82"), "+79856987282")
+        self.assertEqual(normalize_phone("8 985 698-72-82"), "+79856987282")
+        with self.assertRaises(ValidationError):
+            normalize_phone("")
 
 
 class AccountsUserManagerTests(TestCase):
@@ -36,7 +37,7 @@ class AccountsUserManagerTests(TestCase):
             full_name="Иван Иванов",
             email="a@b.com",
         )
-        self.assertEqual(u.phone, "79990000000")
+        self.assertEqual(u.phone, "+79990000000")
         self.assertTrue(u.check_password("123456"))
 
     def test_create_superuser_sets_flags(self):
@@ -48,6 +49,7 @@ class AccountsUserManagerTests(TestCase):
         self.assertTrue(su.is_staff)
         self.assertTrue(su.is_superuser)
         self.assertTrue(su.is_active)
+        self.assertEqual(su.phone, "+79990000011")
 
 
 class AccountsUserModelTests(TestCase):
@@ -56,7 +58,7 @@ class AccountsUserModelTests(TestCase):
         self.assertEqual(str(u), "Пользователь")
 
         u2 = User.objects.create_user(phone="79990000033", password="123456", full_name="")
-        self.assertEqual(str(u2), "79990000033")
+        self.assertEqual(str(u2), "+79990000033")
 
     def test_touch_updates_last_seen(self):
         u = User.objects.create_user(phone="79990000044", password="123456", full_name="X")
@@ -112,7 +114,7 @@ class AccountsFormsTests(TestCase):
         )
         self.assertTrue(form.is_valid())
         user = form.save()
-        self.assertEqual(user.phone, "79991111111")
+        self.assertEqual(user.phone, "+79991111111")
         self.assertTrue(user.check_password("123456"))
 
     def test_register_form_password_mismatch(self):
@@ -147,7 +149,7 @@ class AccountsFormsTests(TestCase):
         form = LoginForm(data={"phone": "+7(999)222-33-44", "password": "123456"})
         self.assertTrue(form.is_valid())
         self.assertIn("user", form.cleaned_data)
-        self.assertEqual(form.cleaned_data["phone"], "79992223344")
+        self.assertEqual(form.cleaned_data["phone"], "+79992223344")
 
     def test_login_form_invalid_credentials(self):
         User.objects.create_user(phone="79993334455", password="123456", full_name="X")
@@ -171,7 +173,7 @@ class AccountsViewsTests(TestCase):
             follow=False,
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(User.objects.filter(phone="79995555555").exists())
+        self.assertTrue(User.objects.filter(phone="+79995555555").exists())
 
     def test_login_view_logs_in(self):
         User.objects.create_user(phone="79996667788", password="123456", full_name="X")
@@ -191,6 +193,7 @@ class AccountsViewsTests(TestCase):
         url = reverse("accounts:logout")
         r = self.client.get(url, follow=False)
         self.assertEqual(r.status_code, 302)
+
 
 class ContactUtilsTests(TestCase):
     def test_accepts_email(self):
