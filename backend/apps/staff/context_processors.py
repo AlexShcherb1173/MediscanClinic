@@ -20,8 +20,7 @@ def doctor_slider_items(request) -> dict[str, Any]:
         dict with key "doctor_slider_items" -> list[{"url": str, "name": str}]
     """
     qs = (
-        Doctor.objects
-        .filter(is_active=True)
+        Doctor.objects.filter(is_active=True)
         .exclude(photo="")
         .only("id", "full_name", "photo")
         .order_by("?")[:12]

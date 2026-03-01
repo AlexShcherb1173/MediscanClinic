@@ -39,7 +39,9 @@ class Promo(models.Model):
 
     title = models.CharField("Заголовок", max_length=160)
     slug = models.SlugField("Slug", max_length=180, unique=True, blank=True)
-    badge = models.CharField("Бейдж", max_length=32, blank=True, help_text="Напр.: Скидка, Чек-ап, Ночь")
+    badge = models.CharField(
+        "Бейдж", max_length=32, blank=True, help_text="Напр.: Скидка, Чек-ап, Ночь"
+    )
     subtitle = models.CharField("Подзаголовок", max_length=220, blank=True)
     description = models.TextField("Описание", blank=True)
 

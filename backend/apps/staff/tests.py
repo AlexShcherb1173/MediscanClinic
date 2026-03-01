@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from datetime import time, timedelta
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from unittest.mock import patch
 
-from apps.staff.models import Doctor, Specialty, DoctorSchedule
-from apps.staff.utils import generate_time_slots
 from apps.staff.context_processors import doctor_slider_items
+from apps.staff.models import Doctor, DoctorSchedule, Specialty
+from apps.staff.utils import generate_time_slots
 
 
 class StaffModelsTests(TestCase):
@@ -110,7 +111,9 @@ class StaffContextProcessorTests(TestCase):
             photo = DummyPhoto()
 
         mock_qs = [DummyDoctor()]
-        mock_manager.filter.return_value.exclude.return_value.only.return_value.order_by.return_value.__getitem__.return_value = mock_qs
+        mock_manager.filter.return_value.exclude.return_value.only.return_value.order_by.return_value.__getitem__.return_value = (
+            mock_qs
+        )
 
         result = doctor_slider_items(None)
         self.assertIsInstance(result, dict)

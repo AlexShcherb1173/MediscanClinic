@@ -19,14 +19,36 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("phone", "password")}),
         ("Персональные данные", {"fields": ("full_name", "email")}),
-        ("Права", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            "Права",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         ("Даты", {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("full_name", "phone", "email", "password1", "password2", "is_staff", "is_active"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "full_name",
+                    "phone",
+                    "email",
+                    "password1",
+                    "password2",
+                    "is_staff",
+                    "is_active",
+                ),
+            },
+        ),
     )
 
     filter_horizontal = ("groups", "user_permissions")

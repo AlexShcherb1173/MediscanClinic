@@ -61,7 +61,9 @@ class AppointmentSlot(models.Model):
             models.Index(fields=["is_active", "is_booked"]),
         ]
         constraints = [
-            models.UniqueConstraint(fields=["service", "starts_at"], name="uniq_slot_service_starts_at"),
+            models.UniqueConstraint(
+                fields=["service", "starts_at"], name="uniq_slot_service_starts_at"
+            ),
         ]
 
     def __str__(self) -> str:
@@ -85,6 +87,7 @@ class Appointment(models.Model):
 
     class Status(models.TextChoices):
         """Allowed appointment statuses."""
+
         NEW = "new", "Новая"
         CONFIRMED = "confirmed", "Подтверждена"
         COMPLETED = "completed", "Завершена"
@@ -147,11 +150,17 @@ class Appointment(models.Model):
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
     comment = models.TextField("Комментарий", blank=True)
 
-    preferred_datetime = models.DateTimeField("Дата/время записи", null=True, blank=True)
+    preferred_datetime = models.DateTimeField(
+        "Дата/время записи", null=True, blank=True
+    )
 
     reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
-    reminder_email_sent = models.BooleanField("Email-напоминание отправлено", default=False)
-    reminder_telegram_sent = models.BooleanField("Telegram-напоминание отправлено", default=False)
+    reminder_email_sent = models.BooleanField(
+        "Email-напоминание отправлено", default=False
+    )
+    reminder_telegram_sent = models.BooleanField(
+        "Telegram-напоминание отправлено", default=False
+    )
     reminder_24h_sent = models.BooleanField("Напоминание 24ч отправлено", default=False)
     reminder_2h_sent = models.BooleanField("Напоминание 2ч отправлено", default=False)
 

@@ -108,7 +108,11 @@ class AppointmentAdmin(admin.ModelAdmin):
         now = timezone.now()
 
         for obj in qs:
-            if obj.preferred_datetime and obj.preferred_datetime < now and obj.status == Appointment.Status.CONFIRMED:
+            if (
+                obj.preferred_datetime
+                and obj.preferred_datetime < now
+                and obj.status == Appointment.Status.CONFIRMED
+            ):
                 obj.row_class = "status-completed"
             else:
                 obj.row_class = f"status-{obj.status}"

@@ -49,7 +49,9 @@ def _get_cfg() -> Optional[TelegramConfig]:
     """
     token = (getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "").strip()
     chat_id = (getattr(settings, "TELEGRAM_CHAT_ID", "") or "").strip()
-    api_base = (getattr(settings, "TELEGRAM_API_BASE", "") or "").strip() or "https://api.telegram.org"
+    api_base = (
+        getattr(settings, "TELEGRAM_API_BASE", "") or ""
+    ).strip() or "https://api.telegram.org"
 
     if not token or not chat_id:
         return None
@@ -74,11 +76,13 @@ def send_telegram_message(text: str, parse_mode: str = "Markdown") -> bool:
     """
     cfg = _get_cfg()
     if not cfg:
-        logger.warning("Telegram is not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID).")
+        logger.warning(
+            "Telegram is not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)."
+        )
         return False
 
     # Telegram Bot API message length limit is ~4096 chars for text.
-    safe_text = (text or "")
+    safe_text = text or ""
     if len(safe_text) > 4096:
         safe_text = safe_text[:4090] + "…"
 
@@ -95,7 +99,11 @@ def send_telegram_message(text: str, parse_mode: str = "Markdown") -> bool:
         ok = bool(r.ok)
         if not ok:
             # Never log token. Only status + small body excerpt.
-            logger.warning("Telegram send failed: status=%s body=%s", r.status_code, (r.text or "")[:500])
+            logger.warning(
+                "Telegram send failed: status=%s body=%s",
+                r.status_code,
+                (r.text or "")[:500],
+            )
         return ok
     except Exception as exc:
         logger.exception("Telegram send exception: %s", exc)

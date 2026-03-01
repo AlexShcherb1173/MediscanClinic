@@ -34,13 +34,14 @@ def _user_full_name(user) -> str:
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
-            full = (getattr(obj, "full_name", "") or getattr(obj, "fio", "") or "").strip()
+            full = (
+                getattr(obj, "full_name", "") or getattr(obj, "fio", "") or ""
+            ).strip()
             if full:
                 return full
 
     last = (
-        Appointment.objects
-        .filter(user=user)
+        Appointment.objects.filter(user=user)
         .exclude(full_name__isnull=True)
         .exclude(full_name__exact="")
         .order_by("-id")
@@ -73,8 +74,7 @@ def _user_phone(user) -> str:
                 return phone
 
     last = (
-        Appointment.objects
-        .filter(user=user)
+        Appointment.objects.filter(user=user)
         .exclude(phone__isnull=True)
         .exclude(phone__exact="")
         .order_by("-id")

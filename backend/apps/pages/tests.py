@@ -103,7 +103,6 @@ class PagesViewsTests(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
 
-
     @patch("apps.pages.views.Doctor.objects.filter")
     def test_page_detail_about_branch_renders_and_has_context(self, doctor_filter):
         """
@@ -130,7 +129,9 @@ class PagesViewsTests(TestCase):
         self.assertEqual(resp.context["page"].slug, "faq")
 
     def test_page_detail_db_page_unpublished_returns_404(self):
-        Page.objects.create(title="Hidden", slug="hidden", content="x", is_published=False)
+        Page.objects.create(
+            title="Hidden", slug="hidden", content="x", is_published=False
+        )
 
         url = reverse("pages:page_detail", kwargs={"slug": "hidden"})
         resp = self.client.get(url)

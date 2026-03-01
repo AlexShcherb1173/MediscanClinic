@@ -26,7 +26,9 @@ def normalize_phone(raw: str, default_region: str = "RU") -> str:
     value = re.sub(r"[^\d+]", "", value)
 
     try:
-        parsed = phonenumbers.parse(value, None if value.startswith("+") else default_region)
+        parsed = phonenumbers.parse(
+            value, None if value.startswith("+") else default_region
+        )
     except phonenumbers.NumberParseException:
         raise ValidationError("Введите корректный номер телефона.")
 

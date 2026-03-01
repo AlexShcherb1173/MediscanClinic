@@ -42,6 +42,7 @@ def send_to_telegram(modeladmin, request, queryset):
 @admin.register(AdminTelegramMessage)
 class AdminTelegramMessageAdmin(admin.ModelAdmin):
     """Admin UI for AdminTelegramMessage."""
+
     list_display = ("id", "is_sent", "created_at", "sent_at")
     list_filter = ("is_sent", "created_at")
     search_fields = ("text",)

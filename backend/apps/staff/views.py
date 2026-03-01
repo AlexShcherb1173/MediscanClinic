@@ -40,7 +40,9 @@ def doctor_detail(request, pk: int):
             [{"weekday": 0, "weekday_label": "Понедельник", "windows": [{"from": "09:00", "to": "13:00"}]}]
     """
     doctor = get_object_or_404(
-        Doctor.objects.filter(is_active=True).prefetch_related("specialties", "schedules"),
+        Doctor.objects.filter(is_active=True).prefetch_related(
+            "specialties", "schedules"
+        ),
         pk=pk,
     )
 
@@ -53,7 +55,10 @@ def doctor_detail(request, pk: int):
     schedules = []
     for weekday in sorted(grouped.keys()):
         windows = [
-            {"from": sch.time_from.strftime("%H:%M"), "to": sch.time_to.strftime("%H:%M")}
+            {
+                "from": sch.time_from.strftime("%H:%M"),
+                "to": sch.time_to.strftime("%H:%M"),
+            }
             for sch in grouped[weekday]
         ]
         schedules.append(

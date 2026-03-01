@@ -16,7 +16,6 @@ from apps.staff.models import Doctor
 
 from .models import Page
 
-
 # Slugs that are rendered using dedicated templates (without DB Page records).
 STATIC_TEMPLATES = {
     "about-history": "pages/about-history.html",
@@ -66,6 +65,7 @@ def page_detail(request, slug: str):
 
         try:
             from apps.core.models import License
+
             licenses = License.objects.all()
         except Exception:
             licenses = []
@@ -101,7 +101,9 @@ def home(request):
     Returns:
         HttpResponse
     """
-    promos = Promo.objects.filter(is_active=True).order_by("sort_order", "-created_at")[:3]
+    promos = Promo.objects.filter(is_active=True).order_by("sort_order", "-created_at")[
+        :3
+    ]
 
     popular_services = (
         Service.objects.filter(

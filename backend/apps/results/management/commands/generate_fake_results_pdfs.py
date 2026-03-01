@@ -14,7 +14,6 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -64,8 +63,18 @@ def _make_pdf(path: Path, title: str, patient_id: int, lines: list[str]) -> None
 # Demo files to generate: (patient_id, filename, title, bullet_lines)
 FILES: list[tuple[int, str, str, list[str]]] = [
     # user 1
-    (1, "sample3.pdf", "Общий анализ крови", ["Показатели: в норме", "Рекомендация: контроль через 6 мес."]),
-    (1, "sample2.pdf", "МРТ поясничного отдела", ["Протрузия L4-L5", "Без признаков секвестрации"]),
+    (
+        1,
+        "sample3.pdf",
+        "Общий анализ крови",
+        ["Показатели: в норме", "Рекомендация: контроль через 6 мес."],
+    ),
+    (
+        1,
+        "sample2.pdf",
+        "МРТ поясничного отдела",
+        ["Протрузия L4-L5", "Без признаков секвестрации"],
+    ),
     (
         1,
         "sample1.pdf",
@@ -73,8 +82,18 @@ FILES: list[tuple[int, str, str, list[str]]] = [
         ["Холестерин: повышен", "Рекомендация: диета / консультация врача"],
     ),
     # user 2
-    (2, "sample3.pdf", "Общий анализ крови", ["Показатели: в норме", "Рекомендация: контроль через 6 мес."]),
-    (2, "sample2.pdf", "МРТ поясничного отдела", ["Протрузия L4-L5", "Без признаков секвестрации"]),
+    (
+        2,
+        "sample3.pdf",
+        "Общий анализ крови",
+        ["Показатели: в норме", "Рекомендация: контроль через 6 мес."],
+    ),
+    (
+        2,
+        "sample2.pdf",
+        "МРТ поясничного отдела",
+        ["Протрузия L4-L5", "Без признаков секвестрации"],
+    ),
     (
         2,
         "sample1.pdf",
@@ -83,7 +102,12 @@ FILES: list[tuple[int, str, str, list[str]]] = [
     ),
     # user 3
     (3, "cbc_u3.pdf", "Общий анализ крови", ["Лейкоциты: норма", "Гемоглобин: норма"]),
-    (3, "us_u3.pdf", "УЗИ брюшной полости", ["Без особенностей", "Печень: без структурных изменений"]),
+    (
+        3,
+        "us_u3.pdf",
+        "УЗИ брюшной полости",
+        ["Без особенностей", "Печень: без структурных изменений"],
+    ),
     (
         3,
         "thyroid_u3.pdf",

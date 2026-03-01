@@ -122,9 +122,7 @@ class Service(models.Model):
         super().clean()
 
         if self.price_to is not None and self.price_to < self.price_from:
-            raise ValidationError(
-                {"price_to": "Цена до не может быть меньше цены от."}
-            )
+            raise ValidationError({"price_to": "Цена до не может быть меньше цены от."})
 
     def save(self, *args, **kwargs):
         """

@@ -38,7 +38,7 @@ def send_appointments_reminders() -> int:
 
     windows = [
         ("24h", now + timedelta(hours=24), 30),  # +/- 30 min
-        ("2h", now + timedelta(hours=2), 20),    # +/- 20 min
+        ("2h", now + timedelta(hours=2), 20),  # +/- 20 min
     ]
 
     total = 0
@@ -49,16 +49,19 @@ def send_appointments_reminders() -> int:
 
         with transaction.atomic():
             qs = (
-                Appointment.objects
-                .select_for_update(skip_locked=True)
+                Appointment.objects.select_for_update(skip_locked=True)
                 .filter(preferred_datetime__gte=start, preferred_datetime__lte=end)
-                .filter(status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED])
+                .filter(
+                    status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED]
+                )
                 .select_related("service")
             )
 
             for appt in qs:
                 service_name = appt.service.name if appt.service else "—"
-                dt_str = timezone.localtime(appt.preferred_datetime).strftime("%d.%m.%Y %H:%M")
+                dt_str = timezone.localtime(appt.preferred_datetime).strftime(
+                    "%d.%m.%Y %H:%M"
+                )
 
                 if not appt.reminder_telegram_sent:
                     text = (
@@ -74,7 +77,9 @@ def send_appointments_reminders() -> int:
                     total += 1
 
                 if not appt.reminder_email_sent:
-                    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+                    to_email = getattr(
+                        settings, "APPOINTMENTS_TO_EMAIL", ""
+                    ) or getattr(settings, "DEFAULT_FROM_EMAIL", "")
                     if to_email:
                         subject = f"Mediscan: напоминание о записи ({label})"
                         body = (

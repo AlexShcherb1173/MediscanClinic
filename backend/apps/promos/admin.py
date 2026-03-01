@@ -10,6 +10,7 @@ from .models import Promo
 @admin.register(Promo)
 class PromoAdmin(admin.ModelAdmin):
     """Admin UI for Promo model."""
+
     list_display = ("title", "badge", "is_active", "starts_at", "ends_at", "sort_order")
     list_filter = ("is_active", "badge")
     search_fields = ("title", "subtitle", "description", "badge", "slug")

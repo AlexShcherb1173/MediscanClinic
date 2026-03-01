@@ -11,7 +11,6 @@ from django.urls import path
 
 from .views import home, page_detail, sitemap_view
 
-
 app_name = "pages"
 
 urlpatterns = [

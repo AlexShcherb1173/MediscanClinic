@@ -15,9 +15,11 @@ class Command(BaseCommand):
 
                 # Detect duplicates after normalization
                 if User.objects.filter(phone=norm).exclude(pk=u.pk).exists():
-                    self.stdout.write(self.style.WARNING(
-                        f"Duplicate after normalize: user_id={u.pk}, phone={u.phone} -> {norm}"
-                    ))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"Duplicate after normalize: user_id={u.pk}, phone={u.phone} -> {norm}"
+                        )
+                    )
                     continue
 
                 if u.phone != norm:

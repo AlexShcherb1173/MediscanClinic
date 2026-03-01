@@ -19,7 +19,6 @@ from django.utils import timezone
 
 from .utils import normalize_phone
 
-
 # Enterprise: store ONLY E.164. Example: +79991234567
 e164_phone_validator = RegexValidator(
     regex=r"^\+[1-9]\d{1,14}$",
@@ -52,7 +51,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, phone: str | None = None, password: str | None = None, **extra_fields):
+    def create_superuser(
+        self, phone: str | None = None, password: str | None = None, **extra_fields
+    ):
         """
         Create and save a superuser.
 

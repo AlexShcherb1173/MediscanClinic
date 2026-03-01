@@ -31,14 +31,11 @@ def get_busy_time_labels(service_id: int, day: date) -> set[str]:
     start = timezone.make_aware(datetime.combine(day, time.min), tz)
     end = timezone.make_aware(datetime.combine(day, time.max), tz)
 
-    qs = (
-        Appointment.objects.filter(
-            service_id=service_id,
-            preferred_datetime__gte=start,
-            preferred_datetime__lte=end,
-            status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED],
-        )
-        .values_list("preferred_datetime", flat=True)
-    )
+    qs = Appointment.objects.filter(
+        service_id=service_id,
+        preferred_datetime__gte=start,
+        preferred_datetime__lte=end,
+        status__in=[Appointment.Status.NEW, Appointment.Status.CONFIRMED],
+    ).values_list("preferred_datetime", flat=True)
 
     return {timezone.localtime(dt, tz).strftime("%H:%M") for dt in qs}

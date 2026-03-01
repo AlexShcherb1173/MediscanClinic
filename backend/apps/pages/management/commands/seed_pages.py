@@ -9,7 +9,6 @@ from django.core.management.base import BaseCommand
 
 from apps.pages.models import Page
 
-
 TEMPLATES = {
     "about-history": {
         "title": "История Mediscan",

@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_date
 from apps.accounts.utils import normalize_phone
 from apps.services.models import Service
 from apps.staff.models import Doctor
+
 from .models import Appointment, AppointmentSlot
 
 
@@ -94,16 +95,15 @@ class AppointmentCreateForm(forms.ModelForm):
         self.fields["doctor"].queryset = Doctor.objects.filter(is_active=True)
 
         selected_service = (
-            self.data.get("service")
-            or self.initial.get("service")
-            or service_id
+            self.data.get("service") or self.initial.get("service") or service_id
         )
 
-        selected_date_raw = (
-            self.data.get("preferred_date")
-            or self.initial.get("preferred_date")
+        selected_date_raw = self.data.get("preferred_date") or self.initial.get(
+            "preferred_date"
         )
-        selected_date = parse_date(str(selected_date_raw)) if selected_date_raw else None
+        selected_date = (
+            parse_date(str(selected_date_raw)) if selected_date_raw else None
+        )
 
         qs = AppointmentSlot.objects.filter(is_active=True)
 

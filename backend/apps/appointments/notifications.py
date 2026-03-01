@@ -30,6 +30,7 @@ class AppointmentNotification:
         service_name: Service name.
         preferred_datetime_iso: ISO datetime string for appointment time.
     """
+
     full_name: str
     phone: str
     service_name: str
@@ -50,7 +51,9 @@ def notify_email(payload: AppointmentNotification) -> None:
         f"Дата/время: {payload.preferred_datetime_iso}\n"
     )
 
-    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(
+        settings, "DEFAULT_FROM_EMAIL", ""
+    )
     recipients = normalize_emails(to_email)
     if not recipients:
         return

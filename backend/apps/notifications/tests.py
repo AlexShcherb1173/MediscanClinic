@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 from django.test import TestCase, override_settings
 
-from apps.notifications.telegram_client import send_telegram_message
 from apps.notifications.tasks import send_telegram_text_task
+from apps.notifications.telegram_client import send_telegram_message
 
 
 class TelegramClientTests(TestCase):
@@ -14,7 +14,11 @@ class TelegramClientTests(TestCase):
         ok = send_telegram_message("hello")
         self.assertFalse(ok)
 
-    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="123", TELEGRAM_API_BASE="https://api.telegram.org")
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="token",
+        TELEGRAM_CHAT_ID="123",
+        TELEGRAM_API_BASE="https://api.telegram.org",
+    )
     @patch("apps.notifications.telegram_client.requests.post")
     def test_send_telegram_message_success(self, post):
         post.return_value = Mock(ok=True, status_code=200, text="ok")
@@ -22,21 +26,33 @@ class TelegramClientTests(TestCase):
         self.assertTrue(ok)
         post.assert_called_once()
 
-    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="123", TELEGRAM_API_BASE="https://api.telegram.org")
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="token",
+        TELEGRAM_CHAT_ID="123",
+        TELEGRAM_API_BASE="https://api.telegram.org",
+    )
     @patch("apps.notifications.telegram_client.requests.post")
     def test_send_telegram_message_http_error_returns_false(self, post):
         post.return_value = Mock(ok=False, status_code=400, text="bad request")
         ok = send_telegram_message("hello")
         self.assertFalse(ok)
 
-    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="123", TELEGRAM_API_BASE="https://api.telegram.org")
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="token",
+        TELEGRAM_CHAT_ID="123",
+        TELEGRAM_API_BASE="https://api.telegram.org",
+    )
     @patch("apps.notifications.telegram_client.requests.post")
     def test_send_telegram_message_exception_returns_false(self, post):
         post.side_effect = RuntimeError("network down")
         ok = send_telegram_message("hello")
         self.assertFalse(ok)
 
-    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="123", TELEGRAM_API_BASE="https://api.telegram.org")
+    @override_settings(
+        TELEGRAM_BOT_TOKEN="token",
+        TELEGRAM_CHAT_ID="123",
+        TELEGRAM_API_BASE="https://api.telegram.org",
+    )
     @patch("apps.notifications.telegram_client.requests.post")
     def test_send_telegram_message_truncates_long_text(self, post):
         post.return_value = Mock(ok=True, status_code=200, text="ok")

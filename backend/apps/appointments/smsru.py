@@ -15,7 +15,8 @@ import logging
 import requests
 from django.conf import settings
 
-from .utils import normalize_phone_for_smsru  # поправь импорт под твой реальный модуль/путь
+from .utils import \
+    normalize_phone_for_smsru  # поправь импорт под твой реальный модуль/путь
 
 logger = logging.getLogger("appointments.sms")
 
@@ -67,12 +68,18 @@ def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
 
     if payload.get("status") != "OK":
         logger.error("sms.ru status!=OK: %s", payload)
-        return False, f"sms.ru error {payload.get('status_code')}: {payload.get('status_text')}"
+        return (
+            False,
+            f"sms.ru error {payload.get('status_code')}: {payload.get('status_text')}",
+        )
 
     sms_info = (payload.get("sms") or {}).get(to_norm) or {}
     if sms_info.get("status") != "OK":
         logger.error("sms.ru per-number error to=%s: %s", to_norm, sms_info)
-        return False, f"sms to {to_norm} error {sms_info.get('status_code')}: {sms_info.get('status_text')}"
+        return (
+            False,
+            f"sms to {to_norm} error {sms_info.get('status_code')}: {sms_info.get('status_text')}",
+        )
 
     sms_id = sms_info.get("sms_id", "OK")
     logger.info("sms.ru sent ok to=%s sms_id=%s", to_norm, sms_id)

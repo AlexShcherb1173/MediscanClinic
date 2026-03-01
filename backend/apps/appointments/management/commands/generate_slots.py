@@ -15,14 +15,14 @@ Notes:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, time
+from datetime import datetime, time, timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from apps.services.models import Service
 from apps.appointments.models import AppointmentSlot
+from apps.services.models import Service
 
 
 class Command(BaseCommand):
@@ -41,11 +41,26 @@ class Command(BaseCommand):
     help = "Generate AppointmentSlot for each active service (08:00-20:00, step 20 min) for N days вперед."
 
     def add_arguments(self, parser):
-        parser.add_argument("--days", type=int, default=14, help="How many days вперед (default: 14)")
-        parser.add_argument("--start", type=str, default="08:00", help="Day start HH:MM (default: 08:00)")
-        parser.add_argument("--end", type=str, default="20:00", help="Day end HH:MM (default: 20:00)")
-        parser.add_argument("--step", type=int, default=20, help="Step in minutes (default: 20)")
-        parser.add_argument("--replace", action="store_true", help="Delete existing generated range first")
+        parser.add_argument(
+            "--days", type=int, default=14, help="How many days вперед (default: 14)"
+        )
+        parser.add_argument(
+            "--start",
+            type=str,
+            default="08:00",
+            help="Day start HH:MM (default: 08:00)",
+        )
+        parser.add_argument(
+            "--end", type=str, default="20:00", help="Day end HH:MM (default: 20:00)"
+        )
+        parser.add_argument(
+            "--step", type=int, default=20, help="Step in minutes (default: 20)"
+        )
+        parser.add_argument(
+            "--replace",
+            action="store_true",
+            help="Delete existing generated range first",
+        )
         parser.add_argument("--dry-run", action="store_true", help="Only show counts")
 
     def handle(self, *args, **options):
@@ -74,8 +89,9 @@ class Command(BaseCommand):
         date_to = today + timedelta(days=days)  # non-inclusive end
 
         service_ids = list(
-            Service.objects.filter(is_active=True, category__is_active=True)
-            .values_list("id", flat=True)
+            Service.objects.filter(
+                is_active=True, category__is_active=True
+            ).values_list("id", flat=True)
         )
         if not service_ids:
             self.stderr.write(self.style.WARNING("No active services found."))
@@ -93,7 +109,9 @@ class Command(BaseCommand):
         total_planned = len(service_ids) * days * per_day
         self.stdout.write(f"Active services: {len(service_ids)}")
         self.stdout.write(f"Days: {days} ({date_from}..{date_to})")
-        self.stdout.write(f"Per day slots: {per_day} ({start_s}..{end_s}, step {step_min}m)")
+        self.stdout.write(
+            f"Per day slots: {per_day} ({start_s}..{end_s}, step {step_min}m)"
+        )
         self.stdout.write(f"Planned total: {total_planned}")
 
         if dry_run:
@@ -106,7 +124,9 @@ class Command(BaseCommand):
                     starts_at__date__gte=date_from,
                     starts_at__date__lt=date_to,
                 ).delete()
-                self.stdout.write(self.style.WARNING(f"Deleted: {deleted} objects in range"))
+                self.stdout.write(
+                    self.style.WARNING(f"Deleted: {deleted} objects in range")
+                )
 
             created = 0
             skipped = 0
@@ -137,15 +157,17 @@ class Command(BaseCommand):
 
                     # Flush batch to prevent memory growth
                     if len(batch) >= 5000:
-                        res = AppointmentSlot.objects.bulk_create(batch, ignore_conflicts=True)
+                        res = AppointmentSlot.objects.bulk_create(
+                            batch, ignore_conflicts=True
+                        )
                         created += len(res)
-                        skipped += (len(batch) - len(res))
+                        skipped += len(batch) - len(res)
                         batch = []
 
             if batch:
                 res = AppointmentSlot.objects.bulk_create(batch, ignore_conflicts=True)
                 created += len(res)
-                skipped += (len(batch) - len(res))
+                skipped += len(batch) - len(res)
 
         self.stdout.write(self.style.SUCCESS(f"Created: {created}"))
         if skipped:

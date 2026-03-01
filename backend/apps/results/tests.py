@@ -18,7 +18,9 @@ User = get_user_model()
 
 class ResultsModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990000001", password="123456", full_name="U")
+        self.user = User.objects.create_user(
+            phone="79990000001", password="123456", full_name="U"
+        )
 
     def test_result_upload_to_contains_patient_id_and_uuid_ext(self):
         rr = ResearchResult(patient=self.user, title="X")
@@ -29,8 +31,12 @@ class ResultsModelTests(TestCase):
 
 class ResultsViewsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990000002", password="123456", full_name="U1")
-        self.other = User.objects.create_user(phone="79990000003", password="123456", full_name="U2")
+        self.user = User.objects.create_user(
+            phone="79990000002", password="123456", full_name="U1"
+        )
+        self.other = User.objects.create_user(
+            phone="79990000003", password="123456", full_name="U2"
+        )
 
     def test_my_results_requires_login(self):
         url = reverse("results:my_results")
@@ -82,7 +88,9 @@ class ResultsViewsTests(TestCase):
 
 class ResultsSignalsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990000004", password="123456", full_name="U")
+        self.user = User.objects.create_user(
+            phone="79990000004", password="123456", full_name="U"
+        )
 
     @patch("apps.results.signals.send_telegram_message")
     def test_signal_does_nothing_without_profile_chat_id(self, mocked_send):

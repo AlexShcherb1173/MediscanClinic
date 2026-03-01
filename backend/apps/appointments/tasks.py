@@ -106,22 +106,38 @@ def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
         return False, f"HTTP/JSON error: {e}"
 
     if payload.get("status") != "OK":
-        return False, f"sms.ru error {payload.get('status_code')}: {payload.get('status_text')}"
+        return (
+            False,
+            f"sms.ru error {payload.get('status_code')}: {payload.get('status_text')}",
+        )
 
     sms_info = (payload.get("sms") or {}).get(to_norm) or {}
     if sms_info.get("status") != "OK":
-        return False, f"sms to {to_norm} error {sms_info.get('status_code')}: {sms_info.get('status_text')}"
+        return (
+            False,
+            f"sms to {to_norm} error {sms_info.get('status_code')}: {sms_info.get('status_text')}",
+        )
 
     return True, sms_info.get("sms_id", "OK")
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 5},
+)
 def send_telegram_text_task(self, text: str) -> None:
     """Celery task: send text message to Telegram."""
     send_telegram_message(text)
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 5},
+)
 def send_email_task(self, subject: str, body: str, to_email) -> None:
     """
     Celery task: send email.
@@ -140,7 +156,12 @@ def send_email_task(self, subject: str, body: str, to_email) -> None:
     send_mail(subject, body, from_email, recipients, fail_silently=False)
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5})
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 5},
+)
 def send_sms_task(self, to_phone: str, message: str) -> None:
     """Celery task: send SMS (raises to retry if provider returns error)."""
     ok, info = smsru_send(to_phone, message)
@@ -164,13 +185,19 @@ def send_appointment_reminders() -> None:
     until = now + timedelta(hours=48)
 
     qs = (
-        Appointment.objects
-        .filter(preferred_datetime__gt=now, preferred_datetime__lte=until)
+        Appointment.objects.filter(
+            preferred_datetime__gt=now, preferred_datetime__lte=until
+        )
         .select_related("service", "doctor")
         .only(
-            "id", "full_name", "phone", "preferred_datetime",
-            "reminder_24h_sent", "reminder_2h_sent",
-            "service__name", "doctor__full_name",
+            "id",
+            "full_name",
+            "phone",
+            "preferred_datetime",
+            "reminder_24h_sent",
+            "reminder_2h_sent",
+            "service__name",
+            "doctor__full_name",
         )
     )
 
@@ -178,11 +205,19 @@ def send_appointment_reminders() -> None:
         dt = appt.preferred_datetime
         delta = dt - now
 
-        if (timedelta(hours=24) - timedelta(minutes=5)) <= delta <= (timedelta(hours=24) + timedelta(minutes=5)):
+        if (
+            (timedelta(hours=24) - timedelta(minutes=5))
+            <= delta
+            <= (timedelta(hours=24) + timedelta(minutes=5))
+        ):
             if not appt.reminder_24h_sent:
                 _send_and_mark(appt_id=appt.id, kind="24h")
 
-        if (timedelta(hours=2) - timedelta(minutes=5)) <= delta <= (timedelta(hours=2) + timedelta(minutes=5)):
+        if (
+            (timedelta(hours=2) - timedelta(minutes=5))
+            <= delta
+            <= (timedelta(hours=2) + timedelta(minutes=5))
+        ):
             if not appt.reminder_2h_sent:
                 _send_and_mark(appt_id=appt.id, kind="2h")
 
@@ -195,8 +230,7 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
     """
     with transaction.atomic():
         appt = (
-            Appointment.objects
-            .select_for_update()
+            Appointment.objects.select_for_update()
             .select_related("service", "doctor")
             .get(id=appt_id)
         )
@@ -223,7 +257,9 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         )
         send_telegram_text_task.delay(tg_text)
 
-        to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+        to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(
+            settings, "DEFAULT_FROM_EMAIL", ""
+        )
         recipients = normalize_emails(to_email)
         if recipients:
             subject = f"Mediscan: напоминание о записи ({window_str})"

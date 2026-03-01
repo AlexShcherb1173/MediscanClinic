@@ -32,16 +32,26 @@ class RegisterForm(forms.Form):
     """
 
     full_name = forms.CharField(label="ФИО", min_length=2, max_length=255)
-    phone = forms.CharField(label="Телефон", max_length=24, validators=[phone_validator])
-    email = forms.EmailField(label="Email", required=False, validators=[EmailValidator()])
-    password1 = forms.CharField(label="Пароль", widget=forms.PasswordInput, min_length=6)
-    password2 = forms.CharField(label="Повтор пароля", widget=forms.PasswordInput, min_length=6)
+    phone = forms.CharField(
+        label="Телефон", max_length=24, validators=[phone_validator]
+    )
+    email = forms.EmailField(
+        label="Email", required=False, validators=[EmailValidator()]
+    )
+    password1 = forms.CharField(
+        label="Пароль", widget=forms.PasswordInput, min_length=6
+    )
+    password2 = forms.CharField(
+        label="Повтор пароля", widget=forms.PasswordInput, min_length=6
+    )
 
     def clean_phone(self) -> str:
         """Normalize phone and ensure uniqueness."""
         phone = normalize_phone(self.cleaned_data["phone"])
         if User.objects.filter(phone=phone).exists():
-            raise forms.ValidationError("Пользователь с таким телефоном уже существует.")
+            raise forms.ValidationError(
+                "Пользователь с таким телефоном уже существует."
+            )
         return phone
 
     def clean(self):
@@ -68,7 +78,9 @@ class LoginForm(forms.Form):
     Uses django.contrib.auth.authenticate; custom backend should support phone.
     """
 
-    phone = forms.CharField(label="Телефон", max_length=24, validators=[phone_validator])
+    phone = forms.CharField(
+        label="Телефон", max_length=24, validators=[phone_validator]
+    )
     password = forms.CharField(label="Пароль", widget=forms.PasswordInput)
 
     def clean(self):

@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 
 from apps.accounts.contact_utils import normalize_phone_or_email
 
+
 class ContactForm(forms.Form):
     """
     Generic contact form used on Contacts and Feedback pages.

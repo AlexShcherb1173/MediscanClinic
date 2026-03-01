@@ -20,8 +20,12 @@ from apps.results.models import ResearchResult
 @login_required
 def dashboard(request):
     """Cabinet dashboard page with last appointments and last results."""
-    last_appointments = Appointment.objects.filter(user=request.user).order_by("-created_at")[:5]
-    last_results = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")[:5]
+    last_appointments = Appointment.objects.filter(user=request.user).order_by(
+        "-created_at"
+    )[:5]
+    last_results = ResearchResult.objects.filter(patient=request.user).order_by(
+        "-created_at"
+    )[:5]
 
     return render(
         request,

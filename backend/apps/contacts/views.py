@@ -121,7 +121,9 @@ def feedback_home(request):
             return redirect(reverse("contacts:feedback"))
         return render(request, "contacts/feedback.html", {**base_ctx, "form": form})
 
-    return render(request, "contacts/feedback.html", {**base_ctx, "form": ContactForm()})
+    return render(
+        request, "contacts/feedback.html", {**base_ctx, "form": ContactForm()}
+    )
 
 
 def ask_question(request):
@@ -165,4 +167,6 @@ def ask_question(request):
 
         return render(request, "contacts/ask_question.html", {**base_ctx, "form": form})
 
-    return render(request, "contacts/ask_question.html", {**base_ctx, "form": AskQuestionForm()})
+    return render(
+        request, "contacts/ask_question.html", {**base_ctx, "form": AskQuestionForm()}
+    )

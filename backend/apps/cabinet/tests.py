@@ -12,7 +12,9 @@ User = get_user_model()
 
 class CabinetAuthViewsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990001234", password="123456", full_name="User")
+        self.user = User.objects.create_user(
+            phone="79990001234", password="123456", full_name="User"
+        )
 
     def test_dashboard_requires_login(self):
         url = reverse("cabinet:dashboard")
@@ -54,7 +56,9 @@ class CabinetAuthViewsTests(TestCase):
 
 class CabinetContextProcessorTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990009999", password="123456", full_name="User")
+        self.user = User.objects.create_user(
+            phone="79990009999", password="123456", full_name="User"
+        )
 
     def test_badges_anonymous(self):
         class DummyReq:
@@ -72,10 +76,15 @@ class CabinetContextProcessorTests(TestCase):
         self.assertIn("unread_results_count", out)
         self.assertIsInstance(out["unread_results_count"], int)
 
+
 class CabinetViewsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(phone="79990001234", password="123456", full_name="User")
-        self.other = User.objects.create_user(phone="79990001235", password="123456", full_name="Other")
+        self.user = User.objects.create_user(
+            phone="79990001234", password="123456", full_name="User"
+        )
+        self.other = User.objects.create_user(
+            phone="79990001235", password="123456", full_name="Other"
+        )
 
     def test_dashboard_requires_login(self):
         url = reverse("cabinet:dashboard")
@@ -84,9 +93,15 @@ class CabinetViewsTests(TestCase):
 
     def test_results_marks_unread_as_viewed(self):
         # 2 unread for self.user, 1 unread for other
-        r1 = ResearchResult.objects.create(patient=self.user, title="R1", is_viewed=False)
-        r2 = ResearchResult.objects.create(patient=self.user, title="R2", is_viewed=False)
-        ResearchResult.objects.create(patient=self.other, title="R_other", is_viewed=False)
+        r1 = ResearchResult.objects.create(
+            patient=self.user, title="R1", is_viewed=False
+        )
+        r2 = ResearchResult.objects.create(
+            patient=self.user, title="R2", is_viewed=False
+        )
+        ResearchResult.objects.create(
+            patient=self.other, title="R_other", is_viewed=False
+        )
 
         self.client.force_login(self.user)
         url = reverse("cabinet:results")

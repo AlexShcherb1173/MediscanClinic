@@ -11,6 +11,7 @@ from apps.accounts.utils import normalize_phone
 @dataclass(frozen=True)
 class ContactValue:
     """Normalized contact value."""
+
     kind: str  # "phone" | "email"
     value: str  # E.164 phone or lowercased email
 
