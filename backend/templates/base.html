@@ -341,16 +341,20 @@
 <div id="toast-root" class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none"></div>
 
 {# ===== Feedback Modal ===== #}
-<div id="feedback-modal" class="fixed inset-0 z-[9998] hidden" aria-hidden="true">
-  <div data-feedback-close class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+<div id="feedback-modal" class="fixed inset-0 z-[9999] hidden" aria-hidden="true">
+  <div
+    data-feedback-close
+    class="absolute inset-0 z-[9999] bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"
+  ></div>
 
-  <div class="relative h-full w-full flex items-center justify-center p-4">
+  <!-- container -->
+  <div class="relative z-[10000] h-full w-full flex items-center justify-center p-4">
     <div
       id="feedback-dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="feedback-title"
-      class="w-full max-w-2xl transform opacity-0 translate-y-2 transition-all duration-200"
+      class="w-full max-w-2xl opacity-0 translate-y-2 transition-all duration-200"
     >
       <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">

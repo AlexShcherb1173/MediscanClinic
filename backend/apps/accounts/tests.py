@@ -3,6 +3,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +11,8 @@ from django.utils import timezone
 from apps.accounts.backends import PhoneBackend
 from apps.accounts.forms import LoginForm, RegisterForm
 from apps.accounts.utils import normalize_phone
+
+from apps.accounts.contact_utils import normalize_phone_or_email
 
 User = get_user_model()
 
@@ -188,3 +191,18 @@ class AccountsViewsTests(TestCase):
         url = reverse("accounts:logout")
         r = self.client.get(url, follow=False)
         self.assertEqual(r.status_code, 302)
+
+class ContactUtilsTests(TestCase):
+    def test_accepts_email(self):
+        r = normalize_phone_or_email("TeSt@Example.com")
+        self.assertEqual(r.kind, "email")
+        self.assertEqual(r.value, "test@example.com")
+
+    def test_accepts_phone(self):
+        r = normalize_phone_or_email("8 (999) 123-45-67")
+        self.assertEqual(r.kind, "phone")
+        self.assertEqual(r.value, "+79991234567")
+
+    def test_rejects_garbage(self):
+        with self.assertRaises(ValidationError):
+            normalize_phone_or_email("qwerty")

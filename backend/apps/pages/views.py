@@ -14,7 +14,6 @@ from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
 
-from apps.core.models import License
 from .models import Page
 
 
@@ -65,10 +64,11 @@ def page_detail(request, slug: str):
             .order_by("full_name")[:6]
         )
 
-        licenses = (
-            License.objects.filter(is_active=True)
-            .order_by("sort_order", "-created_at")[:12]
-        )
+        try:
+            from apps.core.models import License
+            licenses = License.objects.all()
+        except Exception:
+            licenses = []
 
         return render(
             request,

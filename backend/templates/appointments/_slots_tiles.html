@@ -1,3 +1,73 @@
+<!--{% if not patient_ready %}-->
+<!--  <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">-->
+<!--    Сначала заполните <span class="font-semibold">ФИО</span> и <span class="font-semibold">телефон</span> — после этого станет доступен выбор услуги, даты и времени.-->
+<!--  </div>-->
+
+<!--{% elif not service_selected %}-->
+<!--  <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">-->
+<!--    Теперь выберите <span class="font-semibold">услугу</span> — затем откроется выбор даты и появятся доступные слоты.-->
+<!--  </div>-->
+
+<!--{% elif not date_selected %}-->
+<!--  <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">-->
+<!--    Теперь выберите <span class="font-semibold">дату</span> — и мы покажем доступное время для записи.-->
+<!--  </div>-->
+
+<!--{% else %}-->
+<!--  {% if slot_items %}-->
+<!--    {# ВАЖНО: grid уже должен быть на контейнере #slot-tiles в create.html #}-->
+<!--    {% for s in slot_items %}-->
+<!--      <button-->
+<!--        type="button"-->
+<!--        class="h-10 rounded-2xl border text-sm font-semibold transition px-2-->
+<!--               {% if selected_slot_id == s.id %}-->
+<!--                 bg-yellow-200 border-yellow-300 text-slate-900-->
+<!--               {% else %}-->
+<!--                 bg-white border-slate-200 hover:bg-slate-50 text-slate-900-->
+<!--               {% endif %}"-->
+<!--        data-slot-id="{{ s.id }}"-->
+<!--        data-slot-label="{{ s.label|escapejs }}"-->
+<!--        onclick="(function(btn){-->
+<!--          const id = btn.dataset.slotId;-->
+<!--          const label = btn.dataset.slotLabel;-->
+
+<!--          const slotInput = document.getElementById('slot-input');-->
+<!--          if (slotInput) slotInput.value = id;-->
+
+<!--          const slotDisplay = document.getElementById('slot-display');-->
+<!--          if (slotDisplay) {-->
+<!--            slotDisplay.textContent = label;-->
+<!--            slotDisplay.classList.remove('text-slate-400');-->
+<!--            slotDisplay.classList.add('text-slate-900');-->
+<!--          }-->
+
+<!--          // подсветка выбранной плитки-->
+<!--          const container = document.getElementById('slot-tiles');-->
+<!--          if (container) {-->
+<!--            container.querySelectorAll('button[data-slot-id]').forEach(b => {-->
+<!--              b.classList.remove('bg-yellow-200', 'border-yellow-300');-->
+<!--              b.classList.add('bg-white', 'border-slate-200');-->
+<!--            });-->
+<!--          }-->
+
+<!--          btn.classList.add('bg-yellow-200', 'border-yellow-300');-->
+<!--          btn.classList.remove('bg-white', 'border-slate-200');-->
+
+<!--          if (typeof window.updateSubmitState === 'function') window.updateSubmitState();-->
+<!--        })(this);"-->
+<!--      >-->
+<!--        {{ s.label }}-->
+<!--      </button>-->
+<!--    {% endfor %}-->
+<!--  {% else %}-->
+<!--    <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">-->
+<!--      На выбранную дату нет доступных слотов. Попробуйте другую дату.-->
+<!--    </div>-->
+<!--  {% endif %}-->
+<!--{% endif %}-->
+
+{# appointments/_slots_tiles.html #}
+
 {% if not patient_ready %}
   <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">
     Сначала заполните <span class="font-semibold">ФИО</span> и <span class="font-semibold">телефон</span> — после этого станет доступен выбор услуги, даты и времени.
@@ -13,9 +83,14 @@
     Теперь выберите <span class="font-semibold">дату</span> — и мы покажем доступное время для записи.
   </div>
 
+{% elif date_in_past %}
+  <div class="col-span-full w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-snug">
+    Прошедшие даты недоступны. Выберите <span class="font-semibold">сегодня</span> или любую дату позже.
+  </div>
+
 {% else %}
   {% if slot_items %}
-    {# ВАЖНО: grid уже должен быть на контейнере #slot-tiles в create.html #}
+    {# grid уже задан в create.html на контейнере #slot-tiles #}
     {% for s in slot_items %}
       <button
         type="button"

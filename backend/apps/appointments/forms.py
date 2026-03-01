@@ -7,11 +7,14 @@ Includes AppointmentCreateForm:
 - extra validation for selected slot
 """
 
+from __future__ import annotations
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
+from apps.accounts.utils import normalize_phone
 from apps.services.models import Service
 from apps.staff.models import Doctor
 from .models import Appointment, AppointmentSlot
@@ -97,7 +100,7 @@ class AppointmentCreateForm(forms.ModelForm):
         )
         selected_date = parse_date(str(selected_date_raw)) if selected_date_raw else None
 
-        qs = AppointmentSlot.objects.filter(is_active=True, is_booked=False)
+        qs = AppointmentSlot.objects.filter(is_active=True)
 
         if selected_service:
             qs = qs.filter(service_id=selected_service)
@@ -139,7 +142,7 @@ class AppointmentCreateForm(forms.ModelForm):
         Ensures:
         - slot is active and not booked
         - slot belongs to selected service (if service provided)
-        - slot start time is not in the past
+        - slot start time is not in the past (timezone-aware, local time)
         """
         slot: AppointmentSlot = self.cleaned_data.get("slot")
         service = self.cleaned_data.get("service")
@@ -147,15 +150,31 @@ class AppointmentCreateForm(forms.ModelForm):
         if not slot:
             return slot
 
+        # прошедшее время — по локальному времени
+        now_local = timezone.localtime(timezone.now())
+        slot_local = timezone.localtime(slot.starts_at) if slot.starts_at else None
+        if slot_local and slot_local < now_local:
+            raise ValidationError("Нельзя записаться на прошедшую дату.")
+
         if not slot.is_active:
             raise ValidationError("Этот слот недоступен. Выберите другой.")
+
         if slot.is_booked:
             raise ValidationError("Этот слот уже занят. Выберите другой.")
 
         if service and slot.service_id != service.id:
             raise ValidationError("Этот слот не относится к выбранной услуге.")
 
-        if slot.starts_at and slot.starts_at < timezone.now():
-            raise ValidationError("Нельзя записаться на прошедшее время.")
-
         return slot
+
+    def clean_phone(self):
+        """
+        Normalize and validate phone.
+
+        Converts to E.164 (+79991234567) and raises user-friendly error on invalid input.
+        """
+        raw = self.cleaned_data.get("phone", "")
+        try:
+            return normalize_phone(raw)
+        except ValidationError as e:
+            raise forms.ValidationError(e.message)

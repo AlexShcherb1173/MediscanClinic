@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import timedelta
-
+from uuid import uuid4
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase, override_settings
@@ -20,21 +21,40 @@ from apps.services.models import Service, ServiceCategory
 
 
 class AppointmentsBaseMixin:
-    def create_category(self, name="УЗИ"):
-        return ServiceCategory.objects.create(name=name, slug=f"{name.lower()}")
+    def create_category(self, *, name: str | None = None, **kwargs) -> ServiceCategory:
+        """
+        Helper: create an active service category for tests.
+        """
+        suffix = uuid4().hex[:8]
+        return ServiceCategory.objects.create(
+            name=name or f"Cat {suffix}",
+            slug=kwargs.pop("slug", f"cat-{suffix}"),
+            is_active=True,
+            **kwargs,
+        )
 
-    def create_service(self, name="УЗИ брюшной полости", category=None, price_from="1000.00"):
-        category = category or self.create_category()
+    def create_service(
+        self,
+        *,
+        name: str | None = None,
+        category: ServiceCategory | None = None,
+        price_from: str = "1000.00",
+        **kwargs,
+    ) -> Service:
+        """
+        Helper: create an active service with guaranteed-unique slug for tests.
+        """
+        if category is None:
+            category = self.create_category()
+
+        suffix = uuid4().hex[:8]
         return Service.objects.create(
             category=category,
-            name=name,
-            slug="uzi-bp",
-            description="",
-            price_from=price_from,
-            price_to=None,
+            name=name or f"Service {suffix}",
+            slug=kwargs.pop("slug", f"svc-{suffix}"),  # <-- уникальный slug
+            price_from=Decimal(price_from),
             is_active=True,
-            is_featured=False,
-            featured_order=0,
+            **kwargs,
         )
 
     def create_slot(self, service: Service, starts_at, ends_at=None, is_active=True, is_booked=False):
@@ -345,7 +365,7 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
         payload["email"] = "p2@test.com"
         r2 = self.client.post(url, data=payload)
         self.assertEqual(r2.status_code, 200)
-        self.assertContains(r2, "Этот слот только что заняли", html=False)
+        self.assertContains(r2, "Этот слот уже занят. Выберите другой.", html=False)
 
 
 class AppointmentUtilsAndServicesTests(AppointmentsBaseMixin, TestCase):
@@ -430,3 +450,97 @@ class AppointmentUtilsAndServicesTests(AppointmentsBaseMixin, TestCase):
         ok, info = smsru_send("+79990000000", "Hi")
         self.assertFalse(ok)
         self.assertIn("SMS_RU_API_ID", info)
+
+
+class AppointmentPhoneValidationTests(TestCase):
+    def test_invalid_phone_rejected(self):
+        a = Appointment(full_name="Test", phone="12334455667788899")
+        with self.assertRaises(ValidationError):
+            a.full_clean()
+
+    def test_valid_phone_normalized(self):
+        a = Appointment(full_name="Test", phone="8 (999) 123-45-67")
+        a.full_clean()
+        self.assertEqual(a.phone, "+79991234567")
+
+class AppointmentPhoneModelTests(TestCase):
+    def setUp(self):
+        self.category = ServiceCategory.objects.create(name="Диагностика", slug="diag", order=1, is_active=True)
+        self.service = Service.objects.create(category=self.category, name="УЗИ", slug="uzi", price=1000, is_active=True)
+
+        now = timezone.now()
+        self.slot = AppointmentSlot.objects.create(
+            service=self.service,
+            starts_at=now + timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1, minutes=30),
+            is_active=True,
+            is_booked=False,
+        )
+
+    def test_phone_is_normalized_to_e164_on_full_clean(self):
+        a = Appointment(
+            full_name="Test",
+            phone="8 (999) 123-45-67",
+            service=self.service,
+            slot=self.slot,
+        )
+        a.full_clean()  # вызывает clean() -> normalize_phone
+        self.assertEqual(a.phone, "+79991234567")
+
+    def test_invalid_phone_is_rejected(self):
+        a = Appointment(
+            full_name="Test",
+            phone="12334455667788899",  # мусор/слишком длинный
+            service=self.service,
+            slot=self.slot,
+        )
+        with self.assertRaises(ValidationError):
+            a.full_clean()
+
+class AppointmentPhoneFormTests(TestCase):
+    def setUp(self):
+        self.category = ServiceCategory.objects.create(name="Диагностика", slug="diag", order=1, is_active=True)
+        self.service = Service.objects.create(category=self.category, name="УЗИ", slug="uzi", price=1000, is_active=True)
+
+        now = timezone.now()
+        self.slot = AppointmentSlot.objects.create(
+            service=self.service,
+            starts_at=now + timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1, minutes=30),
+            is_active=True,
+            is_booked=False,
+        )
+
+        self.preferred_date = (now + timezone.timedelta(days=1)).date().isoformat()
+
+    def test_form_normalizes_phone(self):
+        form = AppointmentCreateForm(
+            data={
+                "service": self.service.id,
+                "doctor": "",
+                "full_name": "qwerty",
+                "phone": "8 (999) 123-45-67",
+                "email": "",
+                "comment": "",
+                "preferred_date": self.preferred_date,
+                "slot": self.slot.id,
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["phone"], "+79991234567")
+
+    def test_form_rejects_invalid_phone(self):
+        form = AppointmentCreateForm(
+            data={
+                "service": self.service.id,
+                "doctor": "",
+                "full_name": "qwerty",
+                "phone": "12334455667788899",
+                "email": "",
+                "comment": "",
+                "preferred_date": self.preferred_date,
+                "slot": self.slot.id,
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("phone", form.errors)

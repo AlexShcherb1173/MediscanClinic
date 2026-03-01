@@ -58,9 +58,12 @@
                 value="{{ form.phone.value|default_if_none:'' }}"
                 class="w-full rounded-2xl border px-4 py-3 text-slate-900 shadow-sm
                        border-slate-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
-                       {% if form.phone.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+                      {% if form.phone.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
                 placeholder="+7 (999) 123-45-67"
                 autocomplete="tel"
+                inputmode="tel"
+                maxlength="20"
+                pattern="^\+?[0-9]{10,15}$"
               />
               {% if form.phone.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
@@ -195,47 +198,44 @@
               {% endif %}
             </div>
 
-            <!-- Time -->
-            <div id="slot-area" class="min-w-0">
-              <label class="block text-sm font-semibold text-slate-800 mb-1">
-                Время записи <span class="text-red-600">*</span>
-              </label>
+             <!-- Time -->
+<div id="slot-area" class="min-w-0">
+  <label class="block text-sm font-semibold text-slate-800 mb-1">
+    Время записи <span class="text-red-600">*</span>
+  </label>
 
-              <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
-                <span id="slot-display" class="text-slate-400">
-                  {% if form.slot.value and form.preferred_date.value %}
-                    Выбрано
-                  {% else %}
-                    Выберите время
-                  {% endif %}
-                </span>
-              </div>
+  <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
+    <span id="slot-display" class="text-slate-400">
+      {% if form.slot.value and form.preferred_date.value %}
+        Выбрано
+      {% else %}
+        Выберите время
+      {% endif %}
+    </span>
+  </div>
 
-              <!-- ✅ ВАЖНО: grid тут, чтобы плитки не были столбиком -->
-              <div
-                id="slot-tiles"
-                class="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
-                data-url="{% url 'appointments:slots' %}"
-                hx-get="{% url 'appointments:slots' %}"
-                hx-trigger="load,
-                            change from:#service-select,
-                            change from:#preferred-date,
-                            input from:#id_full_name delay:300ms,
-                            input from:#id_phone delay:300ms,
-                            refresh"
-                hx-target="#slot-tiles"
-                hx-swap="innerHTML"
-                hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
-              >
-                <div class="text-sm text-slate-500 col-span-full">Загрузка слотов…</div>
-              </div>
+  <!-- ✅ вот тут, ПОД "Время записи" -->
+  <div
+    id="slot-tiles"
+    class="mt-2"
+    hx-get="{% url 'appointments:slots' %}"
+    hx-trigger="load,
+                change from:#service-select,
+                change from:#preferred-date,
+                input from:#id_full_name delay:300ms,
+                input from:#id_phone delay:300ms,
+                refresh"
+    hx-target="#slot-tiles"
+    hx-swap="innerHTML"
+    hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
+  >
+    <div class="text-sm text-slate-500">Загрузка слотов…</div>
+  </div>
 
-              {% if form.slot.errors %}
-                <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
-              {% endif %}
-            </div>
-          </div>
-
+  {% if form.slot.errors %}
+    <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
+  {% endif %}
+</div>
           <!-- Comment -->
           <div>
             <label for="id_comment" class="block text-sm font-semibold text-slate-800 mb-1">

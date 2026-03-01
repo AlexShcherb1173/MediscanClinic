@@ -8,28 +8,31 @@ Contains:
 Includes validation rules and DB constraints to prevent double-booking.
 """
 
+from __future__ import annotations
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator, RegexValidator
 from django.db import models
 from django.db.models import Q
 
+from apps.accounts.utils import normalize_phone
 from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
 
-
+# Enterprise: store only E.164 (+79991234567)
 phone_validator = RegexValidator(
-    regex=r"^\+?\d[\d\s\-\(\)]{8,20}$",
-    message="Введите телефон в формате +79990000000 (можно пробелы/скобки/дефисы).",
+    regex=r"^\+[1-9]\d{1,14}$",
+    message="Введите телефон в формате E.164: +79991234567",
 )
 """
-Phone validator for appointment forms.
+Phone validator for appointment model.
 
-Allows:
-- optional leading '+'
-- digits with spaces, dashes, parentheses
-- length in range ~ 9..21 chars depending on formatting
+E.164 rules:
+- starts with '+'
+- country code 1..3 digits (first digit 1..9)
+- total digits up to 15
 """
 
 
@@ -133,7 +136,14 @@ class Appointment(models.Model):
     )
 
     full_name = models.CharField("Имя", max_length=120)
-    phone = models.CharField("Телефон", max_length=24, validators=[phone_validator])
+
+    # Enterprise: store normalized E.164
+    phone = models.CharField(
+        "Телефон",
+        max_length=16,  # '+' + max 15 digits
+        validators=[phone_validator],
+    )
+
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
     comment = models.TextField("Комментарий", blank=True)
 
@@ -178,12 +188,26 @@ class Appointment(models.Model):
         """
         Model-level validation.
 
-        Current rule:
+        Rules:
             - a slot must be selected
+            - phone must be normalized to E.164
         """
         super().clean()
+
+        # normalize phone for all entry points (admin/ORM/forms)
+        if self.phone:
+            self.phone = normalize_phone(self.phone)
+
         if not self.slot:
             raise ValidationError("Выберите слот для записи.")
+
+    def save(self, *args, **kwargs):
+        """
+        Ensure phone is normalized even if full_clean() not called.
+        """
+        if self.phone:
+            self.phone = normalize_phone(self.phone)
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         """Readable representation for admin and logs."""

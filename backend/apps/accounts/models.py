@@ -4,6 +4,7 @@ Custom user model for accounts application.
 Implements authentication by phone number instead of username.
 Includes:
 - phone normalization on user creation
+- model-level normalization/validation (clean/save)
 - custom UserManager for create_user/create_superuser
 """
 
@@ -11,6 +12,7 @@ from __future__ import annotations
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
@@ -18,9 +20,10 @@ from django.utils import timezone
 from .utils import normalize_phone
 
 
-phone_validator = RegexValidator(
-    regex=r"^\+?\d[\d\s\-\(\)]{8,20}$",
-    message="Введите телефон в формате +79990000000 (можно пробелы/скобки/дефисы).",
+# Enterprise: store ONLY E.164. Example: +79991234567
+e164_phone_validator = RegexValidator(
+    regex=r"^\+[1-9]\d{1,14}$",
+    message="Введите телефон в формате E.164: +79991234567",
 )
 
 
@@ -34,17 +37,6 @@ class UserManager(BaseUserManager):
     def create_user(self, phone: str, password: str | None = None, **extra_fields):
         """
         Create and save a user with normalized phone.
-
-        Args:
-            phone: raw phone value (will be normalized)
-            password: plain password (optional)
-            extra_fields: additional fields for user model
-
-        Returns:
-            Created User instance.
-
-        Raises:
-            ValueError: if phone is empty.
         """
         if not phone:
             raise ValueError("Телефон обязателен")
@@ -88,16 +80,20 @@ class User(AbstractUser):
     Notes:
         - username field is removed (not used)
         - phone is used as USERNAME_FIELD
+        - phone stored ONLY in E.164 (+7999...)
     """
 
     username = None  # remove AbstractUser.username
 
     phone = models.CharField(
         "Телефон",
-        max_length=24,
+        max_length=16,  # '+' + up to 15 digits
         unique=True,
-        validators=[phone_validator],
+        # null=True,  # временно (нужно для дедупликации)
+        # blank=True,  # временно
+        validators=[e164_phone_validator],
         db_index=True,
+        help_text="Формат хранения: E.164 (например +79991234567).",
     )
     full_name = models.CharField("ФИО", max_length=150, blank=True)
     email = models.EmailField("Email", blank=True)
@@ -108,6 +104,23 @@ class User(AbstractUser):
     REQUIRED_FIELDS: list[str] = ["full_name"]
 
     objects = UserManager()
+
+    def clean(self) -> None:
+        """
+        Ensure phone is normalized on any validation path (admin/forms/serializers).
+        """
+        super().clean()
+        if self.phone:
+            self.phone = normalize_phone(self.phone)
+
+    def save(self, *args, **kwargs):
+        """
+        Ensure phone is normalized on any save path (even if full_clean not called).
+        """
+        if self.phone:
+            # normalize even if someone saved without calling manager or form validation
+            self.phone = normalize_phone(self.phone)
+        super().save(*args, **kwargs)
 
     def touch(self) -> None:
         """Update last activity timestamp."""

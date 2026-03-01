@@ -183,8 +183,13 @@ def calendar_view(request):
 
     m = request.GET.get("m")  # "2026-02"
     selected_raw = request.GET.get("preferred_date") or request.GET.get("date") or ""
-    selected_date = _safe_day(selected_raw) or today
+    selected_date = _safe_day(selected_raw)
 
+    # ✅ если пришла прошедшая дата — принудительно ставим today
+    if not selected_date or selected_date < today:
+        selected_date = today
+
+    # определяем первый день отображаемого месяца
     if m:
         try:
             year, month = map(int, m.split("-"))
@@ -204,6 +209,10 @@ def calendar_view(request):
     prev_month = (first.replace(day=1) - timedelta(days=1)).replace(day=1)
     next_month = (first.replace(day=28) + timedelta(days=4)).replace(day=1)
 
+    # ✅ запрещаем уход в прошлые месяцы
+    min_month = today.replace(day=1)
+    prev_disabled = prev_month < min_month
+
     return render(
         request,
         "appointments/_calendar_month.html",
@@ -216,6 +225,7 @@ def calendar_view(request):
             "days": days,
             "prev_m": prev_month.strftime("%Y-%m"),
             "next_m": next_month.strftime("%Y-%m"),
+            "prev_disabled": prev_disabled,
         },
     )
 
@@ -226,7 +236,6 @@ def slots(request):
     Render available time slots (HTMX partial).
 
     Requires "patient_ready" (full_name + phone) and selected service/date.
-    Returns JSON-like list (id/label) embedded into template context.
     """
     service_id_raw = (
         request.GET.get("service")
@@ -236,15 +245,19 @@ def slots(request):
     )
     service_id = _safe_int(service_id_raw)
 
-    date_str = request.GET.get("preferred_date") or request.GET.get("date") or ""
-    day = parse_date(date_str)
+    date_str = (request.GET.get("preferred_date") or request.GET.get("date") or "").strip()
+    day = parse_date(date_str) if date_str else None
 
     full_name = (request.GET.get("full_name") or request.GET.get("id_full_name") or "").strip()
     phone = (request.GET.get("phone") or request.GET.get("id_phone") or "").strip()
     patient_ready = (len(full_name) >= 3) and (len(phone) >= 6)
 
     service_selected = bool(service_id)
-    date_selected = bool(day)
+    date_selected = bool(date_str) and (day is not None)
+
+    # ✅ запрет прошлого на сервере (если кто-то подставит вручную)
+    today = timezone.localdate()
+    date_in_past = bool(day) and (day < today)
 
     if not patient_ready:
         return render(
@@ -254,6 +267,7 @@ def slots(request):
                 "patient_ready": False,
                 "service_selected": False,
                 "date_selected": False,
+                "date_in_past": False,
                 "slot_items": [],
                 "selected_slot_id": "",
             },
@@ -267,19 +281,21 @@ def slots(request):
                 "patient_ready": True,
                 "service_selected": False,
                 "date_selected": False,
+                "date_in_past": False,
                 "slot_items": [],
                 "selected_slot_id": "",
             },
         )
 
-    if not date_selected:
+    if (not date_selected) or date_in_past:
         return render(
             request,
             "appointments/_slots_tiles.html",
             {
                 "patient_ready": True,
                 "service_selected": True,
-                "date_selected": False,
+                "date_selected": True,
+                "date_in_past": True,
                 "slot_items": [],
                 "selected_slot_id": "",
             },
@@ -316,6 +332,7 @@ def slots(request):
             "patient_ready": True,
             "service_selected": True,
             "date_selected": True,
+            "date_in_past": False,
             "slot_items": slot_items,
             "selected_slot_id": str(selected_slot_id),
         },
@@ -388,9 +405,13 @@ def appointment_create(request):
             try:
                 with transaction.atomic():
                     slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot_obj.pk)
+                    slot_day = timezone.localtime(slot_obj.starts_at).date()
+                    if slot_day < timezone.localdate():
+                        form.add_error("slot", "Нельзя записаться на прошедшую дату.")
+                        return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
                     if (not slot_locked.is_active) or slot_locked.is_booked:
-                        form.add_error("slot", "Этот слот только что заняли. Выберите другое время.")
+                        form.add_error("slot", "Этот слот уже занят. Выберите другой.")
                         return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
                     slot_locked.is_booked = True
@@ -407,7 +428,7 @@ def appointment_create(request):
                     appointment.save()
 
             except (IntegrityError, AppointmentSlot.DoesNotExist):
-                form.add_error("slot", "Этот слот только что заняли. Выберите другое время.")
+                form.add_error("slot", "Этот слот уже занят. Выберите другой.")
                 return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
             payload = AppointmentNotification(

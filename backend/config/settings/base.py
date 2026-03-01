@@ -17,6 +17,7 @@ Environment-specific overrides should be defined in:
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 import environ
@@ -43,7 +44,6 @@ ALLOWED_HOSTS = env.list(
     default=["127.0.0.1", "localhost", "testserver"],
 )
 
-
 def _env_str(name: str, default: str = "") -> str:
     """
     Read env variable as a clean string.
@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Project apps
-    "apps.core",
     "apps.pages",
     "apps.promos",
     "apps.services",
@@ -133,7 +132,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 # Project context processors
                 "apps.services.context_processors.popular_services",
-                "apps.core.context_processors.core_context",
                 "apps.cabinet.context_processors.cabinet_badges",
                 "apps.accounts.context_processors.lk_user_data",
                 "apps.staff.context_processors.doctor_slider_items",
@@ -180,6 +178,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+if "test" in sys.argv:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -218,7 +219,7 @@ TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 # Email (SMTP)
 # -----------------------------------------------------------------------------
 
-EMAIL_BACKEND = os.getenv("SMTP_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_BACKEND = os.getenv("SMTP_BACKEND", "django.core_.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.getenv("SMTP_HOST", "")
 EMAIL_PORT = int(os.getenv("SMTP_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("SMTP_USE_TLS", "True") == "True"

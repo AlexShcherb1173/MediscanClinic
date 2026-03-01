@@ -9,7 +9,9 @@ Includes:
 from __future__ import annotations
 
 from django import forms
+from django.core.exceptions import ValidationError
 
+from apps.accounts.contact_utils import normalize_phone_or_email
 
 class ContactForm(forms.Form):
     """
@@ -61,12 +63,15 @@ class AskQuestionForm(forms.Form):
             raise forms.ValidationError("Введите имя (минимум 2 символа).")
         return v
 
-    def clean_contact(self) -> str:
-        """Validate contact length and strip whitespace."""
-        v = (self.cleaned_data.get("contact") or "").strip()
-        if len(v) < 5:
-            raise forms.ValidationError("Укажите телефон или email.")
-        return v
+    def clean_contact(self):
+        raw = self.cleaned_data.get("contact", "")
+        try:
+            normalized = normalize_phone_or_email(raw)
+        except ValidationError as e:
+            raise forms.ValidationError("Укажите телефон или email")
+
+        # Вернём нормализованную строку (email lower / телефон E.164)
+        return normalized.value
 
     def clean_question(self) -> str:
         """Validate question length and strip whitespace."""

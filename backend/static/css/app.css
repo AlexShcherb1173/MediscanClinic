@@ -1845,36 +1845,73 @@ body {
   }
 }
 
-/* ===== HERO doctor slider (фикс вылезания картинки) ===== */
+
 .hero-doctor-card{
   position: relative;
   overflow: hidden;
-  border-radius: 1.5rem;          /* как rounded-3xl */
+  border-radius: 1.5rem;
   height: clamp(320px, 40vw, 420px);
   background: #fff;
+
+  /* 🔥 фикс: закрываем карточку в свой stacking context */
+  isolation: isolate;
+
+  /* чтобы не всплывала выше модалок */
+  z-index: 0;
 }
 
+/* размытый фон из той же картинки */
+.hero-doctor-card::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px);
+  transform: scale(1.15);
+  opacity: .35;
+
+  /* 🔥 явный слой */
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* основная картинка */
 .hero-doctor-card img.hero-doctor-img{
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 100% !important;        /* перебиваем global img{height:auto} */
-  max-width: none;                /* перебиваем global img{max-width:100%} */
+  height: 100% !important;
+  max-width: none;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
   display: block;
+
+  /* 🔥 явный слой */
+  z-index: 1;
 }
 
+/* затемнение поверх фона/фото */
 .hero-doctor-overlay{
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(15,23,42,.40), rgba(15,23,42,.10), rgba(15,23,42,0));
+  background: linear-gradient(to top, rgba(15,23,42,.45), rgba(15,23,42,.10), rgba(15,23,42,0));
+
+  /* 🔥 явный слой */
+  z-index: 2;
+  pointer-events: none;
 }
 
+/* подписи вниз */
 .hero-doctor-bubble{
   position: absolute;
   left: 20px;
-  top: 20px;
-  z-index: 2;
-  max-width: 86%;
+  right: 20px;
+  bottom: 20px;
+  top: auto;
+
+  /* 🔥 явный слой */
+  z-index: 3;
+  max-width: none;
 }

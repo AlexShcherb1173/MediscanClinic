@@ -1,3 +1,5 @@
+{# appointments/_calendar_month.html #}
+
 <div class="flex items-center justify-between gap-3 mb-3">
   <button
     type="button"
@@ -45,23 +47,35 @@
 
   {% for d in days %}
     {% with ds=d|date:"Y-m-d" pretty=d|date:"d.m.Y" %}
-      <button
-        type="button"
-        class="h-11 rounded-2xl border text-sm flex items-center justify-center transition
-               {% if selected == ds %}
-                 bg-yellow-200 border-yellow-300 font-semibold text-slate-900
-               {% else %}
-                 bg-white border-slate-200 hover:bg-slate-50 text-slate-900
-               {% endif %}"
-        title="{{ ds }}"
-        onclick="window.selectDate && window.selectDate('{{ ds|escapejs }}', '{{ pretty|escapejs }}');"
-      >
-        {{ d|date:"d" }}
-      </button>
+      {% if d < today %}
+        <button
+          type="button"
+          disabled
+          class="h-11 rounded-2xl border text-sm flex items-center justify-center
+                 bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed"
+          title="Прошедшая дата недоступна"
+        >
+          {{ d|date:"d" }}
+        </button>
+      {% else %}
+        <button
+          type="button"
+          class="h-11 rounded-2xl border text-sm flex items-center justify-center transition
+                 {% if selected == ds %}
+                   bg-yellow-200 border-yellow-300 font-semibold text-slate-900
+                 {% else %}
+                   bg-white border-slate-200 hover:bg-slate-50 text-slate-900
+                 {% endif %}"
+          title="{{ ds }}"
+          onclick="window.selectDate && window.selectDate('{{ ds|escapejs }}', '{{ pretty|escapejs }}');"
+        >
+          {{ d|date:"d" }}
+        </button>
+      {% endif %}
     {% endwith %}
   {% endfor %}
 </div>
 
 <div class="mt-3 text-xs text-slate-500">
-  Выберите дату — слоты обновятся автоматически.
+  Прошедшие даты недоступны. Выберите сегодня или позже.
 </div>
