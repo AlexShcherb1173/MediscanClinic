@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 
-{# Заголовок страницы во вкладке браузера #}
+<!-- Заголовок страницы во вкладке браузера -->
 {% block title %}Вход — Mediscan{% endblock %}
 
 {% block content %}
-{# Центрируем карточку формы по ширине страницы #}
+<!-- Центрируем карточку формы по ширине страницы -->
 <div class="max-w-xl mx-auto">
-  {# Карточка с формой входа #}
+  <!-- Карточка с формой входа -->
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
 
-    {# Заголовок страницы #}
+    <!-- Заголовок страницы -->
     <h1 class="text-2xl font-extrabold text-slate-900">Вход</h1>
 
-    {# Подзаголовок с пояснением способа входа #}
+    <!-- Подзаголовок с пояснением способа входа -->
     <div class="text-sm text-slate-600 mt-1">Вход по телефону</div>
 
-    {# Общие ошибки формы (например: неверный логин/пароль) #}
+    <!-- Общие ошибки формы (например: неверный логин/пароль) -->
     {% if form.non_field_errors %}
       <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
         {{ form.non_field_errors }}
       </div>
     {% endif %}
 
-    {# Форма входа #}
+    <!-- Форма входа -->
     <form method="post" class="mt-6 space-y-4">
       {# CSRF-токен обязателен для POST-форм в Django #}
       {% csrf_token %}
 
-      {# Поле "Телефон" #}
+      <!-- Поле "Телефон" -->
       <div>
         <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">
           Телефон
@@ -43,7 +43,7 @@
           autocomplete="tel"
         />
 
-        {# Ошибки конкретно поля phone #}
+        <!-- Ошибки конкретно поля phone -->
         {% if form.phone.errors %}
           <div class="mt-1 text-sm text-red-700">
             {{ form.phone.errors }}
@@ -51,7 +51,7 @@
         {% endif %}
       </div>
 
-      {# Поле "Пароль" #}
+      <!-- Поле "Пароль" -->
       <div>
         <label for="id_password" class="block text-sm font-semibold text-slate-800 mb-1">
           Пароль
@@ -65,7 +65,7 @@
           autocomplete="current-password"
         />
 
-        {# Ошибки конкретно поля password #}
+        <!-- Ошибки конкретно поля password -->
         {% if form.password.errors %}
           <div class="mt-1 text-sm text-red-700">
             {{ form.password.errors }}
@@ -73,7 +73,7 @@
         {% endif %}
       </div>
 
-      {# Кнопка отправки формы #}
+      <!-- Кнопка отправки формы -->
       <button
         type="submit"
         class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
@@ -82,7 +82,7 @@
         Войти
       </button>
 
-      {# Ссылка на регистрацию, если у пользователя нет аккаунта #}
+      <!-- Ссылка на регистрацию, если у пользователя нет аккаунта -->
       <div class="text-sm text-slate-600">
         Нет аккаунта?
         <a href="{% url 'accounts:register' %}"

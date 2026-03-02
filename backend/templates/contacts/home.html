@@ -1,4 +1,4 @@
-{# templates/contacts/home.html #}
+<!-- templates/contacts/home.html -->
 {% extends "base.html" %}
 {% load static %}
 
@@ -6,9 +6,11 @@
 
 {% block content %}
 <div class="relative isolate z-10 max-w-6xl mx-auto">
+  <!-- Заголовок страницы -->
   <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Контакты</h1>
   <p class="mt-1 text-slate-600">Адрес, телефон, Telegram и карта проезда.</p>
 
+  <!-- Django messages (если есть) -->
   {% if messages %}
     <div class="mt-4 space-y-2">
       {% for m in messages %}
@@ -19,16 +21,18 @@
     </div>
   {% endif %}
 
-  <!-- ✅ items-stretch чтобы правая колонка тянулась по высоте -->
+  <!-- ✅ items-stretch: правая колонка (карта) тянется по высоте левой -->
   <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
 
     <!-- LEFT: контакты + форма -->
     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      <!-- Адрес -->
       <div class="font-semibold text-slate-900">Адрес</div>
       <div class="mt-2 text-slate-700 leading-relaxed">
         {{ address }}
       </div>
 
+      <!-- Телефон / Email -->
       <div class="mt-5 font-semibold text-slate-900">Телефон / Email</div>
       <div class="mt-2 text-slate-700 space-y-1">
         <div>
@@ -39,6 +43,7 @@
         </div>
       </div>
 
+      <!-- Telegram (рендерится только если задан telegram_username) -->
       {% if telegram_username %}
         <div class="mt-5 font-semibold text-slate-900">Telegram</div>
         <div class="mt-2">
@@ -54,19 +59,21 @@
         </div>
       {% endif %}
 
-      <!-- FORM -->
+      <!-- FORM: обратная связь на странице контактов -->
       <div class="mt-6">
         <div class="font-semibold text-slate-900">Форма обратной связи</div>
 
         <form method="post" class="mt-4 space-y-3" novalidate>
           {% csrf_token %}
 
+          <!-- non_field_errors формы -->
           {% if form.non_field_errors %}
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
               {{ form.non_field_errors }}
             </div>
           {% endif %}
 
+          <!-- name -->
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
             <input
@@ -83,6 +90,7 @@
             {% endif %}
           </div>
 
+          <!-- email -->
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.email.label }}</label>
             <input
@@ -99,6 +107,7 @@
             {% endif %}
           </div>
 
+          <!-- message -->
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.message.label }}</label>
             <textarea
@@ -114,6 +123,7 @@
             {% endif %}
           </div>
 
+          <!-- submit -->
           <button
             type="submit"
             class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
@@ -126,10 +136,13 @@
     </div>
 
     <!-- RIGHT: Yandex Map -->
-<!--    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative h-[70vh] lg:h-full min-h-[420px]">-->
+    <!-- Важно: container relative + overflow-hidden, а карта absolute inset-0 -->
+    <!-- z-0 на контейнере, чтобы внутренние absolute-элементы корректно управлялись z-index -->
     <div class="relative z-0 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[70vh] lg:h-full min-h-[420px]">
+      <!-- Контейнер карты (JS заполняет) -->
       <div id="ymap" class="absolute inset-0"></div>
 
+      <!-- Кнопка "Построить маршрут" поверх карты (активируется после геокодинга) -->
       <button
         id="route-btn"
         type="button"
@@ -140,6 +153,7 @@
         Построить маршрут
       </button>
 
+      <!-- Если нет ключа — показываем заглушку поверх карты -->
       {% if not ymaps_api_key %}
         <div class="absolute inset-0 z-20 flex items-center justify-center bg-white/80 p-6">
           <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
@@ -155,15 +169,17 @@
 
 {% block scripts %}
   {% if ymaps_api_key %}
+    <!-- Глобальные параметры карты для contacts-map.js -->
     <script>
       window.CONTACTS_MAP = {
         title: "Mediscan",
         address: "{{ address|escapejs }}",
-        // ВАЖНО: Yandex Maps = [lon, lat]
+        <!-- ВАЖНО: Yandex Maps coords = [lon, lat] -->
         coords: [55.737497, 37.562577]
       };
     </script>
 
+    <!-- Подключаем API Яндекс.Карт ДО вашего contacts-map.js -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ ymaps_api_key }}&lang=ru_RU"></script>
     <script src="{% static 'js/contacts-map.js' %}"></script>
   {% endif %}

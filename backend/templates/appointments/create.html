@@ -6,25 +6,25 @@
 {% block content %}
 <section class="max-w-6xl mx-auto">
   <div class="mb-4">
-    {# Заголовок страницы записи #}
+    <!-- Заголовок страницы записи -->
     <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Запись на приём</h1>
 
-    {# Короткое описание сценария записи #}
+    <!-- Короткое описание сценария записи -->
     <p class="mt-1 text-slate-600">
       Выберите ФИО, телефон, услугу, дату и время — мы подтвердим запись и пришлём напоминание.
     </p>
   </div>
 
-  {# Две колонки: слева форма, справа подсказка "как это работает" #}
+  <!-- Две колонки: слева форма, справа подсказка "как это работает" -->
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
-    {# Левая колонка: форма #}
+    <!-- Левая колонка: форма -->
     <div class="xl:col-span-8 min-w-0">
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7">
-        {# Основная форма записи #}
+        <!-- Основная форма записи -->
         <form id="appointment-form" method="post" novalidate class="space-y-4">
           {% csrf_token %}
 
-          {# Общие ошибки формы (не привязанные к конкретному полю) #}
+          <!-- Общие ошибки формы (не привязанные к конкретному полю) -->
           {% if form.non_field_errors %}
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
               {{ form.non_field_errors }}
@@ -54,7 +54,7 @@
               autocomplete="name"
             />
 
-            {# Ошибки конкретно поля ФИО #}
+            <!-- Ошибки конкретно поля ФИО -->
             {% if form.full_name.errors %}
               <div class="mt-1 text-sm text-red-700">{{ form.full_name.errors }}</div>
             {% endif %}
@@ -88,7 +88,7 @@
                 pattern="^\+?[0-9]{10,15}$"
               />
 
-              {# Ошибки поля Телефон #}
+              <!-- Ошибки поля Телефон -->
               {% if form.phone.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
               {% endif %}
@@ -112,7 +112,7 @@
                 autocomplete="email"
               />
 
-              {# Ошибки поля Email #}
+              <!-- Ошибки поля Email -->
               {% if form.email.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
               {% endif %}
@@ -151,7 +151,7 @@
               {% endfor %}
             </select>
 
-            {# Ошибки поля Услуга #}
+            <!-- Ошибки поля Услуга -->
             {% if form.service.errors %}
               <div class="mt-1 text-sm text-red-700">{{ form.service.errors }}</div>
             {% endif %}
@@ -159,7 +159,7 @@
 
           <!-- ===== Скрытые поля (управляются JS/HTMX) ===== -->
 
-          {# Скрытая дата в ISO-формате (YYYY-MM-DD) — именно это значение отправляется на backend #}
+          <!-- Скрытая дата в ISO-формате (YYYY-MM-DD) — именно это значение отправляется на backend -->
           <input
             type="hidden"
             id="preferred-date"
@@ -167,7 +167,7 @@
             value="{% if form.preferred_date.value %}{{ form.preferred_date.value|date:'Y-m-d' }}{% endif %}"
           />
 
-          {# Скрытый выбранный слот (PK) — именно его отправляем на backend #}
+          <!-- Скрытый выбранный слот (PK) — именно его отправляем на backend -->
           <input
             type="hidden"
             id="slot-input"
@@ -199,7 +199,7 @@
                            border-slate-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 cursor-pointer"
                   />
 
-                  {# Кнопка открытия календаря #}
+                  <!-- Кнопка открытия календаря -->
                   <button
                     type="button"
                     id="date-open-btn"
@@ -242,7 +242,7 @@
                 </div>
               </div>
 
-              {# Ошибки поля preferred_date #}
+              <!-- Ошибки поля preferred_date -->
               {% if form.preferred_date.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.preferred_date.errors }}</div>
               {% endif %}
@@ -291,7 +291,7 @@
                 <div class="text-sm text-slate-500">Загрузка слотов…</div>
               </div>
 
-              {# Ошибки поля slot #}
+              <!-- Ошибки поля slot -->
               {% if form.slot.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
               {% endif %}
@@ -349,7 +349,7 @@
       </div>
     </div>
 
-    {# Правая колонка: подсказки #}
+    <!-- Правая колонка: подсказки -->
     <div class="xl:col-span-4 min-w-0">
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div class="font-semibold text-slate-900">Как это работает</div>
