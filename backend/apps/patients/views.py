@@ -1,6 +1,9 @@
 """
-Views for patients application.
-
-Currently empty on purpose (data is used via relations).
-If you create patient-facing pages later, place them here.
+Представления приложения пациентов (patients).
+В текущей версии файл намеренно пуст,
+так как данные профиля пациента используются через связи (relations)
+из других приложений.
+Если в будущем появятся страницы личного профиля пациента
+или отдельные patient-facing представления,
+их следует размещать здесь.
 """

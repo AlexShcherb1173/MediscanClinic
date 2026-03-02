@@ -6,29 +6,42 @@
 {% block content %}
 <section class="max-w-6xl mx-auto">
   <div class="mb-4">
+    {# Заголовок страницы записи #}
     <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Запись на приём</h1>
+
+    {# Короткое описание сценария записи #}
     <p class="mt-1 text-slate-600">
       Выберите ФИО, телефон, услугу, дату и время — мы подтвердим запись и пришлём напоминание.
     </p>
   </div>
 
+  {# Две колонки: слева форма, справа подсказка "как это работает" #}
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+    {# Левая колонка: форма #}
     <div class="xl:col-span-8 min-w-0">
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7">
+        {# Основная форма записи #}
         <form id="appointment-form" method="post" novalidate class="space-y-4">
           {% csrf_token %}
 
+          {# Общие ошибки формы (не привязанные к конкретному полю) #}
           {% if form.non_field_errors %}
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
               {{ form.non_field_errors }}
             </div>
           {% endif %}
 
-          <!-- Full name -->
+          <!-- ===== Поле: ФИО ===== -->
           <div>
             <label for="id_full_name" class="block text-sm font-semibold text-slate-800 mb-1">
               ФИО пациента <span class="text-red-600">*</span>
             </label>
+
+            <!--
+              Важно:
+              - name берём из Django form, чтобы корректно связалось при POST
+              - подсветка ошибки (красная рамка) включается, если form.full_name.errors
+            -->
             <input
               id="id_full_name"
               type="text"
@@ -40,17 +53,26 @@
               placeholder="Например: Иванова Анна Сергеевна"
               autocomplete="name"
             />
+
+            {# Ошибки конкретно поля ФИО #}
             {% if form.full_name.errors %}
               <div class="mt-1 text-sm text-red-700">{{ form.full_name.errors }}</div>
             {% endif %}
           </div>
 
-          <!-- Phone + Email -->
+          <!-- ===== Поля: Телефон + Email ===== -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- Телефон -->
             <div class="min-w-0">
               <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">
                 Телефон <span class="text-red-600">*</span>
               </label>
+
+              <!--
+                Примечание:
+                - pattern задан как базовая HTML-валидация, но основная проверка всё равно на сервере/в форме Django
+                - maxlength ограничивает длину ввода
+              -->
               <input
                 id="id_phone"
                 type="tel"
@@ -58,22 +80,26 @@
                 value="{{ form.phone.value|default_if_none:'' }}"
                 class="w-full rounded-2xl border px-4 py-3 text-slate-900 shadow-sm
                        border-slate-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
-                      {% if form.phone.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
+                       {% if form.phone.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
                 placeholder="+7 (999) 123-45-67"
                 autocomplete="tel"
                 inputmode="tel"
                 maxlength="20"
                 pattern="^\+?[0-9]{10,15}$"
               />
+
+              {# Ошибки поля Телефон #}
               {% if form.phone.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
               {% endif %}
             </div>
 
+            <!-- Email (необязательный) -->
             <div class="min-w-0">
               <label for="id_email" class="block text-sm font-semibold text-slate-800 mb-1">
                 Email (необязательно)
               </label>
+
               <input
                 id="id_email"
                 type="email"
@@ -85,18 +111,25 @@
                 placeholder="name@example.com"
                 autocomplete="email"
               />
+
+              {# Ошибки поля Email #}
               {% if form.email.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
               {% endif %}
             </div>
           </div>
 
-          <!-- Service -->
+          <!-- ===== Поле: Услуга ===== -->
           <div>
             <label for="service-select" class="block text-sm font-semibold text-slate-800 mb-1">
               Услуга <span class="text-red-600">*</span>
             </label>
 
+            <!--
+              Селект услуг:
+              - первый option disabled, чтобы пользователь явно выбрал услугу
+              - choices берём из form.service.field.choices
+            -->
             <select
               id="service-select"
               name="{{ form.service.name }}"
@@ -108,19 +141,25 @@
 
               {% for value, label in form.service.field.choices %}
                 {% if value %}
-                  <option value="{{ value }}" {% if form.service.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                  <option
+                    value="{{ value }}"
+                    {% if form.service.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}
+                  >
                     {{ label }}
                   </option>
                 {% endif %}
               {% endfor %}
             </select>
 
+            {# Ошибки поля Услуга #}
             {% if form.service.errors %}
               <div class="mt-1 text-sm text-red-700">{{ form.service.errors }}</div>
             {% endif %}
           </div>
 
-          <!-- Hidden preferred_date (ISO) -->
+          <!-- ===== Скрытые поля (управляются JS/HTMX) ===== -->
+
+          {# Скрытая дата в ISO-формате (YYYY-MM-DD) — именно это значение отправляется на backend #}
           <input
             type="hidden"
             id="preferred-date"
@@ -128,7 +167,7 @@
             value="{% if form.preferred_date.value %}{{ form.preferred_date.value|date:'Y-m-d' }}{% endif %}"
           />
 
-          <!-- Hidden slot (PK) -->
+          {# Скрытый выбранный слот (PK) — именно его отправляем на backend #}
           <input
             type="hidden"
             id="slot-input"
@@ -136,9 +175,9 @@
             value="{% if form.slot.value %}{{ form.slot.value }}{% endif %}"
           />
 
-          <!-- Date + Time -->
+          <!-- ===== Блоки: Дата + Время ===== -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Date -->
+            <!-- ===== Выбор даты (поповер с HTMX-календарём) ===== -->
             <div class="min-w-0">
               <label for="date-display" class="block text-sm font-semibold text-slate-800 mb-1">
                 Дата <span class="text-red-600">*</span>
@@ -146,6 +185,10 @@
 
               <div class="relative" id="date-area">
                 <div class="flex items-stretch gap-2">
+                  <!--
+                    Поле только для отображения выбранной даты (read-only).
+                    Реальное значение хранится в hidden #preferred-date.
+                  -->
                   <input
                     id="date-display"
                     type="text"
@@ -155,6 +198,8 @@
                     class="w-full rounded-2xl border px-4 py-3 text-slate-900 shadow-sm bg-white
                            border-slate-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 cursor-pointer"
                   />
+
+                  {# Кнопка открытия календаря #}
                   <button
                     type="button"
                     id="date-open-btn"
@@ -166,6 +211,10 @@
                   </button>
                 </div>
 
+                <!--
+                  Поповер с календарём.
+                  Календарь подгружается через HTMX при load.
+                -->
                 <div
                   id="date-popover"
                   class="hidden absolute z-30 mt-2 left-0 w-[320px] max-w-full rounded-3xl border border-slate-200 bg-white shadow-lg p-4"
@@ -193,50 +242,63 @@
                 </div>
               </div>
 
+              {# Ошибки поля preferred_date #}
               {% if form.preferred_date.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.preferred_date.errors }}</div>
               {% endif %}
             </div>
 
-             <!-- Time -->
-<div id="slot-area" class="min-w-0">
-  <label class="block text-sm font-semibold text-slate-800 mb-1">
-    Время записи <span class="text-red-600">*</span>
-  </label>
+            <!-- ===== Выбор времени (слоты HTMX) ===== -->
+            <div id="slot-area" class="min-w-0">
+              <label class="block text-sm font-semibold text-slate-800 mb-1">
+                Время записи <span class="text-red-600">*</span>
+              </label>
 
-  <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
-    <span id="slot-display" class="text-slate-400">
-      {% if form.slot.value and form.preferred_date.value %}
-        Выбрано
-      {% else %}
-        Выберите время
-      {% endif %}
-    </span>
-  </div>
+              <!--
+                “Псевдо-поле” для отображения статуса выбора.
+                Реальное значение хранится в hidden #slot-input.
+              -->
+              <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
+                <span id="slot-display" class="text-slate-400">
+                  {% if form.slot.value and form.preferred_date.value %}
+                    Выбрано
+                  {% else %}
+                    Выберите время
+                  {% endif %}
+                </span>
+              </div>
 
-  <!-- ✅ вот тут, ПОД "Время записи" -->
-  <div
-    id="slot-tiles"
-    class="mt-2"
-    hx-get="{% url 'appointments:slots' %}"
-    hx-trigger="load,
-                change from:#service-select,
-                change from:#preferred-date,
-                input from:#id_full_name delay:300ms,
-                input from:#id_phone delay:300ms,
-                refresh"
-    hx-target="#slot-tiles"
-    hx-swap="innerHTML"
-    hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
-  >
-    <div class="text-sm text-slate-500">Загрузка слотов…</div>
-  </div>
+              <!--
+                Контейнер слотов:
+                - подгружается через HTMX
+                - триггеры: загрузка, смена услуги, смена даты, ввод ФИО/телефона (с задержкой), и ручной trigger "refresh"
+                - include: отправляет на backend текущее состояние формы
+              -->
+              <div
+                id="slot-tiles"
+                class="mt-2"
+                hx-get="{% url 'appointments:slots' %}"
+                hx-trigger="load,
+                            change from:#service-select,
+                            change from:#preferred-date,
+                            input from:#id_full_name delay:300ms,
+                            input from:#id_phone delay:300ms,
+                            refresh"
+                hx-target="#slot-tiles"
+                hx-swap="innerHTML"
+                hx-include="#id_full_name,#id_phone,#service-select,#preferred-date,#slot-input"
+              >
+                <div class="text-sm text-slate-500">Загрузка слотов…</div>
+              </div>
 
-  {% if form.slot.errors %}
-    <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
-  {% endif %}
-</div>
-          <!-- Comment -->
+              {# Ошибки поля slot #}
+              {% if form.slot.errors %}
+                <div class="mt-1 text-sm text-red-700">{{ form.slot.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- ===== Комментарий (необязательный) ===== -->
           <div>
             <label for="id_comment" class="block text-sm font-semibold text-slate-800 mb-1">
               Комментарий (необязательно)
@@ -257,12 +319,21 @@
             {% endif %}
           </div>
 
-          <!-- Submit -->
+          <!-- ===== Кнопка отправки ===== -->
           <div class="pt-1 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <div class="text-xs text-slate-500">
               Нажимая “Отправить”, вы соглашаетесь с обработкой персональных данных.
             </div>
 
+            <!--
+              По умолчанию кнопка disabled.
+              JS включает её только когда заполнены:
+              - ФИО (>=3)
+              - телефон (>=6)
+              - услуга
+              - дата
+              - слот
+            -->
             <button
               type="submit"
               id="submit-btn"
@@ -278,6 +349,7 @@
       </div>
     </div>
 
+    {# Правая колонка: подсказки #}
     <div class="xl:col-span-4 min-w-0">
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div class="font-semibold text-slate-900">Как это работает</div>
@@ -298,11 +370,16 @@
 
 <script>
 (function () {
+  // ===========================================================================
+  // DOM-элементы формы
+  // ===========================================================================
+
   const serviceSelect = document.getElementById("service-select");
 
   const fullNameInput = document.getElementById("id_full_name");
   const phoneInput = document.getElementById("id_phone");
 
+  // Блок выбора даты (поповер календаря)
   const dateArea = document.getElementById("date-area");
   const dateDisplay = document.getElementById("date-display");
   const datePopover = document.getElementById("date-popover");
@@ -310,28 +387,40 @@
   const dateCloseBtn = document.getElementById("date-close-btn");
   const preferredDate = document.getElementById("preferred-date");
 
+  // Выбор времени (слоты)
   const slotInput = document.getElementById("slot-input");
   const slotDisplay = document.getElementById("slot-display");
   const slotTiles = document.getElementById("slot-tiles");
 
+  // Кнопка отправки
   const submitBtn = document.getElementById("submit-btn");
 
+  // ===========================================================================
+  // Вспомогательные проверки
+  // ===========================================================================
+
+  // Проверяем: выбрана ли услуга
   function hasService() {
     return !!(serviceSelect && serviceSelect.value);
   }
 
+  // Проверяем: заполнены ли обязательные поля пациента (ФИО и телефон)
+  // Это нужно, чтобы не давать выбирать даты/слоты, пока нет данных пациента.
   function hasRequiredPatient() {
     const fn = (fullNameInput?.value || "").trim();
     const ph = (phoneInput?.value || "").trim();
     return fn.length >= 3 && ph.length >= 6;
   }
 
+  // Включаем/выключаем взаимодействие с элементом
+  // (визуально "приглушаем" и отключаем клики)
   function setLocked(el, locked) {
     if (!el) return;
     el.classList.toggle("opacity-60", locked);
     el.classList.toggle("pointer-events-none", locked);
   }
 
+  // Итоговая проверка готовности формы к отправке
   function isFormReady() {
     const fullName = (fullNameInput?.value || "").trim();
     const phone = (phoneInput?.value || "").trim();
@@ -341,6 +430,7 @@
     return fullName.length >= 3 && phone.length >= 6 && service && date && slot;
   }
 
+  // Обновляем состояние кнопки "Отправить заявку"
   function updateSubmitState() {
     if (!submitBtn) return;
 
@@ -355,8 +445,14 @@
     }
   }
 
+  // Делаем функцию доступной глобально (нужно для кода выбора слота в partial'ах)
   window.updateSubmitState = updateSubmitState;
 
+  // ===========================================================================
+  // Управление календарём (поповер)
+  // ===========================================================================
+
+  // Открыть календарь (только если заполнены пациент + выбрана услуга)
   function openCalendar(e) {
     if (e) e.stopPropagation();
     if (!datePopover) return;
@@ -365,11 +461,13 @@
     datePopover.classList.remove("hidden");
   }
 
+  // Закрыть календарь
   function closeCalendar() {
     if (!datePopover) return;
     datePopover.classList.add("hidden");
   }
 
+  // Сброс даты и времени, когда меняются ключевые поля (например услуга)
   function clearDateAndSlot() {
     if (preferredDate) preferredDate.value = "";
     if (dateDisplay) dateDisplay.value = "";
@@ -383,15 +481,23 @@
     updateSubmitState();
   }
 
+  // ===========================================================================
+  // HTMX: обновление слотов
+  // ===========================================================================
+
+  // Принудительно обновить слоты через htmx.trigger(..., "refresh")
   function refreshSlots() {
     if (!slotTiles || !window.htmx) return;
     window.htmx.trigger(slotTiles, "refresh");
   }
 
+  // Эта функция вызывается из календаря (partial _calendar_month.html)
+  // Она записывает выбранную дату в hidden-инпут и обновляет слоты.
   window.selectDate = function (iso, pretty) {
     if (preferredDate) preferredDate.value = iso;
     if (dateDisplay) dateDisplay.value = pretty;
 
+    // При смене даты сбрасываем выбранный слот
     if (slotInput) slotInput.value = "";
     if (slotDisplay) {
       slotDisplay.textContent = "Выберите время";
@@ -407,27 +513,40 @@
     }
   };
 
+  // ===========================================================================
+  // Блокировка/разблокировка даты и слотов в зависимости от заполненности пациента
+  // ===========================================================================
+
   function syncLocks() {
+    // Если нет ФИО/телефона — блокируем календарь и слоты
     const lock = !hasRequiredPatient();
 
     setLocked(dateArea, lock);
     setLocked(slotTiles, lock);
 
     if (lock) {
+      // При блокировке: закрываем календарь, сбрасываем выбранные дата/слот и обновляем слоты
       closeCalendar();
       clearDateAndSlot();
       refreshSlots();
       return;
     }
 
+    // Если всё заполнено — просто обновляем слоты и кнопку отправки
     refreshSlots();
     updateSubmitState();
   }
 
+  // ===========================================================================
+  // Слушатели событий UI
+  // ===========================================================================
+
+  // Открытие/закрытие календаря
   dateDisplay?.addEventListener("click", openCalendar);
   dateOpenBtn?.addEventListener("click", openCalendar);
   dateCloseBtn?.addEventListener("click", closeCalendar);
 
+  // Клик вне календаря — закрываем поповер
   document.addEventListener("click", (e) => {
     if (!datePopover) return;
     if (e.target.closest("#date-popover")) return;
@@ -436,17 +555,23 @@
     closeCalendar();
   });
 
+  // При вводе ФИО/телефона — синхронизируем блокировки
   fullNameInput?.addEventListener("input", syncLocks);
   phoneInput?.addEventListener("input", syncLocks);
 
+  // При смене услуги:
+  // - если пациент не заполнен — просто применяем блокировки
+  // - иначе сбрасываем дату/слот, подгружаем календарь под услугу, обновляем слоты
   serviceSelect?.addEventListener("change", () => {
     if (!hasRequiredPatient()) {
       syncLocks();
       return;
     }
 
+    // При смене услуги обязательно очищаем дату и слот
     clearDateAndSlot();
 
+    // Перезагружаем календарь (внутри поповера), чтобы он учитывал услугу (если у тебя так реализовано)
     if (window.htmx) {
       window.htmx.ajax("GET", "{% url 'appointments:calendar' %}", {
         target: "#calendar-wrap",
@@ -455,10 +580,15 @@
       });
     }
 
+    // Обновляем слоты и открываем календарь, чтобы пользователь сразу выбрал дату
     refreshSlots();
     openCalendar();
     updateSubmitState();
   });
+
+  // ===========================================================================
+  // Инициализация
+  // ===========================================================================
 
   syncLocks();
   updateSubmitState();

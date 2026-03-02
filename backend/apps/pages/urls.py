@@ -1,10 +1,11 @@
 """
-URL configuration for pages application.
-
-Routes:
-- Home page
-- Dynamic/static page by slug
-- Sitemap page
+Конфигурация URL для приложения страниц (pages).
+Маршруты:
+- home — главная страница сайта;
+- page_detail — отображение статической страницы по slug;
+- sitemap — страница карты сайта.
+Используется пространство имён app_name = "pages"
+для корректной работы reverse() и {% url %}.
 """
 
 from django.urls import path

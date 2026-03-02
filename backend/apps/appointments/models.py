@@ -1,11 +1,11 @@
 """
-Models for appointments application.
-
-Contains:
-- AppointmentSlot: time slots available for booking per service
-- Appointment: booking record with patient data, optional doctor/promo/user
-
-Includes validation rules and DB constraints to prevent double-booking.
+Модели приложения записей на приём.
+Содержит:
+- AppointmentSlot — временные слоты, доступные для записи по конкретной услуге.
+- Appointment — запись пациента на приём с контактными данными и привязками
+  к услуге/слоту/врачу/акции/пользователю.
+Включает правила валидации и ограничения на уровне БД, предотвращающие
+двойную запись на один и тот же слот.
 """
 
 from __future__ import annotations
@@ -21,31 +21,34 @@ from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
 
-# Enterprise: store only E.164 (+79991234567)
 phone_validator = RegexValidator(
     regex=r"^\+[1-9]\d{1,14}$",
     message="Введите телефон в формате E.164: +79991234567",
 )
 """
-Phone validator for appointment model.
-
-E.164 rules:
-- starts with '+'
-- country code 1..3 digits (first digit 1..9)
-- total digits up to 15
+Валидатор телефона для модели записи.
+Формат E.164:
+- начинается с символа '+';
+- первая цифра (код страны) — 1..9;
+- далее только цифры;
+- общая длина номера (без '+') — до 15 цифр.
 """
 
 
 class AppointmentSlot(models.Model):
     """
-    Booking slot for a specific service.
-
-    Attributes:
-        service: Service which can be booked in this slot.
-        starts_at: Start datetime of the slot.
-        ends_at: End datetime of the slot.
-        is_active: Controls slot availability.
-        is_booked: Flag used to mark slot as occupied.
+    Временной слот для записи на конкретную услугу.
+    Слот описывает интервал времени (starts_at → ends_at), который можно забронировать
+    для выбранной услуги.
+    Поля:
+        service: Услуга, для которой доступен данный слот.
+        starts_at: Дата и время начала слота.
+        ends_at: Дата и время окончания слота.
+        is_active: Признак доступности слота (можно отключать без удаления).
+        is_booked: Признак занятости слота (быстрый флаг для UI/логики).
+    Ограничения:
+        - Уникальность (service, starts_at) не позволяет создать два одинаковых слота
+          для одной услуги на одно и то же время.
     """
 
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="slots")
@@ -55,6 +58,13 @@ class AppointmentSlot(models.Model):
     is_booked = models.BooleanField("Занят", default=False)
 
     class Meta:
+        """
+        Параметры модели AppointmentSlot.
+
+        - ordering: сортировка слотов по времени начала.
+        - indexes: индексы для ускорения фильтраций (по услуге/времени и по статусам).
+        - constraints: уникальный слот по (service, starts_at).
+        """
         ordering = ("starts_at",)
         indexes = [
             models.Index(fields=["service", "starts_at"]),
@@ -67,26 +77,32 @@ class AppointmentSlot(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Human-readable slot representation."""
+        """
+        Возвращает человекочитаемое представление слота.
+        Используется в админке и логах.
+        """
         return f"{self.service} — {self.starts_at:%d.%m %H:%M}"
 
 
 class Appointment(models.Model):
     """
-    Appointment (booking) model.
-
-    Can be linked to:
-    - service
-    - time slot (required by `clean()` rule)
-    - doctor
-    - promo
-    - authenticated user
-
-    Also stores patient contact details and reminder flags.
+    Запись пациента на приём.
+    Модель хранит данные пациента и информацию о записи, включая:
+    - услугу и выбранный слот,
+    - врача (опционально),
+    - акцию (опционально),
+    - пользователя (если запись создана из личного кабинета/авторизованного профиля).
+    Также хранит флаги и дату отправки напоминаний (email/telegram, 24ч/2ч).
     """
 
     class Status(models.TextChoices):
-        """Allowed appointment statuses."""
+        """
+        Статусы записи.
+        NEW — новая (создана, ожидает обработки).
+        CONFIRMED — подтверждена клиникой/администратором.
+        COMPLETED — визит состоялся.
+        CANCELED — отменена.
+        """
 
         NEW = "new", "Новая"
         CONFIRMED = "confirmed", "Подтверждена"
@@ -140,7 +156,6 @@ class Appointment(models.Model):
 
     full_name = models.CharField("Имя", max_length=120)
 
-    # Enterprise: store normalized E.164
     phone = models.CharField(
         "Телефон",
         max_length=16,  # '+' + max 15 digits
@@ -195,15 +210,16 @@ class Appointment(models.Model):
 
     def clean(self):
         """
-        Model-level validation.
-
-        Rules:
-            - a slot must be selected
-            - phone must be normalized to E.164
+        Валидация на уровне модели (вызывается в full_clean()).
+        Правила:
+        - телефон приводится к формату E.164 (нормализация применяется для всех точек входа:
+          admin/ORM/forms);
+        - слот обязателен (без слота запись не считается корректной).
+        Вызывает:
+            ValidationError: если слот не выбран.
         """
         super().clean()
 
-        # normalize phone for all entry points (admin/ORM/forms)
         if self.phone:
             self.phone = normalize_phone(self.phone)
 
@@ -212,14 +228,20 @@ class Appointment(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Ensure phone is normalized even if full_clean() not called.
+        Сохраняет запись, гарантируя нормализацию телефона.
+        Нормализация выполняется даже если full_clean() не был вызван
+        (например, при сохранении из кода напрямую через ORM).
         """
         if self.phone:
             self.phone = normalize_phone(self.phone)
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        """Readable representation for admin and logs."""
+        """
+        Возвращает человекочитаемое представление записи.
+        Формат строится из доступных частей: имя пациента → врач/услуга/акция → дата/время.
+        Используется в админке и логах.
+        """
         parts = [self.full_name]
         if self.doctor:
             parts.append(f"к врачу {self.doctor.full_name}")

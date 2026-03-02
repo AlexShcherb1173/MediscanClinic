@@ -1,12 +1,13 @@
 """
-Admin configuration for services application.
-
-Registers:
+Конфигурация административного интерфейса приложения услуг (services).
+Регистрирует модели:
 - ServiceCategory
 - Service
-
-Provides удобный интерфейс управления каталогом услуг:
-фильтры, поиск, inline-редактирование и действия (actions).
+Обеспечивает удобное управление каталогом услуг:
+- фильтрация и поиск;
+- inline-редактирование флагов и порядка;
+- bulk-действия (actions);
+- оптимизация запросов в админке.
 """
 
 from django.contrib import admin
@@ -17,12 +18,12 @@ from .models import Service, ServiceCategory
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
     """
-    Admin interface for ServiceCategory.
-
-    Supports:
-    - inline editing of order and active flag
-    - filtering by is_active
-    - searching by name/slug
+    Админ-интерфейс для модели ServiceCategory.
+    Возможности:
+        - inline-редактирование порядка (order) и активности (is_active);
+        - фильтрация по активности;
+        - поиск по названию и slug;
+        - автогенерация slug из name.
     """
 
     list_display = ("name", "order", "is_active", "slug")
@@ -37,12 +38,14 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     """
-    Admin interface for Service.
+    Админ-интерфейс для модели Service.
 
-    Features:
-    - fast toggles for is_active/is_featured/featured_order
-    - optimized queryset with select_related(category)
-    - bulk actions for status and featured flag
+    Возможности:
+        - быстрое включение/выключение услуги;
+        - управление флагом отображения на главной странице (is_featured);
+        - ручная сортировка featured-услуг;
+        - оптимизация запросов через select_related(category);
+        - массовые действия (bulk actions).
     """
 
     list_display = (
@@ -79,27 +82,46 @@ class ServiceAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """
-        Optimize admin queryset by selecting related category.
+        Переопределяет queryset админки.
+        Использует select_related("category") для уменьшения
+        количества SQL-запросов при отображении списка услуг.
         """
         qs = super().get_queryset(request)
         return qs.select_related("category")
 
     @admin.action(description="Сделать активными")
+    @admin.action(description="Сделать активными")
     def make_active(self, request, queryset):
-        """Bulk action: set is_active=True for selected services."""
+        """
+        Массовое действие.
+        Устанавливает is_active=True для выбранных услуг.
+        """
         queryset.update(is_active=True)
 
     @admin.action(description="Сделать неактивными")
+    @admin.action(description="Сделать неактивными")
     def make_inactive(self, request, queryset):
-        """Bulk action: set is_active=False for selected services."""
+        """
+        Массовое действие.
+        Устанавливает is_active=False для выбранных услуг.
+        """
         queryset.update(is_active=False)
 
     @admin.action(description="Показывать на главной (featured = True)")
+    @admin.action(description="Показывать на главной (featured = True)")
     def set_featured(self, request, queryset):
-        """Bulk action: set is_featured=True for selected services."""
+        """
+        Массовое действие.
+        Включает отображение выбранных услуг на главной странице.
+        """
         queryset.update(is_featured=True)
 
     @admin.action(description="Убрать с главной (featured = False)")
+    @admin.action(description="Убрать с главной (featured = False)")
     def unset_featured(self, request, queryset):
-        """Bulk action: set is_featured=False and reset featured_order."""
+        """
+        Массовое действие.
+        Отключает отображение услуг на главной странице
+        и сбрасывает порядок featured_order в 0.
+        """
         queryset.update(is_featured=False, featured_order=0)

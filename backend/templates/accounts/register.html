@@ -1,24 +1,38 @@
 {% extends "base.html" %}
 
+{# Заголовок страницы во вкладке браузера #}
 {% block title %}Регистрация — Mediscan{% endblock %}
 
 {% block content %}
+{# Центрируем карточку формы по ширине страницы #}
 <div class="max-w-xl mx-auto">
+  {# Карточка с формой регистрации #}
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+
+    {# Заголовок страницы #}
     <h1 class="text-2xl font-extrabold text-slate-900">Регистрация</h1>
+
+    {# Краткое пояснение, какие данные требуются #}
     <div class="text-sm text-slate-600 mt-1">ФИО + телефон + email</div>
 
+    {# Общие ошибки формы (например, пользователь уже существует) #}
     {% if form.non_field_errors %}
       <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
         {{ form.non_field_errors }}
       </div>
     {% endif %}
 
+    {# Форма регистрации нового пользователя #}
     <form method="post" class="mt-6 space-y-4">
+
+      {# CSRF-токен обязателен для защиты от CSRF-атак #}
       {% csrf_token %}
 
+      {# Поле "ФИО" #}
       <div>
-        <label for="id_full_name" class="block text-sm font-semibold text-slate-800 mb-1">ФИО</label>
+        <label for="id_full_name" class="block text-sm font-semibold text-slate-800 mb-1">
+          ФИО
+        </label>
         <input
           id="id_full_name"
           name="full_name"
@@ -28,13 +42,20 @@
           placeholder="Иванов Иван Иванович"
           autocomplete="name"
         />
+
+        {# Ошибки конкретно поля full_name #}
         {% if form.full_name.errors %}
-          <div class="mt-1 text-sm text-red-700">{{ form.full_name.errors }}</div>
+          <div class="mt-1 text-sm text-red-700">
+            {{ form.full_name.errors }}
+          </div>
         {% endif %}
       </div>
 
+      {# Поле "Телефон" #}
       <div>
-        <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">Телефон</label>
+        <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">
+          Телефон
+        </label>
         <input
           id="id_phone"
           name="phone"
@@ -45,13 +66,20 @@
           placeholder="+7 999 000-00-00"
           autocomplete="tel"
         />
+
+        {# Ошибки конкретно поля phone #}
         {% if form.phone.errors %}
-          <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
+          <div class="mt-1 text-sm text-red-700">
+            {{ form.phone.errors }}
+          </div>
         {% endif %}
       </div>
 
+      {# Поле "Email" #}
       <div>
-        <label for="id_email" class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+        <label for="id_email" class="block text-sm font-semibold text-slate-800 mb-1">
+          Email
+        </label>
         <input
           id="id_email"
           name="email"
@@ -62,14 +90,23 @@
           placeholder="you@mail.com"
           autocomplete="email"
         />
+
+        {# Ошибки конкретно поля email #}
         {% if form.email.errors %}
-          <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
+          <div class="mt-1 text-sm text-red-700">
+            {{ form.email.errors }}
+          </div>
         {% endif %}
       </div>
 
+      {# Блок паролей в две колонки на md+ экранах #}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+        {# Поле "Пароль" #}
         <div>
-          <label for="id_password1" class="block text-sm font-semibold text-slate-800 mb-1">Пароль</label>
+          <label for="id_password1" class="block text-sm font-semibold text-slate-800 mb-1">
+            Пароль
+          </label>
           <input
             id="id_password1"
             type="password"
@@ -78,13 +115,20 @@
                    focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
             autocomplete="new-password"
           />
+
+          {# Ошибки конкретно поля password1 #}
           {% if form.password1.errors %}
-            <div class="mt-1 text-sm text-red-700">{{ form.password1.errors }}</div>
+            <div class="mt-1 text-sm text-red-700">
+              {{ form.password1.errors }}
+            </div>
           {% endif %}
         </div>
 
+        {# Поле "Повтор пароля" #}
         <div>
-          <label for="id_password2" class="block text-sm font-semibold text-slate-800 mb-1">Повтор</label>
+          <label for="id_password2" class="block text-sm font-semibold text-slate-800 mb-1">
+            Повтор
+          </label>
           <input
             id="id_password2"
             type="password"
@@ -93,12 +137,17 @@
                    focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
             autocomplete="new-password"
           />
+
+          {# Ошибки конкретно поля password2 #}
           {% if form.password2.errors %}
-            <div class="mt-1 text-sm text-red-700">{{ form.password2.errors }}</div>
+            <div class="mt-1 text-sm text-red-700">
+              {{ form.password2.errors }}
+            </div>
           {% endif %}
         </div>
       </div>
 
+      {# Кнопка отправки формы #}
       <button
         type="submit"
         class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
@@ -107,9 +156,13 @@
         Создать аккаунт
       </button>
 
+      {# Ссылка на страницу входа, если пользователь уже зарегистрирован #}
       <div class="text-sm text-slate-600">
         Уже есть аккаунт?
-        <a href="{% url 'accounts:login' %}" class="text-blue-700 font-semibold hover:underline">Войти</a>
+        <a href="{% url 'accounts:login' %}"
+           class="text-blue-700 font-semibold hover:underline">
+          Войти
+        </a>
       </div>
     </form>
   </div>

@@ -1,9 +1,9 @@
 """
-Telegram client used by Django admin actions.
-
-Unlike notify_contact_telegram(), this client is strict:
-- raises RuntimeError when token/chat_id is missing
-- raises on HTTP errors
+Telegram-клиент для использования в Django Admin.
+В отличие от notify_contact_telegram(), данный клиент работает в строгом режиме:
+- выбрасывает RuntimeError при отсутствии обязательных настроек;
+- выбрасывает исключение при HTTP-ошибках Telegram API.
+Используется в административных действиях, где ошибки должны быть явно видимы.
 """
 
 from __future__ import annotations
@@ -14,15 +14,25 @@ from django.conf import settings
 
 def send_telegram_message(text: str, chat_id: str | None = None) -> None:
     """
-    Send Telegram message using Bot API (JSON payload).
-
-    Args:
-        text: message text (HTML supported via parse_mode)
-        chat_id: override chat id; defaults to TELEGRAM_ADMIN_CHAT_ID
-
-    Raises:
-        RuntimeError: if bot token or chat id are missing
-        requests.HTTPError: for non-2xx responses
+    Отправляет сообщение в Telegram через Bot API (JSON-пayload).
+    Параметры:
+        text (str): Текст сообщения (поддерживается форматирование HTML).
+        chat_id (str | None): Идентификатор чата. Если не указан,
+                              используется TELEGRAM_ADMIN_CHAT_ID из настроек.
+    Используемые настройки:
+        - TELEGRAM_BOT_TOKEN (обязателен);
+        - TELEGRAM_ADMIN_CHAT_ID (обязателен, если chat_id не передан);
+        - TELEGRAM_API_URL (опционально, по умолчанию используется api.telegram.org).
+    Поведение:
+        - формирует POST-запрос к <api_url>/sendMessage;
+        - отправляет JSON-пayload с parse_mode="HTML";
+        - отключает предпросмотр ссылок.
+    Исключения:
+        RuntimeError:
+            - если TELEGRAM_BOT_TOKEN не задан;
+            - если chat_id отсутствует.
+        requests.HTTPError:
+            - при получении неуспешного HTTP-ответа (raise_for_status()).
     """
     if not getattr(settings, "TELEGRAM_BOT_TOKEN", ""):
         raise RuntimeError("TELEGRAM_BOT_TOKEN is empty")

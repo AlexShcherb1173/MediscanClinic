@@ -1,11 +1,10 @@
 """
-Views for services application.
-
-Includes:
-- ServiceListView: catalog with filters (category, search, price range) and sorting
-- ServiceDetailView: service detail page by slug
-
-Also includes helper `_to_decimal` for safe parsing of numeric query parameters.
+Представления приложения услуг (services).
+Содержит:
+- ServiceListView — каталог услуг с фильтрами (категория, поиск, диапазон цен) и сортировкой;
+- ServiceDetailView — детальная страница услуги по slug.
+Также включает вспомогательную функцию _to_decimal для безопасного парсинга
+числовых параметров из query string.
 """
 
 from decimal import Decimal, InvalidOperation
@@ -17,16 +16,13 @@ from .models import Service, ServiceCategory
 
 def _to_decimal(value: str | None) -> Decimal | None:
     """
-    Convert a string to Decimal safely.
-
-    Accepts both dot and comma as decimal separators.
-    Returns None if input is empty or cannot be parsed.
-
-    Args:
-        value: Raw string value (e.g. from query params).
-
-    Returns:
-        Decimal or None.
+    Безопасно преобразует строку в Decimal.
+    Поддерживает десятичный разделитель как точку, так и запятую.
+    Возвращает None, если значение пустое или не поддаётся парсингу.
+    Параметры:
+        value: Сырая строка (обычно из query-параметров).
+    Возвращает:
+        Decimal | None: Число Decimal или None при невалидном вводе.
     """
     if not value:
         return None
@@ -44,26 +40,26 @@ SORT_MAP = {
     "-price": "-price_from",
 }
 """
-Mapping of supported sort keys (query param `sort`) to ORM order_by expressions.
-
-Supported values:
-- name, -name
-- price, -price   (sort by price_from)
+Сопоставление допустимых ключей сортировки (query-параметр `sort`)
+с выражениями ORM для order_by().
+Поддерживаемые значения:
+    - name, -name
+    - price, -price  (сортировка по price_from)
 """
 
 
 class ServiceListView(ListView):
     """
-    Service catalog page with filtering, sorting and pagination.
-
-    Filters:
-    - category (by category_slug in URL)
-    - search by name (q)
-    - price range (price_min/price_max applied to price_from)
-    - sorting by name or price_from
-
-    Additionally stores current catalog URL in session as `services_return_url`
-    to support "Back to catalog" UX on detail page.
+    Каталог услуг с фильтрацией, сортировкой и пагинацией.
+    Фильтры:
+        - category_slug (из URL): фильтрация по категории;
+        - q: поиск по названию (icontains);
+        - price_min / price_max: диапазон цен (применяется к price_from);
+        - sort: сортировка по имени или цене.
+    UX:
+        Сохраняет текущий URL каталога (вместе с фильтрами и пагинацией)
+        в сессии под ключом services_return_url, чтобы на детальной странице
+        можно было сделать «Назад в каталог» без потери контекста.
     """
 
     model = Service
@@ -73,19 +69,26 @@ class ServiceListView(ListView):
 
     def get(self, request, *args, **kwargs):
         """
-        Persist current catalog URL in session and render page.
-
-        This stores full path including filters and pagination.
+        Сохраняет текущий URL каталога в сессию и рендерит страницу.
+        Сохраняется полный путь (request.get_full_path()),
+        включая query-параметры фильтров и номер страницы пагинации.
         """
         request.session["services_return_url"] = request.get_full_path()
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         """
-        Build queryset for the service catalog.
-
-        Returns only active services from active categories,
-        applies filters from URL and query parameters.
+        Формирует queryset для каталога услуг.
+        Базовые условия:
+            - услуга активна (is_active=True);
+            - категория активна (category__is_active=True).
+        Затем применяются фильтры из URL и query-параметров:
+            - category_slug;
+            - q;
+            - price_min / price_max;
+            - sort.
+        Возвращает:
+            QuerySet[Service]: Отфильтрованный и отсортированный queryset.
         """
         qs = Service.objects.filter(
             is_active=True, category__is_active=True
@@ -112,7 +115,11 @@ class ServiceListView(ListView):
 
     def get_context_data(self, **kwargs):
         """
-        Add UI context for filters and navigation.
+        Добавляет в контекст данные для UI фильтров и навигации.
+        В контекст добавляются:
+            - categories: активные категории услуг;
+            - значения текущих фильтров (q, price_min, price_max, sort);
+            - category_slug из URL (для подсветки активной категории).
         """
         ctx = super().get_context_data(**kwargs)
         ctx["categories"] = ServiceCategory.objects.filter(is_active=True)
@@ -126,10 +133,9 @@ class ServiceListView(ListView):
 
 class ServiceDetailView(DetailView):
     """
-    Service details page.
-
-    Fetches a service by slug and restricts queryset to active services
-    from active categories.
+    Детальная страница услуги.
+    Загружает услугу по slug и ограничивает доступ только
+    активными услугами из активных категорий.
     """
 
     model = Service
@@ -140,7 +146,12 @@ class ServiceDetailView(DetailView):
 
     def get_queryset(self):
         """
-        Restrict queryset to active services and active categories.
+        Ограничивает queryset детальной страницы.
+        Возвращает только:
+            - активные услуги;
+            - услуги из активных категорий.
+        Дополнительно использует select_related("category")
+        для оптимизации запросов.
         """
         return Service.objects.select_related("category").filter(
             is_active=True,
@@ -149,7 +160,8 @@ class ServiceDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         """
-        Add active categories for menu/sidebar on detail page.
+        Добавляет в контекст активные категории услуг.
+        Категории используются для меню/сайдбара на детальной странице.
         """
         ctx = super().get_context_data(**kwargs)
         ctx["categories"] = ServiceCategory.objects.filter(is_active=True)

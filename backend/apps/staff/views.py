@@ -1,9 +1,9 @@
 """
-Views for staff application.
-
-Provides:
-- doctor_list: list of active doctors
-- doctor_detail: doctor profile with grouped weekly schedule
+Представления приложения персонала (staff).
+Реализует:
+- список активных врачей;
+- детальную страницу врача с отображением
+  сгруппированного по дням недели расписания.
 """
 
 from __future__ import annotations
@@ -15,9 +15,16 @@ from .models import Doctor, DoctorSchedule
 
 def doctor_list(request):
     """
-    Display list of active doctors.
-
-    Prefetches specialties for efficient rendering.
+    Отображает список активных врачей.
+    Логика:
+        - выбираются только врачи с is_active=True;
+        - выполняется prefetch_related("specialties") для
+          оптимизации количества SQL-запросов;
+        - сортировка по ФИО.
+    Параметры:
+        request: HttpRequest текущего запроса.
+    Возвращает:
+        HttpResponse со страницей списка врачей.
     """
     doctors = (
         Doctor.objects.filter(is_active=True)
@@ -29,15 +36,33 @@ def doctor_list(request):
 
 def doctor_detail(request, pk: int):
     """
-    Display doctor detail page with grouped schedule by weekday.
-
-    Args:
-        pk: Doctor primary key.
-
-    Context:
-        doctor: Doctor instance
-        schedules: list[dict] like:
-            [{"weekday": 0, "weekday_label": "Понедельник", "windows": [{"from": "09:00", "to": "13:00"}]}]
+    Отображает детальную страницу врача.
+    Загружает врача по первичному ключу (pk) и формирует
+    сгруппированное расписание по дням недели.
+    Логика:
+        - врач должен быть активным;
+        - подгружаются специализации и расписания;
+        - расписания группируются по weekday;
+        - интервалы времени форматируются в строку "HH:MM".
+    Параметры:
+        request: HttpRequest текущего запроса.
+        pk: Первичный ключ врача.
+    Контекст шаблона:
+        doctor: объект Doctor.
+        schedules: список словарей вида:
+            [
+                {
+                    "weekday": 0,
+                    "weekday_label": "Понедельник",
+                    "windows": [
+                        {"from": "09:00", "to": "13:00"},
+                        ...
+                    ]
+                },
+                ...
+            ]
+    Возвращает:
+        HttpResponse со страницей профиля врача.
     """
     doctor = get_object_or_404(
         Doctor.objects.filter(is_active=True).prefetch_related(

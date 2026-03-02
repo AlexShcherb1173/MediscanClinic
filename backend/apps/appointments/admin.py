@@ -1,12 +1,10 @@
 """
-Admin configuration for appointments.
-
-Provides:
-- Appointment listing with confirm/cancel buttons
-- doctor calendar view in admin
-- row highlighting based on status and datetime
+Админ-настройки для приложения appointments.
+Возможности:
+- список записей (Appointment) с кнопками «Подтвердить» / «Отменить»
+- календарь врача в админке (дневной вид с шагом 20 минут)
+- подсветка строк в списке в зависимости от статуса и времени приёма
 """
-
 from datetime import datetime, time, timedelta
 
 from django.contrib import admin, messages
@@ -25,12 +23,12 @@ from .models import Appointment
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
     """
-    Admin interface for Appointment model.
-
-    Includes custom actions:
-    - confirm/cancel via inline buttons
-    - doctor daily calendar view
+    Интерфейс админки для модели Appointment.
+    Дополнительно реализовано:
+    - inline-кнопки для подтверждения/отмены записи прямо из списка
+    - отдельная страница «Календарь врача» в админке
     """
+
 
     class Media:
         css = {"all": ("admin/admin.css",)}
@@ -48,7 +46,12 @@ class AppointmentAdmin(admin.ModelAdmin):
     ordering = ("preferred_datetime",)
 
     def get_urls(self):
-        """Register custom admin URLs for calendar and status actions."""
+        """
+        Регистрирует дополнительные URL-адреса админки:
+        - /calendar/ — дневной календарь врача
+        - /<pk>/confirm/ — подтвердить запись
+        - /<pk>/cancel/ — отменить запись
+        """
         urls = super().get_urls()
         custom = [
             path(
@@ -70,7 +73,9 @@ class AppointmentAdmin(admin.ModelAdmin):
         return custom + urls
 
     def action_buttons(self, obj):
-        """Render confirm/cancel buttons in list view."""
+        """
+        Рендерит кнопки «Подтвердить» / «Отменить» в колонке списка.
+        """
         return format_html(
             "<a class='button' href='{}/confirm/'>✔ Confirm</a>&nbsp;"
             "<a class='button' style='color:#b91c1c' href='{}/cancel/'>✖ Cancel</a>",
@@ -81,7 +86,9 @@ class AppointmentAdmin(admin.ModelAdmin):
     action_buttons.short_description = "Действия"
 
     def confirm_appointment(self, request, pk):
-        """Set appointment status to CONFIRMED."""
+        """
+        Переводит запись в статус CONFIRMED (Подтверждена).
+        """
         obj = Appointment.objects.get(pk=pk)
         obj.status = Appointment.Status.CONFIRMED
         obj.save(update_fields=["status"])
@@ -89,7 +96,9 @@ class AppointmentAdmin(admin.ModelAdmin):
         return redirect("..")
 
     def cancel_appointment(self, request, pk):
-        """Set appointment status to CANCELED."""
+        """
+        Переводит запись в статус CANCELED (Отменена).
+        """
         obj = Appointment.objects.get(pk=pk)
         obj.status = Appointment.Status.CANCELED
         obj.save(update_fields=["status"])
@@ -98,11 +107,14 @@ class AppointmentAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """
-        Attach `row_class` attribute for template row highlighting.
-
-        Note:
-            This iterates over queryset items. For very large datasets this may be heavy,
-            but it's acceptable for typical admin use.
+        Добавляет атрибут `row_class` для подсветки строк в шаблоне админки.
+        Логика:
+        - если запись подтверждена и время уже прошло — помечаем как «завершённую»
+        - иначе класс формируется от статуса: status-<status>
+        Примечание:
+            Метод проходит по объектам queryset и присваивает атрибут в Python.
+            Для очень больших списков это может быть тяжелее, но для админки обычно
+            приемлемо.
         """
         qs = super().get_queryset(request)
         now = timezone.now()
@@ -121,11 +133,10 @@ class AppointmentAdmin(admin.ModelAdmin):
 
     def calendar_view(self, request):
         """
-        Render doctor daily calendar with 20-min slots.
-
-        Query params:
-            doctor: doctor id
-            date: YYYY-MM-DD
+        Отображает дневной календарь врача с шагом 20 минут.
+        GET-параметры:
+            doctor: id врача
+            date: дата в формате YYYY-MM-DD
         """
         doctor_id = request.GET.get("doctor")
         date_str = request.GET.get("date")

@@ -1,9 +1,8 @@
 """
-Admin configuration for contacts application.
-
-Allows sending AdminTelegramMessage objects to Telegram:
-- bulk action "send_to_telegram"
-- auto-send on save in admin
+Конфигурация Django Admin для приложения контактов (contacts).
+Позволяет отправлять объекты AdminTelegramMessage в Telegram:
+- через массовое действие "send_to_telegram";
+- автоматически при сохранении объекта в админке.
 """
 
 from __future__ import annotations
@@ -17,7 +16,14 @@ from .telegram import send_telegram_message
 
 @admin.action(description="Отправить выбранные сообщения в Telegram")
 def send_to_telegram(modeladmin, request, queryset):
-    """Bulk-send not yet sent messages to Telegram."""
+    """
+    Массово отправляет выбранные сообщения в Telegram.
+    Логика:
+        - обрабатываются только сообщения с is_sent=False;
+        - при успешной отправке выставляются флаги is_sent=True и sent_at;
+        - при ошибке выводится сообщение через django.contrib.messages.
+    В интерфейсе админки отображается количество успешных отправок и ошибок.
+    """
     ok, fail = 0, 0
 
     for obj in queryset:
@@ -41,7 +47,14 @@ def send_to_telegram(modeladmin, request, queryset):
 
 @admin.register(AdminTelegramMessage)
 class AdminTelegramMessageAdmin(admin.ModelAdmin):
-    """Admin UI for AdminTelegramMessage."""
+    """
+    Административный интерфейс для модели AdminTelegramMessage.
+    Возможности:
+        - отображение статуса отправки и дат;
+        - фильтрация по статусу и дате создания;
+        - поиск по тексту сообщения;
+        - массовая отправка сообщений в Telegram.
+    """
 
     list_display = ("id", "is_sent", "created_at", "sent_at")
     list_filter = ("is_sent", "created_at")
@@ -50,9 +63,12 @@ class AdminTelegramMessageAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        Auto-send message to Telegram after saving.
-
-        If sending fails, message stays unsent and error is shown.
+        Автоматически отправляет сообщение в Telegram после сохранения в админке.
+        Поведение:
+            - если сообщение уже отправлено (is_sent=True), повторная отправка не выполняется;
+            - при успешной отправке обновляются поля is_sent и sent_at;
+            - при ошибке отправки сообщение остаётся неотправленным,
+              а пользователю показывается уведомление об ошибке.
         """
         super().save_model(request, obj, form, change)
 

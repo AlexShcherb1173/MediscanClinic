@@ -1,4 +1,12 @@
 {% extends "base.html" %}
+{# ===================== Страница: Карта сайта ===================== #}
+{#
+  Структурированная карта сайта:
+  - Раздел "О компании"
+  - Медицинские услуги
+  - Личный кабинет
+#}
+
 {% block title %}Карта сайта — Mediscan{% endblock %}
 
 {% block content %}
@@ -11,37 +19,102 @@
 
     <div class="grid md:grid-cols-3 gap-10 text-sm">
 
-      <!-- О компании -->
+      {# ===================== О компании ===================== #}
       <div>
         <h2 class="font-semibold text-slate-900 mb-4">О компании</h2>
         <ul class="space-y-2 text-slate-700">
-          <li><a class="hover:text-blue-600 transition" href="{% url 'pages:page_detail' 'about' %}">О компании</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'contacts:home' %}">Контакты</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'pages:page_detail' 'privacy' %}">Политика конфиденциальности</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'pages:page_detail' 'personal-data' %}">Персональные данные</a></li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'pages:page_detail' 'about' %}">
+              О компании
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'contacts:home' %}">
+              Контакты
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'pages:page_detail' 'privacy' %}">
+              Политика конфиденциальности
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'pages:page_detail' 'personal-data' %}">
+              Персональные данные
+            </a>
+          </li>
         </ul>
       </div>
 
-      <!-- Медицинские услуги -->
+      {# ===================== Медицинские услуги ===================== #}
       <div>
         <h2 class="font-semibold text-slate-900 mb-4">Медицинские услуги</h2>
         <ul class="space-y-2 text-slate-700">
-          <li><a class="hover:text-blue-600 transition" href="/services/">Все услуги</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'staff:doctor_list' %}">Врачи</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'promos:list' %}">Акции</a></li>
-          <li><<a href="{% url 'appointments:create' %}">Записаться</a></li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'services:list' %}">
+              Все услуги
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'staff:doctor_list' %}">
+              Врачи
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'promos:list' %}">
+              Акции
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'appointments:create' %}">
+              Записаться
+            </a>
+          </li>
         </ul>
       </div>
 
-      <!-- Личный кабинет -->
+      {# ===================== Личный кабинет ===================== #}
       <div>
         <h2 class="font-semibold text-slate-900 mb-4">Личный кабинет</h2>
         <ul class="space-y-2 text-slate-700">
-          <li><a class="hover:text-blue-600 transition" href="{% url 'cabinet:dashboard' %}">Главная</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'cabinet:appointments' %}">Мои записи</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'cabinet:results' %}">Результаты анализов</a></li>
-          <li><a class="hover:text-blue-600 transition" href="{% url 'accounts:login' %}">Вход</a></li>
-<li><a class="hover:text-blue-600 transition" href="{% url 'accounts:register' %}">Регистрация</a></li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'cabinet:dashboard' %}">
+              Главная
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'cabinet:appointments' %}">
+              Мои записи
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'cabinet:results' %}">
+              Результаты анализов
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'accounts:login' %}">
+              Вход
+            </a>
+          </li>
+          <li>
+            <a class="hover:text-blue-600 transition"
+               href="{% url 'accounts:register' %}">
+              Регистрация
+            </a>
+          </li>
         </ul>
       </div>
 

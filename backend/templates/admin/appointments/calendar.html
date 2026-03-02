@@ -2,19 +2,25 @@
 {% load i18n %}
 
 {% block content %}
+  {# Заголовок страницы календаря врача #}
   <h1>Календарь врача</h1>
 
+  {# Блок фильтров: выбор врача и даты #}
   <div style="margin-bottom:16px;">
     <form method="get" style="display:flex; gap:12px; align-items:center;">
+
+      {# Выбор врача #}
       <label for="doctor-select">Врач:</label>
       <select id="doctor-select" name="doctor" onchange="this.form.submit()">
         {% for d in doctors %}
-          <option value="{{ d.id }}" {% if doctor and d.id == doctor.id %}selected{% endif %}>
+          <option value="{{ d.id }}"
+                  {% if doctor and d.id == doctor.id %}selected{% endif %}>
             {{ d.full_name }}
           </option>
         {% endfor %}
       </select>
 
+      {# Выбор даты просмотра расписания #}
       <label for="day-input">Дата:</label>
       <input
         id="day-input"
@@ -24,43 +30,67 @@
         onchange="this.form.submit()"
       >
 
-      <noscript><button type="submit">Показать</button></noscript>
+      {# Кнопка на случай отключённого JavaScript #}
+      <noscript>
+        <button type="submit">Показать</button>
+      </noscript>
     </form>
   </div>
 
+  {# Таблица расписания на выбранный день #}
   <table class="adminlist" style="width:100%; background:#fff;">
     <thead>
       <tr>
+        {# Колонка времени #}
         <th style="width:100px;">Время</th>
+
+        {# Колонка информации о записи #}
         <th>Запись</th>
+
+        {# Колонка действий (создать / открыть) #}
         <th style="width:220px;">Действия</th>
       </tr>
     </thead>
 
     <tbody>
+      {# Проходим по подготовленным строкам расписания #}
       {% for r in rows %}
         <tr>
-          <td><strong>{{ r.dt|date:"H:i" }}</strong></td>
+          {# Время слота #}
+          <td>
+            <strong>{{ r.dt|date:"H:i" }}</strong>
+          </td>
 
+          {# Информация о записи или статус "Свободно" #}
           <td>
             {% if r.appointment %}
+              {# Если есть запись — показываем пациента, услугу и статус #}
               <strong>{{ r.appointment.full_name }}</strong><br>
               {{ r.appointment.service }}<br>
-              <small style="color:#6b7280;">{{ r.appointment.get_status_display }}</small>
+              <small style="color:#6b7280;">
+                {{ r.appointment.get_status_display }}
+              </small>
             {% else %}
+              {# Если слот свободен #}
               <span style="color:#9ca3af;">Свободно</span>
             {% endif %}
           </td>
 
+          {# Кнопки действий для каждого временного слота #}
           <td>
             {% if r.appointment %}
-              <a class="button" href="{% url 'admin:appointments_appointment_change' r.appointment.pk %}">
+              {# Переход к редактированию существующей записи в админке #}
+              <a class="button"
+                 href="{% url 'admin:appointments_appointment_change' r.appointment.pk %}">
                 Открыть
               </a>
             {% else %}
+              {# Создание новой записи с предзаполненными параметрами #}
               <a
                 class="button"
-                href="{{ add_url }}?doctor={{ doctor.id }}&preferred_date={{ day|date:'Y-m-d' }}&preferred_time={{ r.dt|date:'H:i' }}"
+                href="{{ add_url }}?doctor={{ doctor.id }}
+                       &preferred_date={{ day|date:'Y-m-d' }}
+                       &preferred_time={{ r.dt|date:'H:i' }}"
               >
                 Создать
               </a>

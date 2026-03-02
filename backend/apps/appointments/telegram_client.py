@@ -1,7 +1,7 @@
 """
-Telegram client for sending messages to Mediscan chat.
-
-Uses Telegram Bot API via HTTPS.
+Клиент Telegram для отправки сообщений в чат Mediscan.
+Использует Telegram Bot API по HTTPS.
+Предназначен для серверной отправки служебных уведомлений.
 """
 
 import requests
@@ -10,14 +10,21 @@ from django.conf import settings
 
 def send_telegram_message(text: str) -> None:
     """
-    Send a Telegram message using Bot API.
-
-    Args:
-        text: Message text (Markdown is enabled).
-
-    Notes:
-        - If TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured, does nothing.
-        - Network errors are swallowed to avoid breaking user flow / tasks.
+    Отправляет сообщение в Telegram через Bot API.
+    Параметры:
+        text (str): Текст сообщения. Поддерживается форматирование Markdown.
+    Логика работы:
+        - Получает TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID из настроек.
+        - Формирует запрос к https://api.telegram.org/bot<token>/sendMessage.
+        - Отправляет сообщение с отключённым предпросмотром ссылок.
+    Поведение при отсутствии настроек:
+        - Если TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы,
+          функция завершает выполнение без отправки.
+    Обработка ошибок:
+        - Сетевые и иные исключения перехватываются.
+        - Ошибки намеренно не пробрасываются наружу,
+          так как Telegram используется как best-effort канал уведомлений
+          и не должен прерывать выполнение бизнес-логики или Celery-задач.
     """
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "") or ""
     chat_id = getattr(settings, "TELEGRAM_CHAT_ID", "") or ""
@@ -35,5 +42,4 @@ def send_telegram_message(text: str) -> None:
     try:
         requests.post(url, json=payload, timeout=10)
     except Exception:
-        # Deliberately silent: telegram is best-effort notification channel
-        return
+       return

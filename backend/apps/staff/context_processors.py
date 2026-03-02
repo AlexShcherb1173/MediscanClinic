@@ -1,8 +1,7 @@
 """
-Context processors for staff application.
-
-Provides global template context for the homepage hero slider:
-- doctor_slider_items: list of doctors with photos (url + name)
+Контекстные процессоры приложения персонала (staff).
+Добавляет глобальные данные в шаблоны для отображения
+слайдера врачей на главной странице.
 """
 
 from __future__ import annotations
@@ -14,10 +13,19 @@ from .models import Doctor
 
 def doctor_slider_items(request) -> dict[str, Any]:
     """
-    Add doctors with photos for hero slider.
-
-    Returns:
-        dict with key "doctor_slider_items" -> list[{"url": str, "name": str}]
+    Добавляет в контекст данные для hero-слайдера врачей.
+    Логика:
+        - выбираются только активные врачи (is_active=True);
+        - врач должен иметь загруженную фотографию;
+        - выполняется случайная выборка (order_by("?"));
+        - ограничение — до 12 элементов;
+        - формируется список словарей вида:
+              {"url": <photo_url>, "name": <full_name>}.
+    Параметры:
+        request: HttpRequest текущего запроса (не используется напрямую,
+                 но обязателен для сигнатуры context processor).
+    Возвращает:
+        dict: {"doctor_slider_items": list[dict[str, str]]}
     """
     qs = (
         Doctor.objects.filter(is_active=True)

@@ -1,11 +1,10 @@
 """
-Custom user model for accounts application.
-
-Implements authentication by phone number instead of username.
-Includes:
-- phone normalization on user creation
-- model-level normalization/validation (clean/save)
-- custom UserManager for create_user/create_superuser
+Модели приложения accounts.
+Содержит кастомную модель пользователя, которая аутентифицируется по телефону вместо username.
+Реализовано:
+- нормализация телефона при создании пользователя
+- нормализация/валидация на уровне модели (clean/save)
+- кастомный UserManager для create_user/create_superuser
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ from django.utils import timezone
 
 from .utils import normalize_phone
 
-# Enterprise: store ONLY E.164. Example: +79991234567
+# Хранение ТОЛЬКО E.164. Пример: +79991234567
 e164_phone_validator = RegexValidator(
     regex=r"^\+[1-9]\d{1,14}$",
     message="Введите телефон в формате E.164: +79991234567",
@@ -28,14 +27,20 @@ e164_phone_validator = RegexValidator(
 
 class UserManager(BaseUserManager):
     """
-    Custom user manager that uses phone as unique identifier.
+    Менеджер пользователей, где уникальным идентификатором является телефон.
     """
 
     use_in_migrations = True
 
     def create_user(self, phone: str, password: str | None = None, **extra_fields):
         """
-        Create and save a user with normalized phone.
+        Создаёт и сохраняет пользователя с нормализованным телефоном.
+        Args:
+            phone: телефон (любой вводимый формат, будет нормализован до E.164)
+            password: пароль (может быть None)
+            extra_fields: дополнительные поля модели
+        Returns:
+            Созданный пользователь.
         """
         if not phone:
             raise ValueError("Телефон обязателен")
@@ -55,9 +60,9 @@ class UserManager(BaseUserManager):
         self, phone: str | None = None, password: str | None = None, **extra_fields
     ):
         """
-        Create and save a superuser.
-
-        Supports fallback from username -> phone to avoid mistakes in createsuperuser.
+        Создаёт и сохраняет суперпользователя.
+        Поддерживает «защиту от ошибки»: если в extra_fields пришёл username,
+        используем его как phone (чтобы не ломался createsuperuser).
         """
         if phone is None and "username" in extra_fields:
             phone = extra_fields.pop("username")
@@ -76,12 +81,11 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     """
-    Custom user model with phone-based authentication.
-
-    Notes:
-        - username field is removed (not used)
-        - phone is used as USERNAME_FIELD
-        - phone stored ONLY in E.164 (+7999...)
+    Кастомная модель пользователя с аутентификацией по телефону.
+    Особенности:
+        - поле username отключено (не используется)
+        - USERNAME_FIELD = phone
+        - телефон хранится только в формате E.164 (+7999...)
     """
 
     username = None  # remove AbstractUser.username
@@ -108,7 +112,7 @@ class User(AbstractUser):
 
     def clean(self) -> None:
         """
-        Ensure phone is normalized on any validation path (admin/forms/serializers).
+        Нормализует телефон при любом сценарии валидации (admin/forms/serializer).
         """
         super().clean()
         if self.phone:
@@ -116,7 +120,7 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         """
-        Ensure phone is normalized on any save path (even if full_clean not called).
+        Нормализует телефон при сохранении (на случай, если full_clean() не вызывали).
         """
         if self.phone:
             # normalize even if someone saved without calling manager or form validation
@@ -124,10 +128,14 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
     def touch(self) -> None:
-        """Update last activity timestamp."""
+        """
+        Обновляет отметку последней активности пользователя.
+        """
         self.last_seen_at = timezone.now()
         self.save(update_fields=["last_seen_at"])
 
     def __str__(self) -> str:
-        """Return full name if available, otherwise phone."""
+        """
+        Возвращает ФИО, если оно заполнено, иначе — телефон.
+        """
         return self.full_name or self.phone

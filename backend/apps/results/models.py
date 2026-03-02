@@ -1,10 +1,10 @@
 """
-Models for results application.
-
-Stores research results (PDF files) attached to a patient (User).
-Includes:
-- deterministic upload path per patient
-- view tracking (is_viewed/viewed_at)
+Модели приложения результатов исследований (results).
+Хранит файлы результатов (PDF), привязанные к пациенту (User).
+Особенности:
+- детерминированный путь загрузки файлов по пациенту;
+- защита от коллизий имён файлов;
+- отслеживание факта просмотра результата (is_viewed / viewed_at).
 """
 
 from __future__ import annotations
@@ -18,12 +18,17 @@ from django.db import models
 
 def result_upload_to(instance, filename: str) -> str:
     """
-    Build upload path for a research result file.
-
-    File is stored under:
+    Формирует путь загрузки файла результата исследования.
+    Файл сохраняется в директории:
         results/user_<patient_id>/<uuid>.<ext>
-
-    This prevents filename collisions and avoids unsafe original names.
+    Логика:
+        - исходное имя файла не используется (в целях безопасности);
+        - генерируется уникальное имя на основе uuid4;
+        - сохраняется оригинальное расширение файла.
+    Это:
+        - предотвращает конфликты имён;
+        - исключает небезопасные названия;
+        - группирует файлы по пациентам.
     """
     ext = os.path.splitext(filename)[1].lower()
     safe_name = f"{uuid.uuid4().hex}{ext}"
@@ -32,16 +37,18 @@ def result_upload_to(instance, filename: str) -> str:
 
 class ResearchResult(models.Model):
     """
-    Research result file uploaded for a patient.
-
-    Attributes:
-        patient: owner (AUTH_USER_MODEL)
-        title: result title (e.g., "MRI Brain")
-        result_date: optional date of research
-        file: PDF file (nullable temporarily)
-        comment: optional notes
-        is_viewed/viewed_at: view tracking
-        created_at: upload timestamp
+    Модель результата исследования пациента.
+    Используется для хранения PDF-файлов исследований
+    и отслеживания их просмотра пациентом.
+    Поля:
+        patient: Владелец результата (AUTH_USER_MODEL).
+        title: Название исследования (например, «МРТ головного мозга»).
+        result_date: Дата проведения исследования.
+        file: PDF-файл результата (временно допускает NULL).
+        comment: Внутренний комментарий.
+        is_viewed: Флаг просмотра пациентом.
+        viewed_at: Дата и время первого просмотра.
+        created_at: Дата загрузки результата в систему.
     """
 
     patient = models.ForeignKey(
@@ -75,5 +82,9 @@ class ResearchResult(models.Model):
         verbose_name_plural = "Результаты исследований"
 
     def __str__(self) -> str:
-        """Admin/UI representation."""
+        """
+        Строковое представление результата
+        для отображения в админке и интерфейсе.
+        """
+        return f"{self.patient} — {self.title}"
         return f"{self.patient} — {self.title}"

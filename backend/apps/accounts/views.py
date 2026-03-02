@@ -1,10 +1,9 @@
 """
-Views for accounts application.
-
-Provides:
-- register_view
-- login_view
-- logout_view
+Представления (views) приложения accounts.
+Содержит:
+- register_view — регистрация пользователя
+- login_view — вход пользователя
+- logout_view — выход из системы
 """
 
 from __future__ import annotations
@@ -21,9 +20,11 @@ PHONE_BACKEND = "apps.accounts.backends.PhoneBackend"
 @require_http_methods(["GET", "POST"])
 def register_view(request):
     """
-    Register new user (phone-based) and log them in.
-    Redirects authenticated users to dashboard.
-    """
+       Регистрирует нового пользователя (аутентификация по телефону)
+       и автоматически выполняет вход.
+       Если пользователь уже авторизован —
+       выполняется редирект в личный кабинет.
+       """
     if request.user.is_authenticated:
         return redirect("cabinet:dashboard")
 
@@ -39,8 +40,9 @@ def register_view(request):
 @require_http_methods(["GET", "POST"])
 def login_view(request):
     """
-    Log in existing user.
-    Redirects authenticated users to dashboard.
+    Выполняет вход существующего пользователя по телефону.
+    Если пользователь уже авторизован —
+    выполняется редирект в личный кабинет.
     """
     if request.user.is_authenticated:
         return redirect("cabinet:dashboard")
@@ -55,6 +57,9 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Log out and redirect to homepage."""
+    """
+    Выполняет выход пользователя из системы
+    и перенаправляет на главную страницу.
+    """
     logout(request)
     return redirect("pages:home")

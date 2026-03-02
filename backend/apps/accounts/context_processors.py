@@ -1,11 +1,13 @@
 """
-Context processors for accounts application.
+Контекстные процессоры для приложения accounts.
 
-Provides data for personal cabinet header/forms:
-- lk_full_name
-- lk_phone
+Добавляет в контекст шаблонов данные для личного кабинета:
+- lk_full_name — ФИО пользователя
+- lk_phone — телефон пользователя
 
-Includes fallbacks to related profiles/patients/person and last appointment.
+Предусмотрены резервные источники:
+- связанные объекты profile / patient / person
+- последняя запись Appointment
 """
 
 from __future__ import annotations
@@ -16,7 +18,19 @@ from apps.appointments.models import Appointment
 
 
 def _user_full_name(user) -> str:
-    """Try to extract full name from user/profile or last Appointment."""
+    """
+    Определяет ФИО пользователя с использованием нескольких источников.
+    Порядок поиска:
+        1. user.get_full_name()
+        2. user.full_name
+        3. связанные объекты profile / patient / person
+        4. последняя запись Appointment
+        5. email
+        6. username
+    Возвращает:
+        Строку с ФИО или доступным идентификатором,
+        либо пустую строку, если пользователь не аутентифицирован.
+    """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
@@ -58,7 +72,16 @@ def _user_full_name(user) -> str:
 
 
 def _user_phone(user) -> str:
-    """Try to extract phone from user/profile or last Appointment."""
+    """
+    Определяет номер телефона пользователя.
+    Порядок поиска:
+        1. user.phone
+        2. связанные объекты profile / patient / person
+        3. последняя запись Appointment
+    Возвращает:
+        Номер телефона или пустую строку,
+        если пользователь не аутентифицирован или телефон не найден.
+    """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
 
@@ -83,12 +106,15 @@ def _user_phone(user) -> str:
     if last:
         return (last.phone or "").strip()
 
-    return ""
+    return
 
 
 def lk_user_data(request) -> dict[str, Any]:
     """
-    Add cabinet user data (full name and phone) to template context.
+    Добавляет данные пользователя в контекст шаблонов личного кабинета.
+    В контекст передаются:
+        lk_full_name — ФИО пользователя
+        lk_phone — телефон пользователя
     """
     user = getattr(request, "user", None)
     return {"lk_full_name": _user_full_name(user), "lk_phone": _user_phone(user)}

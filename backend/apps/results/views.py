@@ -1,9 +1,9 @@
 """
-Views for results application.
-
-Provides:
-- my_results: list patient's own results
-- download_result: secure file download + mark as viewed
+Представления приложения результатов исследований (results).
+Реализует:
+- отображение списка результатов текущего пользователя;
+- безопасное скачивание PDF-файла результата;
+- отметку результата как просмотренного.
 """
 
 from __future__ import annotations
@@ -17,27 +17,35 @@ from django.utils import timezone
 
 from .models import ResearchResult
 
-
 @login_required
 def my_results(request):
     """
-    Show current user's research results.
-
-    Currently renders cabinet template to keep UX unified.
+    Отображает список результатов исследований текущего пользователя.
+    Логика:
+        - выбираются только результаты, принадлежащие request.user;
+        - сортировка по дате загрузки (новые сверху);
+        - используется шаблон кабинета для единого UX.
+    Доступ:
+        Требуется аутентификация пользователя.
     """
     qs = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")
     return render(request, "cabinet/results.html", {"results": qs})
 
-
 @login_required
 def download_result(request, pk: int):
     """
-    Download a research result file.
-
-    Security:
-        - only owner can download (others get 404)
-    Side effects:
-        - marks result as viewed on first download
+    Скачивание PDF-файла результата исследования.
+    Безопасность:
+        - файл может скачать только владелец результата;
+        - при отсутствии файла возвращается 404.
+    Побочные эффекты:
+        - при первом скачивании результат помечается как просмотренный
+          (is_viewed=True, viewed_at=текущее время).
+    Параметры:
+        request: HttpRequest текущего запроса.
+        pk: первичный ключ объекта ResearchResult.
+    Возвращает:
+        FileResponse с вложением (application/pdf).
     """
     result = get_object_or_404(ResearchResult, pk=pk, patient=request.user)
 

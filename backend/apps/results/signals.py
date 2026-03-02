@@ -1,8 +1,7 @@
 """
-Signals for results application.
-
-Sends Telegram notification to patient's profile (if configured)
-when a new ResearchResult is created.
+Сигналы приложения результатов (results).
+Отправляет уведомление в Telegram пациенту
+при создании нового ResearchResult.
 """
 
 from __future__ import annotations
@@ -19,10 +18,20 @@ def notify_new_result(
     sender, instance: ResearchResult, created: bool, **kwargs
 ) -> None:
     """
-    Notify patient via Telegram about newly uploaded research result.
-
-    Requires:
-        instance.patient.profile.telegram_chat_id to be set.
+    Обработчик сигнала post_save для модели ResearchResult.
+    Логика:
+        - срабатывает только при создании нового объекта (created=True);
+        - проверяет наличие профиля пациента;
+        - проверяет наличие telegram_chat_id в профиле;
+        - отправляет уведомление в Telegram.
+    Требования:
+        - у пользователя должен существовать profile;
+        - profile.telegram_chat_id должен быть заполнен.
+    Параметры:
+        sender: модель-источник сигнала (ResearchResult).
+        instance: созданный объект результата исследования.
+        created: флаг создания (True только при первом сохранении).
+        **kwargs: дополнительные аргументы сигнала Django.
     """
     if not created:
         return

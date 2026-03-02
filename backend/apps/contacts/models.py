@@ -1,7 +1,7 @@
 """
-Models for contacts application.
-
-Stores admin-created messages that can be sent to Telegram from Django admin.
+Модели приложения контактов (contacts).
+Хранит сообщения, создаваемые администратором,
+которые могут быть отправлены в Telegram из Django Admin.
 """
 
 from __future__ import annotations
@@ -11,13 +11,16 @@ from django.db import models
 
 class AdminTelegramMessage(models.Model):
     """
-    Message to be delivered to Telegram from Django admin.
-
-    Fields:
-        text: message text (HTML is allowed by telegram sender)
-        created_at: creation timestamp
-        sent_at: timestamp when message was sent successfully
-        is_sent: delivery flag
+    Сообщение для отправки в Telegram из административной панели.
+    Модель используется администраторами для создания служебных
+    уведомлений, которые отправляются в Telegram вручную
+    (через action) или автоматически при сохранении.
+    Поля:
+        text: Текст сообщения (допускается форматирование,
+              поддерживаемое Telegram-ботом).
+        created_at: Дата и время создания записи.
+        sent_at: Дата и время успешной отправки.
+        is_sent: Флаг успешной доставки сообщения.
     """
 
     text = models.TextField("Текст сообщения")
@@ -30,5 +33,8 @@ class AdminTelegramMessage(models.Model):
         verbose_name_plural = "Сообщения в Telegram"
 
     def __str__(self) -> str:
-        """Short admin representation."""
+        """
+        Возвращает краткое представление объекта
+        для отображения в админке и логах.
+        """
         return f"Telegram message #{self.pk}"

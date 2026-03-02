@@ -1,12 +1,12 @@
 """
-Models for promos application.
-
-Promo is a marketing entity displayed on homepage and promo pages.
-Supports:
-- optional display period (starts_at / ends_at)
-- active flag
-- ordering
-- relation to services
+Модели приложения акций (promos).
+Promo — маркетинговая сущность, отображаемая на главной странице
+и на страницах акций.
+Поддерживает:
+- период показа (starts_at / ends_at);
+- флаг активности;
+- ручную сортировку;
+- связь с услугами.
 """
 
 from __future__ import annotations
@@ -20,21 +20,22 @@ from apps.services.models import Service
 
 class Promo(models.Model):
     """
-    Promo model (marketing campaign / special offer).
-
-    Attributes:
-        title: main title
-        slug: unique identifier for URLs (auto-generated from title)
-        badge: short label (e.g. "Скидка", "Чек-ап")
-        subtitle: short secondary text
-        description: detailed text (plain or HTML)
-        image: optional promo image
-        cta_text: button label
-        cta_url: button link (internal or external)
-        services: related services included in promo
-        starts_at/ends_at: optional visibility window
-        is_active: manual switch for visibility
-        sort_order: manual ordering
+    Модель акции (маркетинговая кампания / спецпредложение).
+    Используется для отображения баннеров и спецпредложений на сайте.
+    Поля:
+        title: Основной заголовок акции.
+        slug: Уникальный идентификатор для формирования URL
+              (автоматически генерируется из title).
+        badge: Короткий бейдж (например: «Скидка», «Чек-ап»).
+        subtitle: Краткий дополнительный текст.
+        description: Подробное описание (текст или HTML).
+        image: Изображение акции.
+        cta_text: Текст кнопки действия.
+        cta_url: Ссылка кнопки (внутренняя или внешняя).
+        services: Связанные услуги, входящие в акцию.
+        starts_at / ends_at: Период отображения акции.
+        is_active: Ручной флаг включения/отключения.
+        sort_order: Порядок сортировки в списках.
     """
 
     title = models.CharField("Заголовок", max_length=160)
@@ -77,16 +78,20 @@ class Promo(models.Model):
         ordering = ("sort_order", "-created_at")
 
     def __str__(self) -> str:
-        """Human-readable representation (admin/UI)."""
+        """
+        Возвращает заголовок акции
+        для отображения в админке и интерфейсе.
+        """
         return self.title
 
     def save(self, *args, **kwargs):
         """
-        Auto-generate unique slug from title if not provided.
-
-        Strategy:
-        - slugify title (truncated)
-        - if exists, append "-2", "-3", ... until unique
+        Автоматически генерирует уникальный slug из title,
+        если он не задан вручную.
+        Стратегия:
+            - выполняется slugify(title) с ограничением длины;
+            - при конфликте добавляется суффикс "-2", "-3" и т.д.;
+            - проверка уникальности выполняется с исключением текущего объекта.
         """
         if not self.slug:
             base = slugify(self.title)[:170] or "promo"
@@ -101,12 +106,13 @@ class Promo(models.Model):
     @property
     def is_current(self) -> bool:
         """
-        Return True if promo should be shown now.
-
-        Conditions:
-        - is_active is True
-        - if starts_at is set, now must be >= starts_at
-        - if ends_at is set, now must be <= ends_at
+        Определяет, должна ли акция отображаться в текущий момент.
+        Условия:
+            - is_active=True;
+            - если задан starts_at — текущее время >= starts_at;
+            - если задан ends_at — текущее время <= ends_at.
+        Возвращает:
+            bool: True, если акция актуальна и должна быть показана.
         """
         if not self.is_active:
             return False

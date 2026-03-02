@@ -1,10 +1,10 @@
 """
-Views for cabinet application (personal account).
-
-Provides:
-- dashboard: last appointments and results
-- appointments_view: all user appointments
-- results_view: all user results + mark unread as viewed
+Представления приложения личного кабинета (cabinet).
+Содержит:
+- dashboard — главная страница с последними записями и результатами;
+- appointments_view — список всех записей пользователя;
+- results_view — список всех результатов исследований пользователя
+  с автоматической отметкой непросмотренных как просмотренных.
 """
 
 from __future__ import annotations
@@ -19,7 +19,14 @@ from apps.results.models import ResearchResult
 
 @login_required
 def dashboard(request):
-    """Cabinet dashboard page with last appointments and last results."""
+    """
+    Главная страница личного кабинета.
+    Отображает:
+        - последние 5 записей пользователя;
+        - последние 5 результатов исследований.
+    Доступ:
+        Требуется авторизация (login_required).
+    """
     last_appointments = Appointment.objects.filter(user=request.user).order_by(
         "-created_at"
     )[:5]
@@ -36,7 +43,13 @@ def dashboard(request):
 
 @login_required
 def appointments_view(request):
-    """List all appointments for the current user."""
+    """
+    Отображает список всех записей текущего пользователя.
+    Сортировка:
+        - по дате создания (новые сверху).
+    Доступ:
+        Требуется авторизация (login_required).
+    """
     appointments = Appointment.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "cabinet/appointments.html", {"appointments": appointments})
 
@@ -44,10 +57,15 @@ def appointments_view(request):
 @login_required
 def results_view(request):
     """
-    List all research results for the current user.
-
-    Side effect:
-        Marks unread results as viewed when opening the page.
+    Отображает список всех результатов исследований пользователя.
+    Побочный эффект:
+        При открытии страницы все непросмотренные результаты
+        (is_viewed=False) помечаются как просмотренные,
+        а также устанавливается viewed_at.
+    Сортировка:
+        - по дате создания (новые сверху).
+    Доступ:
+        Требуется авторизация (login_required).
     """
     qs = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")
 

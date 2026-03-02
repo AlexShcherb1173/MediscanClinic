@@ -1,11 +1,13 @@
 """
-URL configuration for appointments application.
-
-Routes:
-- index redirect
-- create appointment page
-- HTMX endpoints: slots and calendar
-- success page
+Конфигурация URL для приложения записей на приём.
+Маршруты:
+- index — редирект/главная страница раздела записей;
+- create — страница создания записи;
+- slots — HTMX-эндпоинт для загрузки доступных слотов;
+- calendar — HTMX-эндпоинт для отображения календаря;
+- success — страница успешного создания записи.
+Использует пространство имён app_name = "appointments"
+для удобного reverse() и {% url %}.
 """
 
 from django.urls import path

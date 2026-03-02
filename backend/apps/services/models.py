@@ -1,9 +1,9 @@
 """
-Models for services application.
-
-Contains:
-- ServiceCategory — groups services
-- Service — medical service with pricing, visibility and featured flags
+Модели приложения услуг (services).
+Содержит:
+- ServiceCategory — категории для группировки услуг;
+- Service — медицинская услуга с ценами, флагами публикации
+  и настройками отображения на главной странице.
 """
 
 from decimal import Decimal
@@ -16,13 +16,14 @@ from django.utils.text import slugify
 
 class ServiceCategory(models.Model):
     """
-    Category for grouping services.
-
-    Attributes:
-        name: Display name of the category.
-        slug: Unique URL identifier.
-        order: Sorting order in listings.
-        is_active: Controls visibility on the website.
+    Модель категории услуг.
+    Используется для логической группировки медицинских услуг
+    и управления их отображением на сайте.
+    Поля:
+        name: Название категории.
+        slug: Уникальный идентификатор для URL.
+        order: Порядок сортировки в списках.
+        is_active: Флаг отображения категории на сайте.
     """
 
     name = models.CharField("Название", max_length=150)
@@ -37,23 +38,27 @@ class ServiceCategory(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Auto-generate slug from name if not provided.
+        Автоматически генерирует slug из name,
+        если он не был задан вручную.
         """
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        """Return category name for admin representation."""
+        """
+        Возвращает название категории
+        для отображения в админке и интерфейсе.
+        """
         return self.name
 
 
 class Service(models.Model):
     """
-    Medical service entity.
-
-    Includes pricing range, publication flag,
-    and featured configuration for homepage display.
+    Модель медицинской услуги.
+    Хранит описание услуги, диапазон цен,
+    флаги активности и настройки отображения
+    на главной странице сайта.
     """
 
     category = models.ForeignKey(
@@ -87,7 +92,6 @@ class Service(models.Model):
 
     is_active = models.BooleanField("Активна", default=True)
 
-    # Featured services (homepage block)
     is_featured = models.BooleanField(
         "Показывать на главной",
         default=False,
@@ -109,15 +113,18 @@ class Service(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Return service name."""
+        """
+        Возвращает название услуги
+        для отображения в админке и списках.
+        """
         return self.name
 
     def clean(self):
         """
-        Validate pricing logic.
-
-        Ensures:
-            - price_to is not less than price_from
+        Валидация бизнес-логики цен.
+        Проверяет:
+            - если указано price_to, оно не может быть меньше price_from.
+        Вызывает ValidationError при нарушении правила.
         """
         super().clean()
 
@@ -126,7 +133,9 @@ class Service(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Auto-generate slug from name if not provided.
+        Автоматически генерирует slug из name,
+        если он не был задан вручную.
+        Используется slugify с поддержкой Unicode.
         """
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)

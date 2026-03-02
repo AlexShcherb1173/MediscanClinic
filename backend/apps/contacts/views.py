@@ -1,15 +1,13 @@
 """
-Views for contacts application.
-
-Pages:
-- contacts_home: Contacts page with map + contact form
-- feedback_home: Feedback page with contact form
-- ask_question: Ask a question page
-
-All POST handlers:
-- validate form
-- send email + telegram notifications
-- show success message and redirect back to the same page
+Представления приложения контактов (contacts).
+Страницы:
+- contacts_home — страница «Контакты» (карта + форма сообщения);
+- feedback_home — страница «Обратная связь» (форма сообщения);
+- ask_question — страница «Задать вопрос».
+Обработчики POST-запросов:
+- валидируют форму;
+- отправляют уведомления администратору (Email + Telegram);
+- показывают сообщение об успехе и делают редирект на эту же страницу.
 """
 
 from __future__ import annotations
@@ -25,10 +23,13 @@ from .notifications import notify_contact_email, notify_contact_telegram
 
 def _send_feedback(form: ContactForm) -> None:
     """
-    Send feedback form message via email and Telegram.
-
-    Args:
-        form: validated ContactForm
+    Отправляет сообщение из формы обратной связи (Email + Telegram).
+    Ожидается, что форма уже провалидирована (form.is_valid() == True).
+    Параметры:
+        form (ContactForm): Валидированная форма ContactForm.
+    Побочные эффекты:
+        - отправляет email администратору через notify_contact_email();
+        - отправляет сообщение в Telegram через notify_contact_telegram().
     """
     name = form.cleaned_data["name"]
     email = form.cleaned_data["email"]
@@ -55,7 +56,15 @@ def _send_feedback(form: ContactForm) -> None:
 
 def contacts_home(request):
     """
-    Contacts page with map and contact form.
+    Страница «Контакты» с картой и формой сообщения.
+    GET:
+        - отображает страницу и пустую форму ContactForm;
+        - передаёт в контекст адрес/контакты и ключ Yandex Maps.
+    POST:
+        - валидирует ContactForm;
+        - при успехе отправляет уведомления администратору (Email + Telegram),
+          показывает success-message и делает редирект на contacts:home;
+        - при ошибках валидации повторно рендерит страницу с ошибками формы.
     """
     address = "г. Москва, Бережковская набережная, д. 16А5, стр. 5"
     base_ctx = {
@@ -104,7 +113,14 @@ def contacts_home(request):
 
 def feedback_home(request):
     """
-    Feedback page (simplified contacts).
+    Страница «Обратная связь» (упрощённая форма контактов).
+    GET:
+        - отображает страницу и пустую форму ContactForm.
+    POST:
+        - валидирует ContactForm;
+        - при успехе отправляет уведомления через helper _send_feedback(),
+          показывает success-message и делает редирект на contacts:feedback;
+        - при ошибках валидации повторно рендерит страницу с ошибками формы.
     """
     base_ctx = {
         "phone_display": "+7(985)698-72-82",
@@ -128,7 +144,14 @@ def feedback_home(request):
 
 def ask_question(request):
     """
-    Ask-question page.
+    Страница «Задать вопрос».
+    GET:
+        - отображает страницу и пустую форму AskQuestionForm.
+    POST:
+        - валидирует AskQuestionForm;
+        - при успехе отправляет уведомления администратору (Email + Telegram),
+          показывает success-message и делает редирект на contacts:ask_question;
+        - при ошибках валидации повторно рендерит страницу с ошибками формы.
     """
     base_ctx = {
         "phone_display": "+7(985)698-72-82",

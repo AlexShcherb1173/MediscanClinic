@@ -1,10 +1,9 @@
 """
-URL configuration for accounts application.
-
-Routes:
-- login
-- register
-- logout
+Маршруты приложения accounts.
+Определяет URL для:
+- входа в систему (login)
+- регистрации (register)
+- выхода из системы (logout)
 """
 
 from django.urls import path

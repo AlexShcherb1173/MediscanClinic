@@ -1,16 +1,16 @@
 """
-Management command to generate appointment slots for active services.
-
-Generates AppointmentSlot objects for each active service (and active category)
-for N days ahead, between given time range, using a fixed step in minutes.
-
-Example:
+Команда управления для генерации слотов записи на приём.
+Создаёт объекты AppointmentSlot для каждой активной услуги
+(и только если категория услуги тоже активна) на N дней вперёд,
+в указанном временном диапазоне, с фиксированным шагом (в минутах).
+Пример:
     python manage.py generate_slots --days 14 --start 08:00 --end 20:00 --step 20 --replace
-
-Notes:
-    - If AppointmentSlot has no unique constraint (e.g. service + starts_at),
-      repeated runs without --replace will create duplicates.
-    - Uses bulk_create in batches to reduce DB overhead.
+Примечания:
+    - Если в модели AppointmentSlot нет уникального ограничения
+      (например, service + starts_at), то повторные запуски без --replace
+      могут создавать дубликаты.
+    - Для ускорения используется bulk_create пакетами (батчами),
+      чтобы снизить нагрузку на базу данных.
 """
 
 from __future__ import annotations
@@ -27,15 +27,14 @@ from apps.services.models import Service
 
 class Command(BaseCommand):
     """
-    Generate AppointmentSlot records for active services.
-
-    Parameters:
-        --days: how many days ahead to generate (default 14)
-        --start: day start time HH:MM (default 08:00)
-        --end: day end time HH:MM (default 20:00)
-        --step: slot length / step in minutes (default 20)
-        --replace: delete slots in the generated date range before creating
-        --dry-run: print plan and exit without changes
+    Генерирует слоты AppointmentSlot для активных услуг.
+    Параметры:
+        --days: на сколько дней вперёд генерировать (по умолчанию 14)
+        --start: время начала дня в формате HH:MM (по умолчанию 08:00)
+        --end: время окончания дня в формате HH:MM (по умолчанию 20:00)
+        --step: длительность/шаг слота в минутах (по умолчанию 20)
+        --replace: удалить слоты в генерируемом диапазоне дат перед созданием
+        --dry-run: показать план и выйти без изменений
     """
 
     help = "Generate AppointmentSlot for each active service (08:00-20:00, step 20 min) for N days вперед."
@@ -65,7 +64,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Entrypoint for command execution.
+        Точка входа выполнения команды.
+
+        Алгоритм:
+            1) Считывает и валидирует параметры (--days, --start, --end, --step).
+            2) Определяет список активных услуг (и активных категорий).
+            3) Рассчитывает планируемое количество слотов.
+            4) При --dry-run выводит план и завершает работу.
+            5) При --replace удаляет слоты в указанном диапазоне дат.
+            6) Создаёт слоты пакетами через bulk_create(ignore_conflicts=True).
         """
         days: int = options["days"]
         step_min: int = options["step"]
@@ -97,7 +104,8 @@ class Command(BaseCommand):
             self.stderr.write(self.style.WARNING("No active services found."))
             return
 
-        # Count slots per day: start inclusive, end exclusive (t < end)
+        # Кол-во слотов в одном дне: start включительно, end не включительно (t < end)
+        dummy_start = datetime.combine(today, day_start)
         dummy_start = datetime.combine(today, day_start)
         dummy_end = datetime.combine(today, day_end)
         per_day = 0
@@ -155,7 +163,7 @@ class Command(BaseCommand):
 
                     t += timedelta(minutes=step_min)
 
-                    # Flush batch to prevent memory growth
+                    # Сбрасываем батч, чтобы не раздувать память
                     if len(batch) >= 5000:
                         res = AppointmentSlot.objects.bulk_create(
                             batch, ignore_conflicts=True

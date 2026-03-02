@@ -1,9 +1,8 @@
 """
-Forms for contacts application.
-
-Includes:
-- ContactForm: name + email + message
-- AskQuestionForm: name + contact + question
+Формы приложения контактов (contacts).
+Содержит:
+- ContactForm — универсальная форма обратной связи (имя + email + сообщение);
+- AskQuestionForm — форма вопроса (имя + контакт + текст вопроса).
 """
 
 from __future__ import annotations
@@ -16,7 +15,12 @@ from apps.accounts.contact_utils import normalize_phone_or_email
 
 class ContactForm(forms.Form):
     """
-    Generic contact form used on Contacts and Feedback pages.
+    Универсальная форма обратной связи.
+    Используется на страницах «Контакты» и «Обратная связь».
+    Содержит поля:
+        - name — имя пользователя;
+        - email — email для ответа;
+        - message — текст сообщения.
     """
 
     name = forms.CharField(
@@ -37,16 +41,28 @@ class ContactForm(forms.Form):
     )
 
     def clean_name(self) -> str:
-        """Validate name length and strip whitespace."""
+        """
+        Валидирует имя пользователя.
+        Логика:
+            - удаляет лишние пробелы по краям;
+            - проверяет минимальную длину (не менее 2 символов).
+        Возвращает:
+            str: Очищенное имя.
+        Вызывает:
+            ValidationError: если имя слишком короткое.
+        """
         v = (self.cleaned_data.get("name") or "").strip()
         if len(v) < 2:
             raise forms.ValidationError("Введите имя (минимум 2 символа).")
         return v
 
-
 class AskQuestionForm(forms.Form):
     """
-    Form for asking a question (name + contact + question).
+    Форма для отправки вопроса.
+    Содержит:
+        - name — имя пользователя;
+        - contact — телефон или email для обратной связи;
+        - question — текст вопроса.
     """
 
     name = forms.CharField(label="Ваше имя", max_length=120, required=True)
@@ -58,13 +74,31 @@ class AskQuestionForm(forms.Form):
     )
 
     def clean_name(self) -> str:
-        """Validate name length and strip whitespace."""
+        """
+        Валидирует имя пользователя.
+        Логика:
+            - удаляет лишние пробелы;
+            - проверяет минимальную длину (не менее 2 символов).
+        """
         v = (self.cleaned_data.get("name") or "").strip()
         if len(v) < 2:
             raise forms.ValidationError("Введите имя (минимум 2 символа).")
         return v
 
     def clean_contact(self):
+        """
+        Валидирует и нормализует контактные данные.
+        Принимает телефон или email.
+        Использует normalize_phone_or_email() для определения типа
+        и приведения к стандартному виду:
+            - email → в нижнем регистре;
+            - телефон → формат E.164.
+        Возвращает:
+            str: Нормализованное значение контакта.
+        Вызывает:
+            ValidationError: если введённые данные не являются
+            корректным телефоном или email.
+        """
         raw = self.cleaned_data.get("contact", "")
         try:
             normalized = normalize_phone_or_email(raw)
@@ -75,7 +109,16 @@ class AskQuestionForm(forms.Form):
         return normalized.value
 
     def clean_question(self) -> str:
-        """Validate question length and strip whitespace."""
+        """
+        Валидирует текст вопроса.
+        Логика:
+            - удаляет лишние пробелы;
+            - проверяет минимальную длину (не менее 5 символов).
+        Возвращает:
+            str: Очищенный текст вопроса.
+        Вызывает:
+            ValidationError: если текст слишком короткий.
+        """
         v = (self.cleaned_data.get("question") or "").strip()
         if len(v) < 5:
             raise forms.ValidationError("Опишите вопрос (минимум 5 символов).")

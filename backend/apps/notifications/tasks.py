@@ -1,10 +1,10 @@
 """
-Celery tasks for notifications application.
-
-Currently contains:
-- send_telegram_text_task: sends Telegram messages via telegram_client
-
-Task retries on failure with exponential backoff.
+Celery-задачи приложения уведомлений (notifications).
+В текущей версии содержит:
+- send_telegram_text_task — отправку текстовых сообщений в Telegram
+  через telegram_client.
+Задача настроена на автоматические повторные попытки (autoretry)
+с экспоненциальной задержкой и jitter.
 """
 
 from __future__ import annotations
@@ -27,9 +27,17 @@ logger = logging.getLogger("notifications")
 )
 def send_telegram_text_task(self, text: str) -> None:
     """
-    Send Telegram text message.
-
-    Raises RuntimeError when sending fails to trigger Celery autoretry.
+    Отправляет текстовое сообщение в Telegram.
+    Параметры:
+        text (str): Текст сообщения.
+    Поведение:
+        - вызывает send_telegram_message();
+        - если отправка неуспешна (ok=False),
+          выбрасывает RuntimeError для запуска механизма autoretry.
+    Повторы:
+        - до 5 попыток;
+        - экспоненциальный backoff;
+        - с добавлением jitter для уменьшения эффекта «шторма» запросов.
     """
     ok = send_telegram_message(text)
     if not ok:

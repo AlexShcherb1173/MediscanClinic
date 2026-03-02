@@ -1,12 +1,13 @@
 """
-Notification helpers for contacts application.
-
-Provides:
-- notify_contact_email: send email to admin
-- notify_contact_telegram: send Telegram message to admin chat via Bot API
-
-Email errors are raised (fail_silently=False) because this is a contact channel.
-Telegram errors are silently ignored if credentials are missing.
+Вспомогательные функции уведомлений для приложения контактов (contacts).
+Предоставляет:
+- notify_contact_email — отправка email администратору;
+- notify_contact_telegram — отправка сообщения в Telegram-чат администратора через Bot API.
+Особенности:
+- Ошибки отправки email не подавляются (fail_silently=False),
+  так как это основной канал связи с пользователем.
+- Telegram используется как дополнительный канал и может быть отключён,
+  если отсутствуют необходимые настройки.
 """
 
 from __future__ import annotations
@@ -20,9 +21,14 @@ from django.core.mail import EmailMessage
 
 def _as_email(value) -> str:
     """
-    Normalize email-like setting to string.
-
-    Accepts strings and single-element tuples/lists.
+    Приводит значение настройки к строке email.
+    Поддерживает:
+        - строку;
+        - кортеж или список с одним элементом.
+    Параметры:
+        value: Значение из settings (str | list | tuple).
+    Возвращает:
+        str: Очищенная строка email (или пустая строка).
     """
     if isinstance(value, (tuple, list)):
         value = value[0] if value else ""
@@ -31,11 +37,18 @@ def _as_email(value) -> str:
 
 def notify_contact_email(subject: str, text: str) -> None:
     """
-    Send contact email to admin mailbox.
-
-    Uses settings:
-        DEFAULT_FROM_EMAIL
-        CONTACTS_ADMIN_EMAIL (fallbacks to DEFAULT_FROM_EMAIL)
+    Отправляет email администратору из формы контактов.
+    Использует настройки:
+        - DEFAULT_FROM_EMAIL — адрес отправителя;
+        - CONTACTS_ADMIN_EMAIL — адрес получателя
+          (если не задан, используется DEFAULT_FROM_EMAIL).
+    Поведение:
+        - при отсутствии корректных настроек выбрасывает ValueError;
+        - отправляет письмо через EmailMessage;
+        - fail_silently=False — ошибки SMTP не подавляются.
+    Параметры:
+        subject (str): Тема письма.
+        text (str): Текст письма (plain text).
     """
     from_email = _as_email(getattr(settings, "DEFAULT_FROM_EMAIL", ""))
     to_email = _as_email(getattr(settings, "CONTACTS_ADMIN_EMAIL", "")) or from_email
@@ -57,13 +70,19 @@ def notify_contact_email(subject: str, text: str) -> None:
 
 def notify_contact_telegram(text: str) -> None:
     """
-    Send Telegram message to admin chat.
-
-    Uses:
-        TELEGRAM_BOT_TOKEN
-        TELEGRAM_ADMIN_CHAT_ID
-
-    If token/chat_id is missing, does nothing.
+    Отправляет сообщение в Telegram-чат администратора.
+    Использует настройки:
+        - TELEGRAM_BOT_TOKEN;
+        - TELEGRAM_ADMIN_CHAT_ID.
+    Поведение:
+        - если токен или chat_id отсутствуют — функция завершает выполнение;
+        - отправка выполняется через Telegram Bot API (sendMessage);
+        - используется parse_mode="HTML";
+        - предпросмотр ссылок отключён.
+    Параметры:
+        text (str): Текст сообщения.
+    Исключения:
+        Ошибки сети не перехватываются — в случае сбоя будет выброшено исключение.
     """
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
     chat_id = getattr(settings, "TELEGRAM_ADMIN_CHAT_ID", None)

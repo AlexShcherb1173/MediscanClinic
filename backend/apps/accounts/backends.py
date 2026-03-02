@@ -1,11 +1,12 @@
 """
-Authentication backend for phone-based login.
+Бэкенд аутентификации по номеру телефона.
 
-PhoneBackend supports both:
-- authenticate(username="<phone>", password=...)
-- authenticate(phone="<phone>", password=...)
+PhoneBackend поддерживает оба варианта вызова:
+- authenticate(username="<телефон>", password=...)
+- authenticate(phone="<телефон>", password=...)
 
-Phone is normalized using accounts.utils.normalize_phone().
+Номер телефона предварительно нормализуется через
+accounts.utils.normalize_phone().
 """
 
 from __future__ import annotations
@@ -20,24 +21,22 @@ User = get_user_model()
 
 class PhoneBackend(ModelBackend):
     """
-    Authenticate users by phone number.
-
-    The backend expects a password and either username or phone.
+    Бэкенд аутентификации пользователя по номеру телефона.
+    Ожидает пароль и значение телефона,
+    переданное либо в параметре username, либо phone.
     """
-
     def authenticate(self, request, username=None, password=None, phone=None, **kwargs):
         """
-        Authenticate user by phone.
-
-        Args:
-            request: HttpRequest (unused, but required by Django signature)
-            username: phone value when called via authenticate(username=...)
-            password: raw password
-            phone: phone value when called via authenticate(phone=...)
-            kwargs: ignored
-
-        Returns:
-            User instance if credentials are valid, otherwise None.
+        Аутентифицирует пользователя по номеру телефона.
+        Аргументы:
+            request: HttpRequest (не используется, но обязателен по сигнатуре Django)
+            username: номер телефона при вызове authenticate(username=...)
+            password: пароль в открытом виде
+            phone: номер телефона при вызове authenticate(phone=...)
+            kwargs: дополнительные параметры (игнорируются)
+        Возвращает:
+            Объект User при успешной аутентификации,
+            иначе — None.
         """
         if password is None:
             return None

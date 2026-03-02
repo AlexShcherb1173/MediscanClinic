@@ -10,7 +10,14 @@ from apps.accounts.utils import normalize_phone
 
 @dataclass(frozen=True)
 class ContactValue:
-    """Normalized contact value."""
+    """
+    Нормализованное контактное значение.
+    Атрибуты:
+        kind: тип контакта — "phone" или "email"
+        value: нормализованное значение:
+               - телефон в формате E.164 (+79991234567)
+               - email в нижнем регистре
+    """
 
     kind: str  # "phone" | "email"
     value: str  # E.164 phone or lowercased email
@@ -21,9 +28,20 @@ _email_validator = EmailValidator()
 
 def normalize_phone_or_email(raw: str) -> ContactValue:
     """
-    Accepts either phone or email in a single field.
-    - email -> validates + lower()
-    - phone -> normalize_phone() -> E.164
+    Нормализует строку как телефон или email.
+    Логика:
+        - Если строка содержит "@", считается email:
+            - проходит валидацию
+            - приводится к нижнему регистру
+        - Иначе считается телефоном:
+            - нормализуется через normalize_phone()
+            - приводится к формату E.164
+    Аргументы:
+        raw: исходная строка, введённая пользователем
+    Возвращает:
+        ContactValue с типом ("phone" | "email") и нормализованным значением.
+    Исключения:
+        ValidationError — если значение пустое или некорректное.
     """
     if raw is None:
         raise ValidationError("Укажите телефон или email.")

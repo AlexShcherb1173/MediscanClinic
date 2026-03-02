@@ -620,26 +620,23 @@ class AppointmentPhoneFormTests(AppointmentsBaseMixin, TestCase):
         self.preferred_date = (now + timedelta(days=1)).date().isoformat()
 
     def test_form_normalizes_phone(self):
+        # важно: preferred_date берём из slot.starts_at (а не "now + 1 day" отдельно)
+        preferred_date = timezone.localtime(self.slot.starts_at).date().isoformat()
+
         form = AppointmentCreateForm(
             data={
-                "service": self.service.id,
+                "service": str(self.service.id),
                 "doctor": "",
                 "full_name": "qwerty",
                 "phone": "8 (999) 123-45-67",
                 "email": "",
                 "comment": "",
-                "preferred_date": self.preferred_date,
-                "slot": self.slot.id,
+                "preferred_date": preferred_date,
+                "slot": str(self.slot.id),
             }
         )
         self.assertTrue(form.is_valid(), form.errors)
-
-        # Важно: cleaned_data["phone"] зависит от того, где ты делаешь normalize_phone (форма или модель).
-        # Если нормализуешь на модели (full_clean), то в форме может остаться "сырой" телефон.
-        # Поэтому фиксируем через instance.full_clean().
-        a = form.save(commit=False)
-        a.full_clean()
-        self.assertEqual(a.phone, "+79991234567")
+        self.assertEqual(form.cleaned_data["phone"], "+79991234567")
 
     def test_form_rejects_invalid_phone(self):
         form = AppointmentCreateForm(
@@ -658,17 +655,18 @@ class AppointmentPhoneFormTests(AppointmentsBaseMixin, TestCase):
         self.assertIn("phone", form.errors)
 
     def test_form_accepts_e164_phone(self):
+        preferred_date = timezone.localtime(self.slot.starts_at).date().isoformat()
+
         form = AppointmentCreateForm(
             data={
-                "service": self.service.id,
+                "service": str(self.service.id),
                 "doctor": "",
                 "full_name": "qwerty",
                 "phone": "+79991234567",
                 "email": "",
                 "comment": "",
-                "preferred_date": self.preferred_date,
-                "slot": self.slot.id,
+                "preferred_date": preferred_date,
+                "slot": str(self.slot.id),
             }
         )
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["phone"], "+79991234567")

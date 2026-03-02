@@ -1,8 +1,10 @@
 """
-Admin configuration for pages application.
-
-Provides admin interface for managing CMS-like static pages,
-including slug auto-generation and frontend preview link.
+Конфигурация Django Admin для приложения страниц (pages).
+Предоставляет административный интерфейс для управления
+статическими CMS-страницами, включая:
+- автогенерацию slug;
+- управление публикацией;
+- ссылку предпросмотра на фронтенд.
 """
 
 from django.contrib import admin
@@ -14,13 +16,12 @@ from .models import Page
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
     """
-    Admin interface for Page model.
-
-    Features:
-    - Slug auto-population from title
-    - Publish toggle
-    - Content search
-    - Preview link to frontend page
+    Административный интерфейс для модели Page.
+    Возможности:
+        - автоматическое заполнение slug из title;
+        - фильтрация по статусу публикации;
+        - поиск по заголовку, slug и HTML-контенту;
+        - ссылка «Превью» для открытия страницы на фронтенде.
     """
 
     list_display = ("title", "slug", "is_published", "preview_link")
@@ -46,9 +47,11 @@ class PageAdmin(admin.ModelAdmin):
 
     def preview_link(self, obj: Page):
         """
-        Generate frontend preview link for the page.
-
-        Uses slug-based routing: /page/<slug>/
+        Генерирует ссылку предпросмотра страницы на фронтенде.
+        Использует slug-ориентированную маршрутизацию:
+            /page/<slug>/
+        Возвращает:
+            HTML-ссылку с target="_blank" или "-" если slug отсутствует.
         """
         if not obj.slug:
             return "-"

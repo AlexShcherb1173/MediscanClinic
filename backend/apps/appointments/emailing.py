@@ -1,5 +1,7 @@
 """
-Email notifications for appointment reminders.
+Модуль отправки email-уведомлений для напоминаний о записи.
+Содержит функции для формирования и отправки писем пациентам
+о предстоящем приёме (за 24 часа или за 2 часа до визита).
 """
 
 from __future__ import annotations
@@ -13,16 +15,29 @@ from .models import Appointment
 
 def send_reminder_email(appt: Appointment, kind: str) -> None:
     """
-    Send reminder email for an appointment.
-
-    Args:
-        appt: Appointment instance.
-        kind: Reminder type: '24h' or '2h'.
-
-    Notes:
-        - If appointment has no email, function does nothing.
-        - If DEFAULT_FROM_EMAIL is not set, function does nothing.
-        - Uses fail_silently=True to avoid breaking reminder pipeline.
+    Отправляет email-напоминание о предстоящей записи.
+    Формирует тему и текст письма с информацией о:
+    - дате и времени приёма,
+    - выбранной услуге,
+    - враче.
+    Поддерживаются два типа напоминаний:
+    - "24h" — за 24 часа до приёма;
+    - "2h" — за 2 часа до приёма.
+    Письмо отправляется пациенту, а также (опционально)
+    на служебный email клиники, если он указан в настройках.
+    Параметры:
+        appt (Appointment): Экземпляр записи на приём.
+        kind (str): Тип напоминания ("24h" или "2h").
+    Логика работы:
+        1. Если у записи отсутствует email пациента — отправка не выполняется.
+        2. Если в настройках не задан DEFAULT_FROM_EMAIL — отправка не выполняется.
+        3. Время приёма приводится к локальной временной зоне.
+        4. Используется fail_silently=True, чтобы ошибка отправки
+           не прерывала выполнение фоновой задачи (например Celery).
+    Исключения:
+        Исключения не пробрасываются наружу (fail_silently=True).
+    Возвращаемое значение:
+        None
     """
     if not appt.email:
         return  # нет email — нечего слать

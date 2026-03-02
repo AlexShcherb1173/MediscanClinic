@@ -1,15 +1,13 @@
 """
-Telegram client for low-level notifications.
-
-This module provides a safe wrapper around Telegram Bot API sendMessage:
-- reads token/chat_id from Django settings
-- never raises exceptions to the caller (returns bool instead)
-- logs failures without leaking secrets
-
-Settings used:
-    TELEGRAM_BOT_TOKEN: bot token
-    TELEGRAM_CHAT_ID: destination chat id (user or group)
-    TELEGRAM_API_BASE: optional API base (default: https://api.telegram.org)
+Telegram-клиент для низкоуровневых уведомлений.
+Модуль предоставляет безопасную обёртку над Telegram Bot API (sendMessage):
+- читает token и chat_id из настроек Django;
+- не выбрасывает исключения наружу (возвращает bool);
+- логирует ошибки без раскрытия чувствительных данных (token).
+Используемые настройки:
+    TELEGRAM_BOT_TOKEN — токен бота;
+    TELEGRAM_CHAT_ID — идентификатор получателя (пользователь или группа);
+    TELEGRAM_API_BASE — базовый URL API (по умолчанию https://api.telegram.org).
 """
 
 from __future__ import annotations
@@ -27,12 +25,11 @@ logger = logging.getLogger("notifications.telegram")
 @dataclass(frozen=True)
 class TelegramConfig:
     """
-    Runtime Telegram configuration used by the sender.
-
-    Attributes:
-        token: bot token
-        chat_id: target chat id (string, can be negative for groups)
-        api_base: telegram API base url
+    Конфигурация Telegram, используемая отправителем сообщений.
+    Поля:
+        token: Токен Telegram-бота.
+        chat_id: Идентификатор целевого чата (строка, может быть отрицательным для групп).
+        api_base: Базовый URL Telegram API.
     """
 
     token: str
@@ -42,10 +39,15 @@ class TelegramConfig:
 
 def _get_cfg() -> Optional[TelegramConfig]:
     """
-    Build TelegramConfig from Django settings.
-
-    Returns:
-        TelegramConfig if both token and chat_id are provided; otherwise None.
+    Формирует объект TelegramConfig на основе настроек Django.
+    Логика:
+        - получает TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID из settings;
+        - если одно из значений отсутствует — возвращает None;
+        - TELEGRAM_API_BASE используется при наличии,
+          иначе применяется значение по умолчанию.
+    Возвращает:
+        TelegramConfig — при корректной конфигурации;
+        None — если Telegram не настроен.
     """
     token = (getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "").strip()
     chat_id = (getattr(settings, "TELEGRAM_CHAT_ID", "") or "").strip()
@@ -61,18 +63,22 @@ def _get_cfg() -> Optional[TelegramConfig]:
 
 def send_telegram_message(text: str, parse_mode: str = "Markdown") -> bool:
     """
-    Send message to Telegram Bot API.
-
-    This function is intentionally resilient:
-    - returns False when Telegram is not configured or request failed
-    - does not raise exceptions (so Celery tasks or views won't crash)
-
-    Args:
-        text: message text
-        parse_mode: Telegram parse mode ("Markdown", "HTML", etc.)
-
-    Returns:
-        True if HTTP request returned 2xx, otherwise False.
+    Отправляет сообщение в Telegram через Bot API.
+    Функция реализована в режиме best-effort:
+        - при отсутствии конфигурации возвращает False;
+        - при сетевых ошибках не выбрасывает исключения;
+        - логирует сбои без раскрытия токена.
+    Параметры:
+        text (str): Текст сообщения.
+        parse_mode (str): Режим форматирования Telegram
+                          ("Markdown", "HTML" и др.).
+    Особенности:
+        - текст автоматически обрезается до ~4096 символов
+          (ограничение Telegram API);
+        - предпросмотр ссылок отключён.
+    Возвращает:
+        bool: True при успешном HTTP-ответе (2xx),
+              False при ошибке или отсутствии конфигурации.
     """
     cfg = _get_cfg()
     if not cfg:

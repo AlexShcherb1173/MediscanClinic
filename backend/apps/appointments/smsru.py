@@ -1,11 +1,11 @@
 """
-sms.ru client wrapper.
-
-Provides `smsru_send` function that sends SMS via sms.ru API and returns:
-- (True, sms_id) on success
-- (False, error_message) on failure
-
-The function is designed for server-side usage and logs details for debugging.
+Обёртка для работы с API sms.ru.
+Предоставляет функцию `smsru_send`, которая отправляет SMS через API sms.ru
+и возвращает результат в виде кортежа:
+- (True, sms_id) — при успешной отправке
+- (False, error_message) — при ошибке
+Функция предназначена для серверного использования,
+включает логирование HTTP-ответов и ошибок для отладки.
 """
 
 from __future__ import annotations
@@ -23,22 +23,33 @@ logger = logging.getLogger("appointments.sms")
 
 def smsru_send(to_phone: str, message: str) -> tuple[bool, str]:
     """
-    Send SMS message via sms.ru.
-
-    Args:
-        to_phone: Raw phone number (can contain +, spaces, brackets).
-        message: SMS text.
-
-    Returns:
-        Tuple[bool, str]:
-            - (True, sms_id) if sent successfully
-            - (False, error_message) if failed
-
-    Notes:
-        - Requires SMS_RU_API_ID in settings.
-        - Optional sender name: SMS_SENDER
-        - Uses timeouts and handles HTTP/JSON errors.
-    """
+       Отправляет SMS-сообщение через API sms.ru.
+       Параметры:
+           to_phone (str): Номер телефона в произвольном формате
+                           (может содержать '+', пробелы, скобки и т.д.).
+           message (str): Текст SMS-сообщения.
+       Возвращает:
+           tuple[bool, str]:
+               - (True, sms_id) — сообщение успешно отправлено;
+               - (False, error_message) — произошла ошибка.
+       Логика работы:
+           1. Получает API-ключ из settings.SMS_RU_API_ID.
+           2. Нормализует номер телефона через normalize_phone_for_smsru().
+           3. Формирует POST-запрос к https://sms.ru/sms/send.
+           4. Обрабатывает HTTP-ошибки и ошибки разбора JSON.
+           5. Проверяет общий статус ответа (status == "OK").
+           6. Проверяет статус отправки для конкретного номера.
+           7. Возвращает sms_id при успехе.
+       Требования к настройкам:
+           - SMS_RU_API_ID — обязателен.
+           - SMS_SENDER — опциональное имя отправителя.
+       Обработка ошибок:
+           - При отсутствии API-ключа возвращает ошибку без запроса к API.
+           - При некорректном номере возвращает ошибку.
+           - При HTTP/JSON-ошибках возвращает сообщение об ошибке.
+           - Все исключения логируются через logger.
+       Исключения наружу не пробрасываются (fail-safe поведение).
+       """
     api_id = getattr(settings, "SMS_RU_API_ID", "") or ""
     if not api_id:
         logger.warning("sms.ru: SMS_RU_API_ID is empty")

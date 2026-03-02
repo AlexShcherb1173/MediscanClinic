@@ -1,29 +1,40 @@
 {% extends "base.html" %}
+{# ===================== Страница: Детальная услуга ===================== #}
+{# Показывает: хлебные крошки → заголовок → цена → описание → CTA → доп.блоки #}
+
 {% block title %}{{ service.name }} — Mediscan{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
 
-  <!-- Breadcrumbs -->
+  {# ===================== Хлебные крошки ===================== #}
   <nav class="text-sm text-slate-600">
     <a href="{% url 'pages:home' %}" class="hover:underline">Главная</a>
+
     <span class="mx-2 text-slate-400">/</span>
+
     <a href="{% url 'services:list' %}" class="hover:underline">Услуги</a>
-    <span class="mx-2 text-slate-400">/</span>
+
     {% if service.category %}
+      <span class="mx-2 text-slate-400">/</span>
       <a href="{% url 'services:category' service.category.slug %}" class="hover:underline">
         {{ service.category.name }}
       </a>
-      <span class="mx-2 text-slate-400">/</span>
     {% endif %}
+
+    <span class="mx-2 text-slate-400">/</span>
     <span class="text-slate-900 font-medium">{{ service.name }}</span>
   </nav>
 
-  <!-- Header -->
+
+  {# ===================== Основной блок услуги ===================== #}
   <div class="mt-5 rounded-3xl bg-white border border-slate-200 shadow-sm p-8">
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
 
+      {# ---------- Левая часть: информация об услуге ---------- #}
       <div class="min-w-0">
+
+        {# Категория + бейдж популярности #}
         <div class="inline-flex items-center gap-2">
           {% if service.category %}
             <span class="inline-flex rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 text-xs font-semibold">
@@ -38,69 +49,96 @@
           {% endif %}
         </div>
 
+        {# Название услуги #}
         <h1 class="mt-4 text-3xl font-extrabold text-slate-900 leading-tight">
           {{ service.name }}
         </h1>
 
+        {# Блоки: стоимость + быстрая запись #}
         <div class="mt-4 flex flex-wrap items-center gap-3">
+
           <div class="rounded-2xl bg-sky-50 border border-sky-200 px-4 py-3">
             <div class="text-xs text-slate-600">Стоимость</div>
             <div class="text-lg font-extrabold text-slate-900">
-              от {{ service.price_from }} ₽{% if service.price_to %} — {{ service.price_to }} ₽{% endif %}
+              от {{ service.price_from }} ₽
+              {% if service.price_to %} — {{ service.price_to }} ₽{% endif %}
             </div>
           </div>
 
           <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
             <div class="text-xs text-slate-600">Запись</div>
-            <div class="text-sm font-semibold text-slate-900">Онлайн за 1 минуту</div>
+            <div class="text-sm font-semibold text-slate-900">
+              Онлайн за 1 минуту
+            </div>
           </div>
         </div>
 
-        <p class="mt-5 text-slate-700">
+        {# Описание услуги #}
+        <div class="mt-5 text-slate-700">
           {% if service.description %}
             {{ service.description|linebreaksbr }}
           {% else %}
-            Описание услуги будет добавлено. Вы можете записаться онлайн — администратор подтвердит запись.
+            Описание услуги будет добавлено. Вы можете записаться онлайн —
+            администратор подтвердит запись.
           {% endif %}
-        </p>
+        </div>
+
       </div>
 
-      <!-- CTA box -->
+
+      {# ---------- Правая часть: CTA-блок ---------- #}
       <aside class="w-full lg:w-[340px] shrink-0">
         <div class="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-yellow-50 border border-blue-100 p-6 shadow-sm">
-          <div class="text-sm font-semibold text-slate-900">Записаться на услугу</div>
+
+          <div class="text-sm font-semibold text-slate-900">
+            Записаться на услугу
+          </div>
+
           <div class="mt-2 text-sm text-slate-700">
             Выберите дату и время. Свободные слоты показываются автоматически.
           </div>
 
-          <a href="{% url 'appointments:create' %}?service={{ service.id }}"
-             class="mt-5 inline-flex w-full items-center justify-center rounded-full
-                    bg-yellow-400 text-blue-900 px-6 py-3 text-sm font-semibold
-                    hover:bg-yellow-300 transition shadow">
+          {# Кнопка записи (передаём service.id через query string) #}
+          <a
+            href="{% url 'appointments:create' %}?service={{ service.id }}"
+            class="mt-5 inline-flex w-full items-center justify-center rounded-full
+                   bg-yellow-400 text-blue-900 px-6 py-3 text-sm font-semibold
+                   hover:bg-yellow-300 transition shadow"
+          >
             Записаться
           </a>
 
-          <a href="{% url 'services:list' %}"
-             class="mt-3 inline-flex w-full items-center justify-center rounded-full
-                    bg-white/70 border border-slate-200 px-6 py-3 text-sm font-semibold
-                    hover:bg-white transition">
+          <a
+            href="{% url 'services:list' %}"
+            class="mt-3 inline-flex w-full items-center justify-center rounded-full
+                   bg-white/70 border border-slate-200 px-6 py-3 text-sm font-semibold
+                   hover:bg-white transition"
+          >
             Вернуться к услугам
           </a>
 
           <div class="mt-5 text-xs text-slate-600 leading-relaxed">
-            *Информация на сайте носит справочный характер. Возможны противопоказания — требуется консультация специалиста.
+            *Информация на сайте носит справочный характер.
+            Возможны противопоказания — требуется консультация специалиста.
           </div>
+
         </div>
       </aside>
 
     </div>
   </div>
 
-  <!-- Extra blocks (готовая структура под "подготовка/вопросы") -->
+
+  {# ===================== Дополнительные блоки ===================== #}
   <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    {# ---------- Как проходит услуга ---------- #}
     <div class="lg:col-span-8">
       <div class="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-        <h2 class="text-lg font-bold text-slate-900">Как проходит услуга</h2>
+        <h2 class="text-lg font-bold text-slate-900">
+          Как проходит услуга
+        </h2>
+
         <ul class="mt-4 space-y-3 text-slate-700">
           <li class="flex gap-3">
             <span class="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600"></span>
@@ -118,24 +156,30 @@
       </div>
     </div>
 
+    {# ---------- Блок консультации ---------- #}
     <div class="lg:col-span-4">
-  <div class="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-    <h3 class="text-lg font-bold text-slate-900">Нужна консультация?</h3>
-    <p class="mt-2 text-sm text-slate-700">
-      Если не уверены, какая услуга подходит — оставьте вопрос, и мы подскажем.
-    </p>
+      <div class="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
+        <h3 class="text-lg font-bold text-slate-900">
+          Нужна консультация?
+        </h3>
 
-    <button
-      type="button"
-      data-open-ask-question
-      class="mt-4 relative z-10 inline-flex w-full items-center justify-center rounded-full
-             bg-blue-600 text-white px-6 py-3 text-sm font-semibold
-             hover:bg-blue-700 transition shadow active:scale-95"
-    >
-      Задать вопрос
-    </button>
-  </div>
+        <p class="mt-2 text-sm text-slate-700">
+          Если не уверены, какая услуга подходит —
+          оставьте вопрос, и мы подскажем.
+        </p>
+
+        <button
+          type="button"
+          data-open-ask-question
+          class="mt-4 relative z-10 inline-flex w-full items-center justify-center rounded-full
+                 bg-blue-600 text-white px-6 py-3 text-sm font-semibold
+                 hover:bg-blue-700 transition shadow active:scale-95"
+        >
+          Задать вопрос
+        </button>
+      </div>
     </div>
+
   </div>
 
 </div>

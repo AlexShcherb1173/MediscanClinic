@@ -1,8 +1,8 @@
 """
-Models for cabinet (personal account) application.
-
-Currently includes:
-- UserProfile: per-user extra data (e.g., telegram chat id)
+Модели приложения личного кабинета (cabinet).
+Содержит:
+- UserProfile — расширенный профиль пользователя
+  с дополнительными данными, используемыми в личном кабинете.
 """
 
 from __future__ import annotations
@@ -13,11 +13,13 @@ from django.db import models
 
 class UserProfile(models.Model):
     """
-    Extra per-user profile data for personal cabinet.
-
-    Attributes:
-        user: one-to-one link to AUTH_USER_MODEL
-        telegram_chat_id: optional Telegram chat id for notifications
+    Расширенный профиль пользователя для личного кабинета.
+    Модель хранит дополнительные данные, которые не входят
+    в стандартную модель пользователя (AUTH_USER_MODEL).
+    Поля:
+        user: Связь один-к-одному с пользователем.
+        telegram_chat_id: Необязательный Telegram chat_id
+                          для отправки персональных уведомлений.
     """
 
     user = models.OneToOneField(
@@ -28,5 +30,8 @@ class UserProfile(models.Model):
     telegram_chat_id = models.CharField(max_length=64, blank=True, default="")
 
     def __str__(self) -> str:
-        """Return readable representation for admin."""
+        """
+        Возвращает человекочитаемое представление профиля
+        для отображения в админке и логах.
+        """
         return f"Profile: {self.user}"

@@ -1,9 +1,8 @@
 """
-Forms for accounts application.
-
-Includes:
-- RegisterForm: phone-based registration with password confirmation
-- LoginForm: phone-based authentication using custom backend
+Формы для приложения accounts.
+Содержит:
+- RegisterForm — регистрация по номеру телефона с подтверждением пароля
+- LoginForm — аутентификация по номеру телефона через кастомный backend
 """
 
 from __future__ import annotations
@@ -23,12 +22,11 @@ phone_validator = RegexValidator(
 
 
 class RegisterForm(forms.Form):
-    """
-    Simple registration form (phone + password + full name).
-
-    Validation:
-        - phone is normalized and must be unique
-        - password1 and password2 must match
+    """"
+    Форма регистрации пользователя (телефон + пароль + ФИО).
+    Проверки:
+        - номер телефона нормализуется и должен быть уникальным
+        - пароль и подтверждение пароля должны совпадать
     """
 
     full_name = forms.CharField(label="ФИО", min_length=2, max_length=255)
@@ -46,7 +44,9 @@ class RegisterForm(forms.Form):
     )
 
     def clean_phone(self) -> str:
-        """Normalize phone and ensure uniqueness."""
+        """
+        Нормализует номер телефона и проверяет его уникальность.
+        """
         phone = normalize_phone(self.cleaned_data["phone"])
         if User.objects.filter(phone=phone).exists():
             raise forms.ValidationError(
@@ -55,14 +55,20 @@ class RegisterForm(forms.Form):
         return phone
 
     def clean(self):
-        """Ensure passwords match."""
+        """
+        Проверяет совпадение пароля и подтверждения.
+        """
         cleaned = super().clean()
         if cleaned.get("password1") != cleaned.get("password2"):
             self.add_error("password2", "Пароли не совпадают.")
         return cleaned
 
     def save(self) -> User:
-        """Create user using UserManager."""
+        """
+        Создаёт пользователя через UserManager.
+        Возвращает:
+        Созданный объект User.
+        """
         return User.objects.create_user(
             phone=self.cleaned_data["phone"],  # normalized in clean_phone()
             password=self.cleaned_data["password1"],
@@ -73,9 +79,9 @@ class RegisterForm(forms.Form):
 
 class LoginForm(forms.Form):
     """
-    Login form for phone-based authentication.
-
-    Uses django.contrib.auth.authenticate; custom backend should support phone.
+    Форма входа по номеру телефона.
+    Использует django.contrib.auth.authenticate.
+    Кастомный backend должен поддерживать аутентификацию по телефону.
     """
 
     phone = forms.CharField(
@@ -84,7 +90,14 @@ class LoginForm(forms.Form):
     password = forms.CharField(label="Пароль", widget=forms.PasswordInput)
 
     def clean(self):
-        """Authenticate user and store it in cleaned_data['user']."""
+        """
+        Выполняет аутентификацию пользователя.
+        В случае успеха:
+            - сохраняет пользователя в cleaned_data["user"]
+            - сохраняет нормализованный телефон в cleaned_data["phone"]
+        В случае ошибки:
+            - выбрасывает ValidationError.
+        """
         cleaned = super().clean()
         phone = cleaned.get("phone")
         password = cleaned.get("password")
@@ -93,7 +106,7 @@ class LoginForm(forms.Form):
 
         phone_norm = normalize_phone(phone)
 
-        # Pass phone as username for compatibility with auth backend API
+        # Передаём телефон как username для совместимости с API authenticate
         user = authenticate(username=phone_norm, password=password)
 
         if user is None:

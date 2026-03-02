@@ -1,10 +1,9 @@
 """
-Models for staff application.
-
-Contains:
-- Specialty: medical specialization
-- Doctor: doctor profile with photo and specialties
-- DoctorSchedule: weekly availability windows for each doctor
+Модели приложения персонала (staff).
+Содержит:
+- Specialty — медицинская специализация;
+- Doctor — профиль врача с фотографией и специализациями;
+- DoctorSchedule — недельные интервалы приёма врача.
 """
 
 from __future__ import annotations
@@ -15,7 +14,11 @@ from django.db import models
 
 class Specialty(models.Model):
     """
-    Medical specialty (e.g., "Cardiologist", "Ultrasound doctor").
+    Модель медицинской специализации.
+    Пример:
+        «Кардиолог», «Врач УЗИ», «Невролог».
+    Используется для группировки врачей
+    и фильтрации по направлениям.
     """
 
     name = models.CharField("Специальность", max_length=120)
@@ -26,21 +29,25 @@ class Specialty(models.Model):
         ordering = ("name",)
 
     def __str__(self) -> str:
-        """Return specialty name for admin/UI."""
+        """
+        Возвращает название специализации
+        для отображения в админке и интерфейсе.
+        """
         return self.name
 
 
 class Doctor(models.Model):
     """
-    Doctor profile.
-
-    Attributes:
-        full_name: doctor's full name
-        photo: optional portrait photo
-        specialties: many-to-many relation to specialties
-        bio: optional biography/description
-        experience_years: years of experience (non-negative)
-        is_active: controls visibility on website
+    Модель врача.
+    Содержит основные данные профиля врача,
+    используемые для отображения на сайте.
+    Поля:
+        full_name: ФИО врача.
+        photo: Фото (опционально).
+        specialties: Связанные специализации (many-to-many).
+        bio: Краткая биография или описание.
+        experience_years: Стаж работы (в годах).
+        is_active: Флаг отображения врача на сайте.
     """
 
     full_name = models.CharField("ФИО", max_length=150)
@@ -61,19 +68,21 @@ class Doctor(models.Model):
         ordering = ("full_name",)
 
     def __str__(self) -> str:
-        """Return full name for admin/UI."""
+        """
+        Возвращает ФИО врача
+        для отображения в админке и списках.
+        """
         return self.full_name
 
 
 class DoctorSchedule(models.Model):
     """
-    Weekly schedule window for a doctor.
-
-    Each record defines one time window for a weekday:
-    e.g. Monday 09:00–13:00.
-
-    Validation:
-        time_to must be greater than time_from.
+    Модель недельного расписания врача.
+    Каждая запись описывает один временной интервал
+    в конкретный день недели (например, понедельник 09:00–13:00).
+    Используется для формирования доступных слотов записи.
+    Бизнес-правило:
+        время окончания (time_to) должно быть строго больше времени начала (time_from).
     """
 
     WEEKDAYS = (
@@ -103,9 +112,11 @@ class DoctorSchedule(models.Model):
 
     def clean(self) -> None:
         """
-        Validate schedule window.
-
-        Ensures end time is strictly after start time.
+        Валидация временного интервала расписания.
+        Проверяет, что:
+            - time_from и time_to заданы;
+            - time_to > time_from.
+        При нарушении выбрасывает ValidationError.
         """
         super().clean()
         if self.time_from and self.time_to and self.time_to <= self.time_from:
@@ -114,5 +125,9 @@ class DoctorSchedule(models.Model):
             )
 
     def __str__(self) -> str:
-        """Return human-readable schedule string."""
+        """
+        Возвращает человекочитаемое представление расписания
+        в формате:
+            <Врач> — <День недели> <С>-<До>
+        """
         return f"{self.doctor} — {self.get_weekday_display()} {self.time_from}-{self.time_to}"

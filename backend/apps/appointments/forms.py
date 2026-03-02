@@ -1,10 +1,10 @@
 """
-Forms for appointments application.
-
-Includes AppointmentCreateForm:
-- dynamic slot queryset based on selected service and date
-- optional locking of service/doctor fields
-- extra validation for selected slot
+Формы приложения записей на приём.
+Модуль содержит AppointmentCreateForm — форму создания записи, в которой:
+- список слотов (AppointmentSlot) формируется динамически по выбранной услуге и дате;
+- поля "услуга" и "врач" могут быть предзаполнены и (опционально) скрыты/заблокированы,
+  если форма открыта со страницы услуги или врача;
+- добавлена дополнительная валидация выбранного слота (активность, занятость, время в будущем).
 """
 
 from __future__ import annotations
@@ -23,13 +23,15 @@ from .models import Appointment, AppointmentSlot
 
 class AppointmentCreateForm(forms.ModelForm):
     """
-    Appointment creation form with dynamic slot selection.
-
-    UX approach:
-    - preferred_date and slot are stored as hidden inputs
-    - slot queryset is calculated based on selected service and date
-    - supports locking service/doctor when coming from service/doctor pages
+    Форма создания записи на приём с динамическим выбором слота.
+    Особенности UX:
+    - preferred_date и slot хранятся в скрытых полях (HiddenInput);
+    - queryset для slot рассчитывается в __init__ на основе выбранных service и preferred_date;
+    - поддерживается сценарий "пришли со страницы услуги/врача":
+      можно передать service_id / doctor_id и при необходимости скрыть поля
+      (lock_service / lock_doctor), чтобы пользователь не менял контекст.
     """
+
 
     phone = forms.CharField(
         label="Телефон",
@@ -77,14 +79,21 @@ class AppointmentCreateForm(forms.ModelForm):
         **kwargs,
     ):
         """
-        Initialize form and configure dynamic querysets.
-
-        Args:
-            service_id: optional preselected service id (e.g. from service detail page)
-            doctor_id: optional preselected doctor id
-            lock_service: if True, hide service field and make it not required
-            lock_doctor: if True, hide doctor field and make it not required
-            service_queryset: optional queryset for services (override default)
+        Инициализирует форму и настраивает динамические queryset'ы.
+        Логика инициализации:
+        - ограничивает услуги только активными (и с активной категорией);
+        - ограничивает врачей только активными;
+        - вычисляет выбранную услугу и дату (из self.data / initial / service_id);
+        - формирует queryset слотов: активные слоты по услуге + по выбранной дате;
+        - при переданных service_id/doctor_id выставляет initial значения;
+          при lock_* скрывает соответствующее поле и снимает required;
+        - добавляет единый CSS-класс всем не скрытым полям для консистентного UI.
+        Параметры:
+            service_id: ID услуги для предвыбора (например, со страницы услуги).
+            doctor_id: ID врача для предвыбора (например, со страницы врача).
+            lock_service: Если True — поле service скрывается и не является обязательным.
+            lock_doctor: Если True — поле doctor скрывается и не является обязательным.
+            service_queryset: Необязательный queryset услуг (если нужно переопределить фильтр по умолчанию).
         """
         super().__init__(*args, **kwargs)
 
@@ -142,12 +151,17 @@ class AppointmentCreateForm(forms.ModelForm):
 
     def clean_slot(self):
         """
-        Validate selected slot.
-
-        Ensures:
-        - slot is active and not booked
-        - slot belongs to selected service (if service provided)
-        - slot start time is not in the past (timezone-aware, local time)
+        Валидирует выбранный слот времени.
+        Проверяет, что слот:
+        - существует в cleaned_data;
+        - относится к будущему времени (по локальному времени, timezone-aware);
+        - активен (is_active=True);
+        - не занят (is_booked=False);
+        - соответствует выбранной услуге (если услуга указана).
+        Возвращает:
+            AppointmentSlot: Провалидированный слот.
+        Вызывает:
+            ValidationError: если слот недоступен/занят/не относится к услуге/в прошлом.
         """
         slot: AppointmentSlot = self.cleaned_data.get("slot")
         service = self.cleaned_data.get("service")
@@ -174,10 +188,16 @@ class AppointmentCreateForm(forms.ModelForm):
 
     def clean_phone(self):
         """
-        Normalize and validate phone.
-
-        Converts to E.164 (+79991234567) and raises user-friendly error on invalid input.
+        Нормализует и валидирует номер телефона.
+        Приводит введённый номер к формату E.164 (например, +79991234567)
+        через normalize_phone(). При некорректном вводе возвращает понятную
+        пользователю ошибку валидации.
+        Возвращает:
+            str: Нормализованный номер телефона в формате E.164.
+        Вызывает:
+            forms.ValidationError: если normalize_phone() вернул ValidationError.
         """
+        ...
         raw = self.cleaned_data.get("phone", "")
         try:
             return normalize_phone(raw)

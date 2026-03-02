@@ -1,28 +1,35 @@
 {# appointments/_calendar_month.html #}
 
+{# ===== Навигация по месяцам ===== #}
 <div class="flex items-center justify-between gap-3 mb-3">
+
+  {# Кнопка "Предыдущий месяц" (через HTMX) #}
   <button
     type="button"
     class="h-9 w-9 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition"
     hx-get="{% url 'appointments:calendar' %}?m={{ prev_m }}"
     hx-target="#calendar-wrap"
     hx-swap="innerHTML"
+    {# Передаём выбранные значения формы вместе с запросом #}
     hx-include="#service-select,#preferred-date,#slot-input,#id_full_name,#id_phone"
     aria-label="Предыдущий месяц"
   >
     ←
   </button>
 
+  {# Текущий отображаемый месяц (формат YYYY-MM) #}
   <div class="text-sm font-semibold text-slate-800">
     {{ year }}-{% if month < 10 %}0{% endif %}{{ month }}
   </div>
 
+  {# Кнопка "Следующий месяц" (через HTMX) #}
   <button
     type="button"
     class="h-9 w-9 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition"
     hx-get="{% url 'appointments:calendar' %}?m={{ next_m }}"
     hx-target="#calendar-wrap"
     hx-swap="innerHTML"
+    {# Также сохраняем состояние формы #}
     hx-include="#service-select,#preferred-date,#slot-input,#id_full_name,#id_phone"
     aria-label="Следующий месяц"
   >
@@ -30,6 +37,8 @@
   </button>
 </div>
 
+
+{# ===== Заголовки дней недели ===== #}
 <div class="grid grid-cols-7 gap-2 mb-2 text-[11px] text-slate-500">
   <div class="text-center">Пн</div>
   <div class="text-center">Вт</div>
@@ -40,13 +49,20 @@
   <div class="text-center">Вс</div>
 </div>
 
+
+{# ===== Сетка календаря ===== #}
 <div class="grid grid-cols-7 gap-2">
+
+  {# Пустые ячейки до первого дня месяца (смещение начала недели) #}
   {% for _ in blanks %}
     <div class="h-11"></div>
   {% endfor %}
 
+  {# Основные дни месяца #}
   {% for d in days %}
     {% with ds=d|date:"Y-m-d" pretty=d|date:"d.m.Y" %}
+
+      {# Если дата в прошлом — делаем кнопку неактивной #}
       {% if d < today %}
         <button
           type="button"
@@ -57,25 +73,33 @@
         >
           {{ d|date:"d" }}
         </button>
+
       {% else %}
+        {# Активная дата (сегодня или будущее) #}
         <button
           type="button"
           class="h-11 rounded-2xl border text-sm flex items-center justify-center transition
                  {% if selected == ds %}
+                   {# Выбранная дата — выделяем жёлтым #}
                    bg-yellow-200 border-yellow-300 font-semibold text-slate-900
                  {% else %}
+                   {# Обычная активная дата #}
                    bg-white border-slate-200 hover:bg-slate-50 text-slate-900
                  {% endif %}"
           title="{{ ds }}"
+          {# При клике вызываем глобальную JS-функцию выбора даты #}
           onclick="window.selectDate && window.selectDate('{{ ds|escapejs }}', '{{ pretty|escapejs }}');"
         >
           {{ d|date:"d" }}
         </button>
       {% endif %}
+
     {% endwith %}
   {% endfor %}
 </div>
 
+
+{# Пояснение пользователю #}
 <div class="mt-3 text-xs text-slate-500">
   Прошедшие даты недоступны. Выберите сегодня или позже.
 </div>

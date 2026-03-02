@@ -1,13 +1,13 @@
 """
-Views for appointments application.
-
-Includes:
-- calendar_view: renders month grid (partial)
-- slots: returns available slots tiles (partial for HTMX)
-- appointment_create: create booking with transaction-safe slot locking
-- appointment_success: success page (should be access-protected)
-
-Also contains helper functions for parsing dates/ints and user auto-fill.
+Представления приложения записей на приём.
+Содержит:
+- calendar_view — рендер сетки месяца (partial для выбора даты);
+- slots — выдача доступных слотов времени (partial для HTMX);
+- appointment_create — создание записи с безопасной блокировкой слота в транзакции;
+- appointment_success — страница успешной записи (должна быть защищена от доступа к чужим записям).
+Также включает вспомогательные функции для:
+- безопасного парсинга даты/целых чисел,
+- автозаполнения имени и телефона пользователя по данным профиля/истории.
 """
 
 from __future__ import annotations
@@ -34,7 +34,8 @@ from .notifications import (AppointmentNotification, notify_email,
 
 def appointments_index(request):
     """
-    Simple index redirect for appointments section.
+    Индексный обработчик раздела записей.
+    Выполняет простой редирект на страницу создания записи.
     """
     return redirect("appointments:create")
 
@@ -42,7 +43,14 @@ def appointments_index(request):
 # ---------------- Helpers ----------------
 def _safe_int(value: str | None) -> int | None:
     """
-    Convert string to int safely. Returns None for invalid values.
+    Безопасно преобразует значение в int.
+    Возвращает None, если:
+    - значение пустое/None,
+    - строка не является корректным целым числом.
+    Параметры:
+       value (str | None): Исходное значение (обычно из query params).
+    Возвращает:
+        int | None: Целое число или None.
     """
     if value is None:
         return None
@@ -57,7 +65,11 @@ def _safe_int(value: str | None) -> int | None:
 
 def _safe_day(value: str | None) -> dt_date | None:
     """
-    Parse a YYYY-MM-DD string into a date. Returns None for invalid values.
+    Безопасно парсит дату из строки формата YYYY-MM-DD.
+    Параметры:
+      value (str | None): Строка даты.
+    Возвращает:
+      date | None: Объект даты или None при некорректном формате/значении.
     """
     if not value:
         return None
@@ -68,15 +80,17 @@ def _first_day_with_slots(
     service_id: int | None, start_day: dt_date, days_ahead: int = 31
 ) -> dt_date | None:
     """
-    Find the nearest date (starting from start_day) that has free active slots.
-
-    Args:
-        service_id: optional service filter
-        start_day: starting date for search
-        days_ahead: look-ahead window
-
-    Returns:
-        date of the first available slot or None
+    Ищет ближайшую дату, начиная со start_day, где есть свободные активные слоты.
+    Слот считается доступным, если:
+     - is_active=True,
+     - is_booked=False,
+     - starts_at попадает в диапазон дат [start_day; start_day + days_ahead].
+    Параметры:
+        service_id (int | None): ID услуги для фильтрации (если None — по всем услугам).
+        start_day (date): Дата, с которой начинается поиск.
+        days_ahead (int): Горизонт поиска (по умолчанию 31 день).
+    Возвращает:
+        date | None: Дата первого найденного доступного слота или None, если слотов нет.
     """
     qs = AppointmentSlot.objects.filter(
         is_active=True,
@@ -91,14 +105,17 @@ def _first_day_with_slots(
 
 def _user_full_name(user) -> str:
     """
-    Get user's full name from various possible sources.
-
-    Strategy:
-    1) user.get_full_name()
-    2) user.full_name
-    3) related objects: profile/patient/person (full_name or fio)
-    4) last Appointment.full_name for that user
-    5) fallback: email or username
+    Пытается получить ФИО пользователя из разных источников.
+    Стратегия:
+        1) user.get_full_name()
+        2) user.full_name
+        3) связанные объекты profile/patient/person (full_name или fio)
+        4) последняя запись Appointment.full_name для этого пользователя
+        5) fallback: email или username
+    Параметры:
+        user: Пользователь Django (request.user).
+    Возвращает:
+        str: Найденное ФИО (или пустая строка, если пользователь анонимный/данных нет).
     """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
@@ -141,12 +158,15 @@ def _user_full_name(user) -> str:
 
 def _user_phone(user) -> str:
     """
-    Get user's phone from user or related profile objects.
-
-    Strategy:
-    1) user.phone
-    2) related profile/patient/person phone
-    3) last Appointment.phone for that user
+    Пытается получить телефон пользователя из профиля/связанных объектов или истории записей.
+    Стратегия:
+        1) user.phone
+        2) связанные объекты profile/patient/person.phone
+        3) последняя запись Appointment.phone для этого пользователя
+    Параметры:
+        user: Пользователь Django (request.user).
+    Возвращает:
+        str: Найденный номер телефона (или пустая строка, если пользователь анонимный/данных нет).
     """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
@@ -175,15 +195,19 @@ def _user_phone(user) -> str:
     return ""
 
 
-# -------- Calendar (month grid) --------
 @require_GET
 def calendar_view(request):
     """
-    Render month grid partial for appointment date selection.
-
-    Query params:
-        m: month in format YYYY-MM (optional)
-        preferred_date/date: selected day (YYYY-MM-DD)
+    Рендерит partial с сеткой месяца для выбора даты записи.
+    Query-параметры:
+        m: отображаемый месяц в формате "YYYY-MM" (опционально).
+        preferred_date / date: выбранная дата в формате "YYYY-MM-DD" (опционально).
+    Правила:
+        - если выбранная дата некорректна или в прошлом — принудительно используется today;
+        - переход в прошлые месяцы запрещён (prev_disabled=True).
+    Возвращает:
+        HTML partial "appointments/_calendar_month.html" с данными:
+        today, selected, year, month, blanks, days, prev_m, next_m, prev_disabled.
     """
     today = timezone.localdate()
 
@@ -239,9 +263,24 @@ def calendar_view(request):
 @require_GET
 def slots(request):
     """
-    Render available time slots (HTMX partial).
-
-    Requires "patient_ready" (full_name + phone) and selected service/date.
+    Возвращает partial со списком доступных слотов времени (HTMX).
+    Назначение:
+        Отрисовать плитки времени для выбранных:
+        - услуги (service_id),
+        - даты (preferred_date/date),
+          при условии, что пациент ввёл минимально необходимые данные (ФИО + телефон).
+    Требует (логически):
+        - заполненные данные пациента (full_name + phone),
+        - выбранную услугу,
+        - выбранную дату (не в прошлом).
+    Поведение:
+        - если пациент не готов / услуга не выбрана / дата не выбрана — возвращает пустой список слотов
+          с соответствующими флагами состояния для UI;
+        - если дата в прошлом — возвращает флаг date_in_past=True и пустой список;
+        - иначе выбирает активные и свободные слоты по дню и услуге и возвращает их в формате:
+          [{"id": "<pk>", "label": "HH:MM"}, ...].
+    Возвращает:
+        HTML partial "appointments/_slots_tiles.html".
     """
     service_id_raw = (
         request.GET.get("service")
@@ -369,19 +408,26 @@ def slots(request):
 
 def appointment_create(request):
     """
-    Create an appointment.
-
-    Supports optional locking via query params:
-        service=<id>   -> lock service field
-        doctor=<id>    -> lock doctor field
-        promo=<slug>   -> restrict services to promo.services
-
-    Uses transaction + select_for_update() to prevent double booking:
-    - locks slot row
-    - checks active/not booked
-    - marks slot as booked
-    - creates Appointment record
-    - sends notifications (email + telegram)
+    Создаёт запись на приём (GET — форма, POST — создание записи).
+    Поддерживает "блокировку" полей через query params:
+        service=<id>  — предвыбрать услугу и (опционально) скрыть/зафиксировать поле;
+        doctor=<id>   — предвыбрать врача и (опционально) скрыть/зафиксировать поле;
+        promo=<slug>  — ограничить список услуг услугами акции (promo.services).
+    Гарантия от двойного бронирования:
+        Используется транзакция + select_for_update() на строке слота:
+        - лочим слот,
+        - проверяем is_active и is_booked,
+        - помечаем слот занятым,
+        - создаём Appointment, привязывая slot/service/doctor/promo,
+        - сохраняем запись.
+    После успешного создания:
+        - отправляет уведомления в клинику (email + Telegram),
+        - очищает черновик из session,
+        - сохраняет last_appointment_pk в session для доступа анонимного пользователя к success-странице,
+        - делает редирект на appointments:success.
+    Ошибки:
+        - при конфликте бронирования (IntegrityError/DoesNotExist) добавляет ошибку в поле slot
+          и повторно рендерит форму.
     """
     service_id = request.GET.get("service")
     doctor_id = request.GET.get("doctor")
@@ -496,7 +542,6 @@ def appointment_create(request):
             notify_telegram(payload)
 
             request.session.pop("appointment_draft", None)
-            # store last pk for anonymous access to success page
             request.session["last_appointment_pk"] = appointment.pk
             request.session.save()
 
@@ -541,11 +586,15 @@ def appointment_create(request):
 
 def appointment_success(request, pk: int):
     """
-    Render appointment success page.
-
-    Security:
-    - Authenticated users can view only their own appointments.
-    - Anonymous users can view only the last appointment created in this session.
+    Отображает страницу успешной записи.
+    Защита доступа:
+        - авторизованный пользователь видит только свои записи (appointment.user_id == request.user.id);
+        - анонимный пользователь видит только последнюю запись, созданную в текущей сессии
+          (session["last_appointment_pk"] == pk).
+    При нарушении доступа:
+        - редирект на страницу создания записи.
+    Возвращает:
+        HTML-страницу "appointments/success.html" с объектом appointment.
     """
     appointment = get_object_or_404(Appointment, pk=pk)
 

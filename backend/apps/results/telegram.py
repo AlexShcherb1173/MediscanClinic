@@ -1,7 +1,7 @@
 """
-Telegram client for results notifications.
-
-Used by signals to notify patients about newly uploaded results.
+Telegram-клиент для уведомлений о результатах исследований.
+Используется сигналами приложения results
+для отправки сообщений пациентам при загрузке новых файлов.
 """
 
 from __future__ import annotations
@@ -12,9 +12,17 @@ from django.conf import settings
 
 def send_telegram_message(chat_id: str, text: str) -> None:
     """
-    Send text message to a specific Telegram chat.
-
-    If TELEGRAM_BOT_TOKEN or chat_id is missing, silently does nothing.
+    Отправляет текстовое сообщение в указанный Telegram-чат.
+    Параметры:
+        chat_id: Идентификатор чата (пользователь или группа).
+        text: Текст сообщения.
+    Поведение:
+        - если TELEGRAM_BOT_TOKEN не настроен — функция ничего не делает;
+        - если chat_id пустой — функция ничего не делает;
+        - сетевые ошибки не пробрасываются наружу.
+    Назначение:
+        Используется для простых уведомлений пациента
+        о загрузке нового результата исследования.
     """
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     if not token or not chat_id:

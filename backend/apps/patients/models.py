@@ -1,8 +1,9 @@
 """
-Models for patients application.
-
-This app stores patient-specific profile data that should not belong to the auth user model.
-If you don't need any patient profile fields, consider removing the whole app from INSTALLED_APPS.
+Модели приложения пациентов (patients).
+Приложение хранит данные профиля пациента,
+которые не должны находиться в модели аутентификации (AUTH_USER_MODEL).
+Если дополнительные поля профиля пациента не требуются,
+приложение можно удалить из INSTALLED_APPS.
 """
 
 from __future__ import annotations
@@ -13,15 +14,15 @@ from django.db import models
 
 class PatientProfile(models.Model):
     """
-    Optional patient profile linked 1-to-1 with the auth user.
-
-    Keep only truly patient-related fields here (medical/identity/profile data),
-    not login credentials.
-
-    Fields:
-        user: One-to-one link to accounts.User
-        birth_date: optional date of birth
-        notes: optional internal notes (not visible to patient by default)
+    Дополнительный профиль пациента, связанный с пользователем (1-к-1).
+    В этой модели следует хранить только действительно
+    пациент-ориентированные данные (медицинские/профильные),
+    а не данные аутентификации.
+    Поля:
+        user: Связь один-к-одному с AUTH_USER_MODEL.
+        birth_date: Дата рождения (опционально).
+        notes: Внутренние служебные заметки
+               (по умолчанию не предназначены для отображения пациенту).
     """
 
     user = models.OneToOneField(
@@ -38,4 +39,8 @@ class PatientProfile(models.Model):
         verbose_name_plural = "Профили пациентов"
 
     def __str__(self) -> str:
+        """
+        Возвращает человекочитаемое представление профиля
+        для админки и логов.
+        """
         return f"PatientProfile: {self.user}"

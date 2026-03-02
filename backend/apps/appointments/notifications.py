@@ -1,11 +1,11 @@
 """
-Notification entrypoints for appointments.
-
-Provides high-level functions to notify about:
-- new appointment (email/telegram)
-- arbitrary telegram text
-
-Primary channel uses Celery tasks; falls back gracefully if Celery/Redis unavailable.
+Точки входа для отправки уведомлений по записям.
+Предоставляет высокоуровневые функции для уведомления о:
+- новой записи (email / Telegram),
+- произвольном сообщении в Telegram.
+Основной механизм отправки — Celery-задачи.
+При недоступности Celery/Redis выполняется безопасный fallback
+(синхронная отправка email или пропуск Telegram).
 """
 
 import logging
@@ -22,13 +22,14 @@ logger = logging.getLogger("appointments")
 @dataclass(frozen=True)
 class AppointmentNotification:
     """
-    Notification payload for new appointment.
-
-    Attributes:
-        full_name: Patient full name.
-        phone: Patient phone.
-        service_name: Service name.
-        preferred_datetime_iso: ISO datetime string for appointment time.
+    DTO (payload) для уведомления о новой записи.
+    Используется для передачи структурированных данных
+    в email- и Telegram-уведомления.
+    Поля:
+        full_name: Полное имя пациента.
+        phone: Телефон пациента.
+        service_name: Название услуги.
+        preferred_datetime_iso: Дата и время записи в формате ISO.
     """
 
     full_name: str
@@ -39,9 +40,20 @@ class AppointmentNotification:
 
 def notify_email(payload: AppointmentNotification) -> None:
     """
-    Notify clinic by email about a new appointment.
-
-    Uses Celery task; falls back to synchronous send_mail if task queue is unavailable.
+    Отправляет email-уведомление о новой записи.
+    Логика:
+        1. Формирует тему и тело письма.
+        2. Получает email получателя из настроек:
+           - APPOINTMENTS_TO_EMAIL,
+           - либо DEFAULT_FROM_EMAIL (fallback).
+        3. Пытается отправить письмо через Celery-задачу.
+        4. При ошибке (например, Celery/Redis недоступны)
+           выполняет синхронную отправку через send_mail.
+    Безопасность:
+        - Если список получателей пустой — отправка не выполняется.
+        - Используется fail_silently=True для fallback-отправки.
+    Исключения:
+        Исключения не пробрасываются наружу (логируются).
     """
     subject = "Mediscan: новая запись"
     body = (
@@ -68,7 +80,12 @@ def notify_email(payload: AppointmentNotification) -> None:
 
 def notify_telegram(payload: AppointmentNotification) -> None:
     """
-    Notify clinic by Telegram about a new appointment.
+    Отправляет Telegram-уведомление о новой записи.
+    Формирует текст сообщения в Markdown-формате
+    и передаёт его в Celery-задачу send_telegram_text_task.
+    Поведение при ошибке:
+        - Если Celery/Redis недоступны, сообщение не отправляется.
+        - Ошибка логируется, выполнение не прерывается.
     """
     text = (
         "🩺 *Новая запись*\n"
@@ -85,7 +102,12 @@ def notify_telegram(payload: AppointmentNotification) -> None:
 
 def notify_telegram_text(text: str) -> None:
     """
-    Send arbitrary text to Telegram (best-effort, via Celery task).
+    Отправляет произвольный текст в Telegram (best-effort).
+    Используется для служебных уведомлений или отладочных сообщений.
+    Поведение:
+        - Отправка выполняется через Celery-задачу.
+        - При недоступности очереди задача пропускается,
+          ошибка логируется.
     """
     try:
         send_telegram_text_task.delay(text)

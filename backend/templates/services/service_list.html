@@ -1,32 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Услуги{% endblock %}
+
+{# ===================== Страница: Каталог услуг ===================== #}
+{# Левая колонка: категории. Правая: фильтры + карточки услуг + пагинация #}
+
+{% block title %}
+  {# Заголовок вкладки браузера #}
+  Услуги
+{% endblock %}
 
 {% block content %}
+{# --------------------- Верхний заголовок страницы --------------------- #}
 <div class="flex items-start justify-between">
   <div>
     <h1 class="text-2xl font-semibold">Услуги</h1>
+    {# Подсказка пользователю: сначала выбрать категорию/фильтры #}
     <p class="text-slate-600 mt-1">Выберите категорию и настройте фильтры.</p>
   </div>
 </div>
 
+{# --------------------- Основная сетка: категории + список --------------------- #}
 <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-  <!-- Left: categories -->
+  {# ===================== LEFT: список категорий ===================== #}
   <aside class="lg:col-span-3">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
       <div class="text-sm font-semibold">Категории</div>
 
       <div class="mt-3 space-y-1">
-        <a href="{% url 'services:list' %}"
-           class="block rounded-lg px-3 py-2 text-sm
-                  {% if not category_slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}">
+        {# “Все услуги” — активна, если category_slug не задан #}
+        <a
+          href="{% url 'services:list' %}"
+          class="block rounded-lg px-3 py-2 text-sm
+                 {% if not category_slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}"
+        >
           Все услуги
         </a>
 
+        {# Список категорий #}
         {% for c in categories %}
-          <a href="{% url 'services:category' c.slug %}"
-             class="block rounded-lg px-3 py-2 text-sm
-                    {% if category_slug == c.slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}">
+          <a
+            href="{% url 'services:category' c.slug %}"
+            class="block rounded-lg px-3 py-2 text-sm
+                   {% if category_slug == c.slug %}bg-slate-900 text-white{% else %}hover:bg-slate-100 text-slate-700{% endif %}"
+          >
             {{ c.name }}
           </a>
         {% endfor %}
@@ -34,33 +50,51 @@
     </div>
   </aside>
 
-  <!-- Right: list -->
+  {# ===================== RIGHT: фильтры + карточки + пагинация ===================== #}
   <section class="lg:col-span-9">
 
-    <!-- Filters -->
+    {# --------------------- Фильтры (GET) --------------------- #}
+    {# Важно: method="get", чтобы фильтры отражались в URL #}
     <form method="get" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+
+        {# Поиск по названию/описанию (q) #}
         <div class="md:col-span-5">
           <label class="block text-xs font-medium text-slate-600 mb-1">Поиск</label>
           <input
             class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
-            type="text" name="q" value="{{ q }}" placeholder="Например: УЗИ, МРТ">
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Например: УЗИ, МРТ"
+          >
         </div>
 
+        {# Минимальная цена (price_min) #}
         <div class="md:col-span-2">
           <label class="block text-xs font-medium text-slate-600 mb-1">Цена от</label>
           <input
             class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
-            type="text" name="price_min" value="{{ price_min }}" placeholder="0">
+            type="text"
+            name="price_min"
+            value="{{ price_min }}"
+            placeholder="0"
+          >
         </div>
 
+        {# Максимальная цена (price_max) #}
         <div class="md:col-span-2">
           <label class="block text-xs font-medium text-slate-600 mb-1">Цена до</label>
           <input
             class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
-            type="text" name="price_max" value="{{ price_max }}" placeholder="10000">
+            type="text"
+            name="price_max"
+            value="{{ price_max }}"
+            placeholder="10000"
+          >
         </div>
 
+        {# Сортировка (sort) #}
         <div class="md:col-span-3">
           <label class="block text-xs font-medium text-slate-600 mb-1">Сортировка</label>
           <select class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0" name="sort">
@@ -70,39 +104,51 @@
             <option value="-price" {% if sort == "-price" %}selected{% endif %}>По цене (убыв.)</option>
           </select>
         </div>
+
       </div>
 
+      {# Кнопки управления фильтрами + счётчик найденного #}
       <div class="mt-4 flex flex-wrap items-center gap-3">
+        {# Применить фильтры: просто отправляем форму #}
         <button class="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
           Применить
         </button>
 
-        <a class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-           href="?">
+        {# Сброс фильтров: уводим на текущий URL без querystring #}
+        <a
+          class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          href="?"
+        >
           Сбросить
         </a>
 
+        {# Общее количество результатов (берём из paginator) #}
         <div class="ml-auto text-sm text-slate-600">
           Найдено: <b class="text-slate-900">{{ page_obj.paginator.count }}</b>
         </div>
       </div>
     </form>
 
-    <!-- Cards -->
+    {# --------------------- Список услуг (карточки) --------------------- #}
     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {% for s in services %}
         <div class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:border-slate-300 hover:shadow-md transition">
 
+          {# Верх карточки: категория + название + бейдж #}
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <div class="text-xs text-slate-500">{{ s.category.name }}</div>
 
-              <a href="{% url 'services:detail' s.slug %}"
-                 class="mt-1 block text-base font-semibold text-slate-900 leading-snug group-hover:underline line-clamp-2">
+              {# Название услуги ведёт на детальную страницу #}
+              <a
+                href="{% url 'services:detail' s.slug %}"
+                class="mt-1 block text-base font-semibold text-slate-900 leading-snug group-hover:underline line-clamp-2"
+              >
                 {{ s.name }}
               </a>
             </div>
 
+            {# Бейдж “Популярная” #}
             {% if s.is_featured %}
               <span class="shrink-0 inline-flex rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 px-3 py-1 text-xs font-semibold">
                 Популярная
@@ -110,6 +156,7 @@
             {% endif %}
           </div>
 
+          {# Короткое описание (если есть) #}
           {% if s.description %}
             <div class="mt-3 text-sm text-slate-600 line-clamp-3">
               {{ s.description }}
@@ -120,58 +167,80 @@
             </div>
           {% endif %}
 
+          {# Цена #}
           <div class="mt-4 flex items-center justify-between">
             <div class="text-sm font-semibold text-slate-900">
               от {{ s.price_from }} ₽{% if s.price_to %} — {{ s.price_to }} ₽{% endif %}
             </div>
           </div>
 
+          {# Кнопки: “Подробнее” и “Записаться” #}
           <div class="mt-5 flex items-center gap-2">
-            <a href="{% url 'services:detail' s.slug %}"
-               class="inline-flex items-center justify-center rounded-full
-                      border border-slate-200 px-4 py-2 text-sm font-medium
-                      text-slate-700 hover:bg-slate-50 transition">
+            <a
+              href="{% url 'services:detail' s.slug %}"
+              class="inline-flex items-center justify-center rounded-full
+                     border border-slate-200 px-4 py-2 text-sm font-medium
+                     text-slate-700 hover:bg-slate-50 transition"
+            >
               Подробнее
             </a>
 
-            <!-- ✅ ВАЖНО: next=... чтобы вернуться на эту же страницу каталога -->
-            <a href="{% url 'appointments:create' %}?service={{ s.id }}&next={{ request.get_full_path|urlencode }}"
-               class="inline-flex items-center justify-center rounded-full
-                      bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-semibold
-                      hover:bg-yellow-300 transition shadow">
+            {# ✅ Важно: next=... чтобы после записи можно было вернуться в каталог с фильтрами #}
+            <a
+              href="{% url 'appointments:create' %}?service={{ s.id }}&next={{ request.get_full_path|urlencode }}"
+              class="inline-flex items-center justify-center rounded-full
+                     bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-semibold
+                     hover:bg-yellow-300 transition shadow"
+            >
               Записаться
             </a>
           </div>
 
         </div>
       {% empty %}
+        {# Пустое состояние: ничего не найдено по фильтрам #}
         <div class="bg-white rounded-2xl border border-slate-200 p-6 text-slate-700 md:col-span-2 xl:col-span-3">
           Услуги не найдены. Попробуйте изменить фильтры.
         </div>
       {% endfor %}
     </div>
 
-    <!-- Pagination -->
+    {# --------------------- Пагинация --------------------- #}
     {% if is_paginated %}
       <nav class="mt-6 flex items-center justify-center gap-2">
+        {# Собираем querystring без page, чтобы листать страницы и сохранять фильтры #}
         {% with qs="q="|add:q|add:"&price_min="|add:price_min|add:"&price_max="|add:price_max|add:"&sort="|add:sort %}
+
+          {# Кнопка “назад” #}
           {% if page_obj.has_previous %}
-            <a class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
-               href="?{{ qs }}&page={{ page_obj.previous_page_number }}">←</a>
+            <a
+              class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
+              href="?{{ qs }}&page={{ page_obj.previous_page_number }}"
+            >
+              ←
+            </a>
           {% else %}
             <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400">←</span>
           {% endif %}
 
+          {# Текущая страница / всего страниц #}
           <span class="px-3 py-2 text-sm text-slate-600">
-            Стр. <b class="text-slate-900">{{ page_obj.number }}</b> из <b class="text-slate-900">{{ page_obj.paginator.num_pages }}</b>
+            Стр. <b class="text-slate-900">{{ page_obj.number }}</b>
+            из <b class="text-slate-900">{{ page_obj.paginator.num_pages }}</b>
           </span>
 
+          {# Кнопка “вперёд” #}
           {% if page_obj.has_next %}
-            <a class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
-               href="?{{ qs }}&page={{ page_obj.next_page_number }}">→</a>
+            <a
+              class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
+              href="?{{ qs }}&page={{ page_obj.next_page_number }}"
+            >
+              →
+            </a>
           {% else %}
             <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400">→</span>
           {% endif %}
+
         {% endwith %}
       </nav>
     {% endif %}

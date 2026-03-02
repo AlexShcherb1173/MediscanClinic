@@ -1,4 +1,10 @@
-{# Сообщения Django messages #}
+{# ===================== Блок сообщений Django (messages framework) ===================== #}
+{#
+  Выводим системные уведомления:
+  - success — успешная отправка формы
+  - error — ошибка
+  - остальные — нейтральные уведомления
+#}
 {% if messages %}
   <div class="mt-6 space-y-2">
     {% for m in messages %}
@@ -12,45 +18,77 @@
   </div>
 {% endif %}
 
+
+{# ===================== Форма обратной связи ===================== #}
+{#
+  novalidate — отключаем встроенную HTML-валидацию,
+  чтобы управлять ошибками через Django.
+#}
 <form method="post" class="mt-5 space-y-4" novalidate>
   {% csrf_token %}
 
+  {# ===================== Имя + Контакт (2 колонки на sm+) ===================== #}
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    {# Поле "Имя" #}
     <div>
       <label class="block text-sm font-medium text-slate-700 mb-1">Имя</label>
       {{ form.name }}
-      {% if form.name.errors %}<div class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</div>{% endif %}
+      {% if form.name.errors %}
+        <div class="mt-1 text-sm text-red-600">
+          {{ form.name.errors.0 }}
+        </div>
+      {% endif %}
     </div>
 
+    {# Поле "Телефон или Email" #}
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">Телефон или Email</label>
+      <label class="block text-sm font-medium text-slate-700 mb-1">
+        Телефон или Email
+      </label>
       {{ form.contact }}
-      {% if form.contact.errors %}<div class="mt-1 text-sm text-red-600">{{ form.contact.errors.0 }}</div>{% endif %}
+      {% if form.contact.errors %}
+        <div class="mt-1 text-sm text-red-600">
+          {{ form.contact.errors.0 }}
+        </div>
+      {% endif %}
     </div>
   </div>
 
+  {# ===================== Сообщение ===================== #}
   <div>
     <label class="block text-sm font-medium text-slate-700 mb-1">Сообщение</label>
     {{ form.message }}
-    {% if form.message.errors %}<div class="mt-1 text-sm text-red-600">{{ form.message.errors.0 }}</div>{% endif %}
+    {% if form.message.errors %}
+      <div class="mt-1 text-sm text-red-600">
+        {{ form.message.errors.0 }}
+      </div>
+    {% endif %}
   </div>
 
+  {# Общие (non-field) ошибки формы #}
   {% if form.non_field_errors %}
     <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       {{ form.non_field_errors.0 }}
     </div>
   {% endif %}
 
+  {# ===================== Кнопки действий ===================== #}
   <div class="flex flex-wrap gap-3 pt-1">
+
+    {# Кнопка отправки формы #}
     <button class="rounded-xl bg-slate-900 text-white px-5 py-2 text-sm font-medium hover:bg-slate-800">
       Отправить
     </button>
+
+    {# Альтернативный CTA — перейти к онлайн-записи #}
     <a href="{% url 'appointments:create' %}"
        class="rounded-xl bg-yellow-400 text-blue-900 px-5 py-2 text-sm font-semibold hover:bg-yellow-300 transition shadow">
       Записаться онлайн
     </a>
   </div>
 
+  {# Юридическая информация о согласии на обработку персональных данных #}
   <div class="mt-2 text-xs text-slate-500">
     Нажимая “Отправить”, вы соглашаетесь с политикой обработки персональных данных.
   </div>

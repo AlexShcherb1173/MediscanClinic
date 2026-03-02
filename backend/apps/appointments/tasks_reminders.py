@@ -1,13 +1,13 @@
 """
-Celery task for sending appointment reminders.
-
-This module implements a time-window based reminder sender:
-- about 24 hours before appointment (+/- window)
-- about 2 hours before appointment (+/- window)
-
-Channels:
-- Telegram (via Celery task)
-- Email (via Celery task)
+Celery-задача отправки напоминаний о записях на приём.
+Модуль реализует отправку напоминаний по окнам времени:
+- примерно за 24 часа до приёма (с допуском ± заданное окно),
+- примерно за 2 часа до приёма (с допуском ± заданное окно).
+Каналы отправки:
+- Telegram (через Celery-задачу send_telegram_text_task),
+- Email (через Celery-задачу send_email_task).
+Алгоритм защищён от дублей при параллельном выполнении воркеров
+за счёт блокировки строк select_for_update(skip_locked=True).
 """
 
 from datetime import timedelta
@@ -24,15 +24,23 @@ from .tasks import send_email_task, send_telegram_text_task
 @shared_task
 def send_appointments_reminders() -> int:
     """
-    Find upcoming appointments and send reminders if not sent yet.
-
-    For each configured window (24h, 2h):
-    - locks rows with select_for_update(skip_locked=True) inside a transaction
-    - sends Telegram/email using Celery tasks
-    - marks reminder flags and reminded_at
-
-    Returns:
-        int: number of reminder sends (counts per-channel).
+    Находит ближайшие записи и отправляет напоминания, если они ещё не были отправлены.
+    Для каждого окна (24h, 2h):
+        1) вычисляет интервал времени [target - window; target + window];
+        2) в транзакции лочит подходящие записи через select_for_update(skip_locked=True),
+           чтобы разные воркеры не обработали одну и ту же запись одновременно;
+        3) отправляет напоминания в Telegram и/или по Email через отдельные Celery-задачи;
+        4) выставляет флаги reminder_telegram_sent / reminder_email_sent;
+        5) записывает reminded_at и сохраняет только изменённые поля.
+    Учитываемые записи:
+        - preferred_datetime попадает в интервал окна;
+        - статус записи: NEW или CONFIRMED.
+    Возвращает:
+        int: количество отправок напоминаний (считается по каналам:
+             Telegram и Email инкрементируют счётчик независимо).
+    Примечания:
+        - Если APPOINTMENTS_TO_EMAIL и DEFAULT_FROM_EMAIL не заданы, email-канал пропускается.
+        - Время форматируется в локальной временной зоне.
     """
     now = timezone.now()
 

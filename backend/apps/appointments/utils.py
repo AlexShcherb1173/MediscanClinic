@@ -1,7 +1,7 @@
 """
-Utility functions for appointments application.
-
-Currently contains helpers to query busy times for a given service and day.
+Вспомогательные функции приложения записей на приём.
+В текущей версии содержит утилиты для получения занятых временных слотов
+по услуге и выбранной дате.
 """
 
 from __future__ import annotations
@@ -15,17 +15,21 @@ from .models import Appointment
 
 def get_busy_time_labels(service_id: int, day: date) -> set[str]:
     """
-    Return a set of busy time labels ("HH:MM") for a service on a given day.
-
-    Busy means there is an appointment in status NEW or CONFIRMED whose
-    preferred_datetime falls within the day range in current timezone.
-
-    Args:
-        service_id: Service primary key.
-        day: Date to check.
-
-    Returns:
-        Set of strings in format "HH:MM".
+    Возвращает набор занятых временных меток ("HH:MM")
+    для указанной услуги и даты.
+    Слот считается занятым, если существует запись (Appointment)
+    со статусом NEW или CONFIRMED, у которой preferred_datetime
+    попадает в диапазон выбранного дня с учётом текущей временной зоны.
+    Параметры:
+        service_id (int): ID услуги.
+        day (date): Дата, для которой нужно определить занятость.
+    Логика:
+        - формируется диапазон [00:00:00; 23:59:59] выбранного дня;
+        - диапазон делается timezone-aware;
+        - выполняется фильтрация по услуге, статусу и времени;
+        - возвращаются только временные метки в формате "HH:MM".
+    Возвращает:
+        set[str]: Набор строк вида "HH:MM" (например {"10:00", "10:30"}).
     """
     tz = timezone.get_current_timezone()
     start = timezone.make_aware(datetime.combine(day, time.min), tz)

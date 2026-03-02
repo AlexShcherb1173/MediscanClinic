@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---- Мед-стиль (Invitro-like) поверх tailwind ---- */
+/* ---- Мед-стиль поверх tailwind ---- */
 @layer base {
   html { scroll-behavior: smooth; }
   body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }

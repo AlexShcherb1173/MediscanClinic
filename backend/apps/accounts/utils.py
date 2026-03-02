@@ -10,11 +10,22 @@ E164_RE = re.compile(r"^\+[1-9]\d{1,14}$")
 
 def normalize_phone(raw: str, default_region: str = "RU") -> str:
     """
-    Normalize phone to E.164 format: +79991234567
-
-    Accepts user input with spaces/brackets/dashes.
-    Validates number using `phonenumbers` and returns E.164 string.
-    """
+       Нормализует номер телефона в формат E.164: +79991234567.
+       Поддерживает ввод с пробелами, скобками и дефисами.
+       Выполняет:
+           - очистку строки от лишних символов
+           - парсинг через библиотеку phonenumbers
+           - проверку валидности номера
+           - приведение к формату E.164
+       Args:
+           raw: исходное значение телефона
+           default_region: регион по умолчанию (используется, если номер без "+"),
+                           например "RU"
+       Returns:
+           Номер телефона в формате E.164.
+       Raises:
+           ValidationError: если номер пустой или некорректный.
+       """
     if raw is None:
         raise ValidationError("Телефон обязателен.")
 

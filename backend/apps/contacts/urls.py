@@ -1,5 +1,11 @@
 """
-URL configuration for contacts application.
+Конфигурация URL для приложения контактов (contacts).
+Маршруты:
+- home — основная страница «Контакты»;
+- feedback — страница обратной связи;
+- ask_question — форма отправки вопроса.
+Используется пространство имён app_name = "contacts"
+для корректной работы reverse() и {% url %} в шаблонах.
 """
 
 from django.urls import path

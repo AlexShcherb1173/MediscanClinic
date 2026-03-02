@@ -1,12 +1,14 @@
 """
-App configuration for appointments application.
+Конфигурация приложения appointments.
 """
 
 from django.apps import AppConfig
 
 
 class AppointmentsConfig(AppConfig):
-    """Django AppConfig for appointments app."""
+    """
+    Класс конфигурации Django для приложения appointments.
+    """
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.appointments"

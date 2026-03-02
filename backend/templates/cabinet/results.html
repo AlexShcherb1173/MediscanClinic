@@ -3,20 +3,29 @@
 {% block title %}Мои результаты — Mediscan{% endblock %}
 
 {% block content %}
+<!-- Основной контейнер страницы "Мои результаты" -->
 <div class="max-w-6xl mx-auto space-y-6">
 
+  <!-- ================= Шапка страницы =================
+     Здесь: заголовок, описание и быстрые действия (вернуться в кабинет / обратная связь) -->
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
+      <!-- Заголовок раздела -->
       <h1 class="text-2xl font-extrabold text-slate-900">Результаты исследований</h1>
+
+      <!-- Подзаголовок/пояснение пользователю -->
       <div class="text-slate-600 text-sm mt-1">Все загруженные администратором документы</div>
     </div>
 
+    <!-- Кнопки действий справа: "в кабинет" и открытие модалки обратной связи -->
     <div class="flex gap-2 flex-wrap">
+      <!-- Возврат на главную страницу личного кабинета -->
       <a href="{% url 'cabinet:dashboard' %}"
          class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition">
         ← В кабинет
       </a>
 
+      <!-- Открытие модального окна "Обратная связь" (ловится JS по data-open-feedback) -->
       <button type="button" data-open-feedback
         class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition">
         Обратная связь
@@ -24,26 +33,38 @@
     </div>
   </div>
 
+  <!-- ================= Список результатов =================
+     Внутри — либо карточки результатов, либо сообщение "пока нет" -->
   <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
     {% if results %}
+      <!-- Если результаты есть — выводим список карточек -->
       <div class="space-y-4">
         {% for r in results %}
+          <!-- Карточка одного результата исследования -->
           <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
             <div class="space-y-3">
 
+              <!-- Верхняя часть карточки: название + метаданные -->
               <div>
+                <!-- Название исследования/документа -->
                 <div class="text-base md:text-lg font-semibold text-slate-900">
                   {{ r.title }}
                 </div>
 
+                <!-- Метаданные: дата исследования (если есть), дата загрузки, бейдж "Новое" -->
                 <div class="mt-1 text-sm text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <!-- Дата проведения исследования (опционально) -->
                   {% if r.result_date %}
                     <span>Дата: {{ r.result_date|date:"d.m.Y" }}</span>
                   {% endif %}
 
+                  <!-- Разделитель между полями (оставляем даже если result_date нет — ок по дизайну) -->
                   <span class="text-slate-300">•</span>
+
+                  <!-- Дата и время загрузки в систему -->
                   <span>Загружено: {{ r.created_at|date:"d.m.Y H:i" }}</span>
 
+                  {# Бейдж "Новое" — если пользователь ещё не скачивал/не просматривал документ #}
                   {% if not r.is_viewed %}
                     <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 px-2 py-0.5 text-xs font-semibold">
                       Новое
@@ -52,13 +73,16 @@
                 </div>
               </div>
 
+              <!-- Комментарий администратора к результату (опционально) -->
               {% if r.comment %}
                 <div class="text-sm text-slate-700">
                   {{ r.comment }}
                 </div>
               {% endif %}
 
+              <!-- Кнопка скачивания PDF -->
               <div class="flex justify-end">
+                <!-- Важно: скачивание идёт через защищённый view, который проверяет владельца и помечает как просмотренное -->
                 <a href="{% url 'results:download' r.pk %}"
                    class="inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition">
                   Скачать PDF →
@@ -70,6 +94,7 @@
         {% endfor %}
       </div>
     {% else %}
+      <!-- Пустое состояние: у пользователя нет загруженных результатов -->
       <div class="text-slate-600 text-sm">
         Пока нет загруженных результатов.
       </div>

@@ -1,5 +1,5 @@
 """
-Admin configuration for custom User model.
+Административная конфигурация кастомной модели пользователя.
 """
 
 from django.contrib import admin
@@ -10,7 +10,13 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    """Admin UI for phone-based User model."""
+    """
+    Настройка интерфейса Django Admin для модели User.
+    Особенности:
+    - Авторизация по номеру телефона
+    - Отображение ФИО, телефона и email в списке
+    - Управление правами доступа и статусом пользователя
+    """
 
     ordering = ("id",)
     list_display = ("id", "full_name", "phone", "email", "is_staff", "is_active")

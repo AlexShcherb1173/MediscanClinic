@@ -1,14 +1,22 @@
 """
-Management command to seed default static Page records.
-
-Creates or updates a set of predefined pages (about-*) with HTML content.
-The command is idempotent: it can be executed multiple times safely.
+Management-команда для заполнения стандартных статических страниц (Page).
+Создаёт или обновляет предопределённые страницы раздела «О нас» (about-*),
+заполняя их HTML-контентом по шаблону.
+Команда идемпотентна:
+её можно выполнять многократно — данные будут корректно обновляться,
+не создавая дубликатов.
 """
 
 from django.core.management.base import BaseCommand
 
 from apps.pages.models import Page
-
+"""
+Сопоставление slug страницы и шаблонных данных для заполнения.
+Каждый элемент словаря содержит:
+- title: Заголовок страницы;
+- content: HTML-контент (рекомендуется использовать Tailwind + prose-классы).
+Используется в management-команде для создания или обновления страниц.
+"""
 TEMPLATES = {
     "about-history": {
         "title": "История Mediscan",
@@ -132,22 +140,24 @@ Each item provides:
 
 class Command(BaseCommand):
     """
-    Seed default CMS-like pages.
-
-    The command creates or updates Page objects based on the `TEMPLATES` mapping.
+    Команда для заполнения (seed) стандартных CMS-страниц.
+    Создаёт или обновляет объекты Page на основе словаря `TEMPLATES`.
+    Подходит для первичной инициализации проекта или обновления шаблонов.
     """
 
     help = "Create/update default Pages templates (about-*)"
 
     def handle(self, *args, **options):
         """
-        Execute the command.
-
-        For each slug in `TEMPLATES`:
-        - create a Page if it does not exist
-        - otherwise update its fields
-
-        Prints a summary of created/updated objects.
+        Выполняет команду заполнения страниц.
+        Для каждого slug из `TEMPLATES`:
+            - создаёт объект Page, если он отсутствует;
+            - либо обновляет существующий объект (title, content, is_published).
+        Использует update_or_create(), что делает операцию безопасной
+        для повторного запуска.
+        В конце выводит в консоль сводку:
+            - количество созданных страниц;
+            - количество обновлённых страниц.
         """
         created = 0
         updated = 0
