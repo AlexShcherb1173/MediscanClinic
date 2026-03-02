@@ -2,16 +2,24 @@
 <!doctype html>
 <html lang="ru">
 <head>
+  <!-- Кодировка + адаптивность -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Заголовок вкладки (переопределяется в дочерних шаблонах) -->
   <title>{% block title %}Mediscan{% endblock %}</title>
 
+  <!-- Собранный Tailwind CSS (или ваш общий CSS) -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+  <!-- HTMX для AJAX/partial update (если используете) -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
+  <!-- CSRF-токен в meta (используем ниже в HTMX-хедере) -->
   <meta name="csrf-token" content="{{ csrf_token }}">
 
   <style>
+    /* Анимация “пилюль” (кнопки/пункты меню) */
     .nav-pill{
       transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
       will-change: transform;
@@ -19,8 +27,10 @@
     .nav-pill:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.10); }
     .nav-pill:active{ transform: translateY(0); box-shadow: none; }
 
+    /* Плавный скролл по якорям + отступ под шапку */
     html{ scroll-behavior:smooth; scroll-padding-top:92px; }
 
+    /* Ripple-эффект (если используете где-то в JS) */
     .ripple{
       position:absolute;border-radius:9999px;transform:translate(-50%,-50%);
       pointer-events:none;animation:ripple 600ms ease-out;background:rgba(255,255,255,0.55);
@@ -34,16 +44,17 @@
 
 <body class="min-h-screen bg-sky-300 text-slate-900">
 
+<!-- ===================== HEADER ===================== -->
 <header class="bg-blue-600 text-white border-b border-blue-700">
   <div class="max-w-6xl mx-auto px-4">
 
-    <!-- TOP ROW -->
+    <!-- TOP ROW: логотип + город/телефон + CTA/ЛК -->
     <div class="h-16 flex items-center justify-between gap-4">
 
       <!-- LEFT GROUP: Logo + City/Call -->
       <div class="flex items-center gap-4 min-w-0">
 
-        <!-- Logo -->
+        <!-- Logo: переход на главную -->
         <a href="{% url 'pages:home' %}" class="flex items-center gap-3 shrink-0">
           <div class="h-10 w-10 rounded-2xl bg-white/15 border border-white/20"></div>
           <div class="leading-tight">
@@ -52,10 +63,10 @@
           </div>
         </a>
 
-        <!-- City + Call (desktop) -->
+        <!-- City + Call (desktop): блок показываем только на lg+ -->
         <div class="hidden lg:flex items-center gap-2">
 
-          <!-- City -->
+          <!-- City dropdown -->
           <div class="relative">
             <button
               type="button"
@@ -70,6 +81,7 @@
               <span class="text-blue-100" aria-hidden="true">▾</span>
             </button>
 
+            <!-- Выпадающий список городов -->
             <div
               id="cityMenu"
               class="hidden absolute left-0 mt-2 w-60 rounded-2xl bg-white shadow-lg
@@ -82,13 +94,14 @@
             </div>
           </div>
 
-          <!-- Call -->
+          <!-- Call button: телефон (обновляется скриптом при смене города) -->
           <a
             id="callBtn"
             href="tel:+79856987282"
             class="inline-flex items-center gap-2 px-4 py-2 rounded-full
                    bg-white/10 hover:bg-white/20 text-sm font-extrabold text-white transition nav-pill"
           >
+            <!-- Иконка телефона (inline SVG) -->
             <svg class="h-4 w-4 text-blue-100" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2
                        19.86 19.86 0 0 1-8.63-3.07
@@ -101,6 +114,8 @@
                        A2 2 0 0 1 22 16.92Z"
                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+
+            <!-- Текст номера (обновляется скриптом при смене города) -->
             <span id="callText" class="whitespace-nowrap">+7 (985) 698-72-82</span>
           </a>
 
@@ -110,7 +125,7 @@
       <!-- RIGHT GROUP: Search/Book/Results/LK -->
       <div class="flex items-center gap-2 shrink-0">
 
-        <!-- Search (mobile/tablet) -->
+        <!-- Search (mobile/tablet): открывает модалку поиска -->
         <button
           type="button"
           data-open-search
@@ -120,6 +135,7 @@
           Поиск
         </button>
 
+        <!-- CTA: запись -->
         <a
           href="{% url 'appointments:create' %}"
           class="inline-flex items-center justify-center rounded-full
@@ -129,7 +145,9 @@
           Записаться
         </a>
 
+        <!-- Ветка для авторизованного пользователя -->
         {% if request.user.is_authenticated %}
+          <!-- Результаты (с бейджем непрочитанных) -->
           <a
             href="{% url 'cabinet:results' %}"
             class="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
@@ -142,6 +160,7 @@
             {% endif %}
           </a>
 
+          <!-- Личный кабинет -->
           <a
             href="{% url 'cabinet:dashboard' %}"
             class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
@@ -149,6 +168,7 @@
             ЛК
           </a>
         {% else %}
+          <!-- Для гостя: “Результаты” ведут на логин -->
           <a
             href="{% url 'accounts:login' %}"
             class="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
@@ -156,6 +176,7 @@
             <span>Результаты</span>
           </a>
 
+          <!-- Войти -->
           <a
             href="{% url 'accounts:login' %}"
             class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
@@ -167,13 +188,14 @@
 
     </div>
 
-    <!-- SECOND ROW: menu -->
+    <!-- SECOND ROW: основное меню -->
     {% with p=request.path %}
       {% with base="px-4 py-2 rounded-full text-sm transition font-semibold nav-pill" %}
         {% with inactive="bg-white/10 hover:bg-white/20 text-white" %}
           {% with active="bg-yellow-400 text-blue-900 hover:bg-yellow-300" %}
             <nav class="pb-4 flex flex-wrap gap-2" aria-label="Основное меню">
 
+              <!-- Услуги -->
               <a
                 href="/services/"
                 class="{{ base }} {% if p|slice:':10' == '/services/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
@@ -181,6 +203,7 @@
                 Услуги
               </a>
 
+              <!-- Акции -->
               <a
                 href="{% url 'promos:list' %}"
                 class="{{ base }} {% if p|slice:':8' == '/promos/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
@@ -188,6 +211,7 @@
                 Акции
               </a>
 
+              <!-- Врачи -->
               <a
                 href="{% url 'staff:doctor_list' %}"
                 class="{{ base }} {% if p|slice:':9' == '/doctors/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
@@ -195,6 +219,7 @@
                 Врачи
               </a>
 
+              <!-- Контакты -->
               <a
                 href="{% url 'contacts:home' %}"
                 class="{{ base }} {% if p|slice:':10' == '/contacts/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
@@ -202,10 +227,12 @@
                 Контакты
               </a>
 
+              <!-- Обратная связь (открывает модалку) -->
               <button type="button" data-open-feedback class="{{ base }} {{ inactive }}">
                 Обратная связь
               </button>
 
+              <!-- О компании -->
               <a
                 href="{% url 'pages:page_detail' 'about' %}"
                 class="{{ base }} {% if p|slice:':12' == '/page/about/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
@@ -222,7 +249,7 @@
   </div>
 </header>
 
-<!-- Search modal -->
+<!-- ===================== SEARCH MODAL ===================== -->
 <div id="searchModal" class="hidden fixed inset-0 bg-black/30 z-50" role="dialog" aria-modal="true" aria-label="Поиск по сайту">
   <div class="max-w-2xl mx-auto mt-24 bg-white rounded-2xl p-4 shadow-lg">
     <div class="flex items-center justify-between">
@@ -230,6 +257,7 @@
       <button type="button" data-close-search class="px-3 py-1 rounded-xl hover:bg-slate-100" aria-label="Закрыть">✕</button>
     </div>
 
+    <!-- Поиск ведёт на каталог услуг (GET параметр q) -->
     <form class="mt-3" action="/services/" method="get">
       <input
         name="q"
@@ -248,7 +276,9 @@
   </div>
 </div>
 
+<!-- ===================== MAIN ===================== -->
 <main class="max-w-6xl mx-auto px-4 py-8">
+  <!-- Django messages: системные уведомления -->
   {% if messages %}
     <div class="mb-6 space-y-2">
       {% for m in messages %}
@@ -269,20 +299,23 @@
     </div>
   {% endif %}
 
+  <!-- Контент конкретной страницы -->
   {% block content %}{% endblock %}
 </main>
 
-<!-- Footer -->
+<!-- ===================== FOOTER ===================== -->
 <footer class="bg-yellow-200 border-t border-yellow-200">
   <div class="max-w-6xl mx-auto px-4 py-10">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
 
+      <!-- Блок бренда + контакты -->
       <div class="md:col-span-4">
         <div class="font-semibold text-lg text-yellow-900">Mediscan</div>
         <div class="mt-2 text-sm text-yellow-800">
           Медицинская диагностика и лабораторные исследования.
         </div>
 
+        <!-- Телефон/почта (телефон обновляется скриптом при смене города) -->
         <div class="mt-4 text-sm">
           <a
             id="footerPhone"
@@ -296,6 +329,7 @@
         </div>
       </div>
 
+      <!-- Быстрые ссылки -->
       <div class="md:col-span-3">
         <a
           href="{% url 'pages:sitemap' %}"
@@ -313,6 +347,7 @@
         </div>
       </div>
 
+      <!-- Юридический блок -->
       <div class="md:col-span-3">
         <div class="text-sm font-semibold text-yellow-900">Юридическая информация</div>
         <div class="mt-3 text-xs text-yellow-800 leading-relaxed">
@@ -332,16 +367,20 @@
 
     </div>
 
+    <!-- Копирайт -->
     <div class="mt-8 text-xs text-yellow-700">
       © {{ now|date:"Y" }} Mediscan. Все права защищены.
     </div>
   </div>
 </footer>
 
+<!-- Контейнер для toast-уведомлений (если используете JS-тосты) -->
 <div id="toast-root" class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none"></div>
 
-{# ===== Feedback Modal ===== #}
+<!-- ===================== FEEDBACK MODAL ===================== -->
+<!-- Модалка обратной связи (открывается по data-open-feedback; логика в feedback-modal.js) -->
 <div id="feedback-modal" class="fixed inset-0 z-[9999] hidden" aria-hidden="true">
+  <!-- Затемнение/overlay (клик по нему закрывает модалку) -->
   <div
     data-feedback-close
     class="absolute inset-0 z-[9999] bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"
@@ -357,6 +396,8 @@
       class="w-full max-w-2xl opacity-0 translate-y-2 transition-all duration-200"
     >
       <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+
+        <!-- Шапка модалки: заголовок + кнопка закрытия -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
             <div id="feedback-title" class="text-lg font-extrabold text-slate-900">Обратная связь</div>
@@ -373,12 +414,15 @@
           </button>
         </div>
 
+        <!-- Тело модалки: форма -->
         <div class="p-6">
           <form id="feedback-form" action="{% url 'contacts:feedback' %}" method="post" class="space-y-4" novalidate>
             {% csrf_token %}
 
+            <!-- Общие ошибки формы (non-field), показываем/прячем через JS -->
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 hidden" data-nf></div>
 
+            <!-- Поля формы -->
             <div class="space-y-4" id="feedback-form-body">
               <div>
                 <label class="block text-sm font-semibold text-slate-800 mb-1">Ваше имя</label>
@@ -391,6 +435,7 @@
                   required
                   minlength="2"
                 >
+                <!-- Ошибка конкретного поля (подставляется JS) -->
                 <div class="mt-1 text-sm text-red-700 hidden" data-err="name"></div>
               </div>
 
@@ -421,6 +466,7 @@
               </div>
             </div>
 
+            <!-- Кнопка отправки + loader -->
             <div class="pt-1">
               <button
                 type="submit"
@@ -438,6 +484,7 @@
               </button>
             </div>
 
+            <!-- Согласие на обработку ПД -->
             <div class="text-xs text-slate-500">
               Нажимая «Отправить», вы соглашаетесь на обработку персональных данных.
             </div>
@@ -449,8 +496,10 @@
   </div>
 </div>
 
-{# ===== Ask Question Modal ===== #}
+<!-- ===================== ASK QUESTION MODAL ===================== -->
+<!-- Модалка “Задать вопрос” (открывается по data-open-ask-question; логика в ask-question-modal.js) -->
 <div id="askq-modal" class="fixed inset-0 z-[9998] hidden" aria-hidden="true">
+  <!-- Затемнение/overlay -->
   <div data-askq-close class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
 
   <div class="relative h-full w-full flex items-center justify-center p-4">
@@ -462,6 +511,8 @@
       class="w-full max-w-2xl transform opacity-0 translate-y-2 transition-all duration-200"
     >
       <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+
+        <!-- Шапка модалки -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
             <div id="askq-title" class="text-lg font-extrabold text-slate-900">Задать вопрос</div>
@@ -478,11 +529,15 @@
           </button>
         </div>
 
+        <!-- Тело модалки: форма -->
         <div class="p-6">
           <form id="askq-form" action="{% url 'contacts:ask_question' %}" method="post" class="space-y-4" novalidate>
             {% csrf_token %}
+
+            <!-- Общие ошибки формы -->
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 hidden" data-nf></div>
 
+            <!-- Поля -->
             <div class="space-y-4" id="askq-form-body">
               <div>
                 <label class="block text-sm font-semibold text-slate-800 mb-1">Ваше имя</label>
@@ -525,6 +580,7 @@
               </div>
             </div>
 
+            <!-- Кнопки: отправить / отмена -->
             <div class="pt-1 flex items-center gap-3">
               <button
                 type="submit"
@@ -551,6 +607,7 @@
               </button>
             </div>
 
+            <!-- Согласие на обработку ПД -->
             <div class="text-xs text-slate-500">
               Нажимая «Отправить», вы соглашаетесь на обработку персональных данных.
             </div>
@@ -562,7 +619,9 @@
   </div>
 </div>
 
-<!-- Search modal JS -->
+<!-- ===================== SCRIPTS ===================== -->
+
+<!-- Search modal JS: открытие/закрытие + Esc + клик по оверлею -->
 <script>
 (function () {
   const modal = document.getElementById("searchModal");
@@ -582,7 +641,7 @@
 })();
 </script>
 
-<!-- Smooth anchor scroll -->
+<!-- Smooth anchor scroll: корректный скролл к якорям с учётом высоты header -->
 <script>
 (function () {
   const HEADER_SELECTOR = "header";
@@ -625,7 +684,7 @@
 })();
 </script>
 
-<!-- HTMX CSRF header -->
+<!-- HTMX CSRF header: добавляем X-CSRFToken ко всем HTMX запросам -->
 <script>
 document.body.addEventListener("htmx:configRequest", (e) => {
   const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
@@ -633,11 +692,12 @@ document.body.addEventListener("htmx:configRequest", (e) => {
 });
 </script>
 
-<!-- City dropdown + localStorage + phone map -->
+<!-- City dropdown + localStorage + phone map: выбор города → меняем телефон/лейблы -->
 <script>
 (function () {
   const STORAGE_KEY = "mediscan_city";
 
+  // Маппинг “город → телефон”
   const CITY_PHONE = {
     "Москва": { display: "+7 (985) 698-72-82", tel: "+79856987282" },
     "Санкт-Петербург": { display: "+7 (812) 000-00-00", tel: "+78120000000" },
@@ -655,6 +715,7 @@ document.body.addEventListener("htmx:configRequest", (e) => {
   const footerPhone = document.getElementById("footerPhone");
   const ok = ui.toggle && ui.menu && ui.label;
 
+  // Применяем выбранный город к UI и сохраняем в localStorage
   function applyCity(city) {
     if (!city) return;
     const info = CITY_PHONE[city] || CITY_PHONE["Москва"];
@@ -672,15 +733,18 @@ document.body.addEventListener("htmx:configRequest", (e) => {
     localStorage.setItem(STORAGE_KEY, city);
   }
 
+  // Стартовое значение: localStorage → текущий label → “Москва”
   const saved = (localStorage.getItem(STORAGE_KEY) || "").trim();
   const initial = saved || (ok ? ui.label.textContent.trim() : "") || "Москва";
   applyCity(initial);
 
+  // aria-expanded для доступности
   function setExpanded(isOpen) {
     if (!ui.toggle) return;
     ui.toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
   }
 
+  // Логика открытия/закрытия меню + выбор пункта
   if (ok) {
     ui.toggle.addEventListener("click", (e) => {
       e.preventDefault();
@@ -699,11 +763,13 @@ document.body.addEventListener("htmx:configRequest", (e) => {
       });
     });
 
+    // Клик вне меню закрывает список
     document.addEventListener("click", () => {
       ui.menu.classList.add("hidden");
       setExpanded(false);
     });
 
+    // Escape закрывает меню
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         ui.menu.classList.add("hidden");
@@ -714,8 +780,10 @@ document.body.addEventListener("htmx:configRequest", (e) => {
 })();
 </script>
 
+<!-- Блок для подключения page-specific скриптов из дочерних шаблонов -->
 {% block scripts %}{% endblock %}
 
+<!-- Внешние скрипты модалок (открытие/закрытие, отправка, валидация, тосты) -->
 <script src="{% static 'js/feedback-modal.js' %}"></script>
 <script src="{% static 'js/ask-question-modal.js' %}"></script>
 

@@ -1,75 +1,75 @@
 {% extends "base.html" %}
 
-{# ===================== Страница: Профиль врача ===================== #}
-{# Показываем карточку врача: фото, специализации, стаж, био и расписание #}
+<!-- ===================== Страница: Профиль врача ===================== -->
+<!-- Показываем карточку врача: фото, специализации, стаж, био и расписание -->
 
 {% block title %}
-  {# Заголовок вкладки браузера: ФИО врача + бренд #}
+  <!-- Заголовок вкладки браузера: ФИО врача + бренд -->
   {{ doctor.full_name }} — Mediscan
 {% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
 
-  {# --------------------- Хлебные крошки --------------------- #}
+  <!-- --------------------- Хлебные крошки --------------------- -->
   <nav class="text-sm text-slate-500">
-    {# Возврат к списку всех врачей #}
+    <!-- Возврат к списку всех врачей -->
     <a class="hover:text-slate-900" href="{% url 'staff:doctor_list' %}">Врачи</a>
     <span class="mx-2">/</span>
-    {# Текущая страница (ФИО врача) #}
+    <!-- Текущая страница (ФИО врача) -->
     <span class="text-slate-700">{{ doctor.full_name }}</span>
   </nav>
 
-  {# --------------------- Карточка врача --------------------- #}
+  <!-- --------------------- Карточка врача --------------------- -->
   <div class="mt-4 bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
     <div class="flex flex-col sm:flex-row gap-6">
 
-      {# ===================== Фото врача ===================== #}
+      <!-- ===================== Фото врача ===================== -->
       <div class="shrink-0">
         {% if doctor.photo %}
-          {# Если фото загружено — показываем его #}
+          <!-- Если фото загружено — показываем его -->
           <img
             src="{{ doctor.photo.url }}"
             alt="{{ doctor.full_name }}"
             class="h-36 w-36 rounded-2xl object-cover border border-slate-200"
           >
         {% else %}
-          {# Если фото нет — показываем заглушку #}
+          <!-- Если фото нет — показываем заглушку -->
           <div class="h-36 w-36 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
             Фото
           </div>
         {% endif %}
       </div>
 
-      {# ===================== Основная информация ===================== #}
+      <!-- ===================== Основная информация ===================== -->
       <div class="min-w-0 flex-1">
 
-        {# ФИО врача #}
+        <!-- ФИО врача -->
         <h1 class="text-2xl font-semibold text-slate-900">{{ doctor.full_name }}</h1>
 
-        {# Стаж + специализации (бейджи) #}
+        <!-- Стаж + специализации (бейджи) -->
         <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
 
-          {# Стаж (если указан) #}
+          <!-- Стаж (если указан) -->
           {% if doctor.experience_years %}
             <span class="inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1">
               Стаж {{ doctor.experience_years }} лет
             </span>
           {% endif %}
 
-          {# Список специализаций врача #}
+          <!-- Список специализаций врача -->
           {% for sp in doctor.specialties.all %}
             <span class="inline-flex rounded-full bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1">
               {{ sp.name }}
             </span>
           {% empty %}
-            {# Если специализаций нет — показываем текст #}
+            <!-- Если специализаций нет — показываем текст -->
             <span class="text-slate-500">Специализации не указаны</span>
           {% endfor %}
         </div>
 
-        {# ===================== Кнопки действий ===================== #}
-        {# “Записаться к врачу” передаёт doctor=... и next=... чтобы вернуться на эту страницу #}
+        <!-- ===================== Кнопки действий ===================== -->
+        <!-- “Записаться к врачу” передаёт doctor=... и next=... чтобы вернуться на эту страницу -->
         <div class="mt-5 flex flex-wrap gap-3">
           <a
             href="{% url 'appointments:create' %}?doctor={{ doctor.id }}&next={{ request.get_full_path|urlencode }}"
@@ -78,7 +78,7 @@
             Записаться к врачу
           </a>
 
-          {# Возврат к списку врачей #}
+          <!-- Возврат к списку врачей -->
           <a
             href="{% url 'staff:doctor_list' %}"
             class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50 transition"
@@ -89,34 +89,34 @@
       </div>
     </div>
 
-    {# --------------------- О враче (биография/описание) --------------------- #}
+    <!-- --------------------- О враче (биография/описание) --------------------- -->
     <div class="mt-8">
       <h2 class="text-lg font-semibold text-slate-900">О враче</h2>
 
       {% if doctor.bio %}
-        {# linebreaks — превращает переносы строк в <p>/<br> #}
+        <!-- linebreaks — превращает переносы строк в <p>/<br> -->
         <div class="mt-2 prose max-w-none">
           {{ doctor.bio|linebreaks }}
         </div>
       {% else %}
-        {# Заглушка, если описания нет #}
+        <!-- Заглушка, если описания нет -->
         <div class="mt-2 text-slate-600">Описание скоро появится.</div>
       {% endif %}
     </div>
 
-    {# --------------------- Расписание (окна приёма по дням недели) --------------------- #}
+    <!-- --------------------- Расписание (окна приёма по дням недели) --------------------- -->
     <div class="mt-8">
       <h2 class="text-lg font-semibold text-slate-900">Расписание</h2>
 
       {% if schedules %}
-        {# Сетка карточек по дням недели #}
+        <!-- Сетка карточек по дням недели -->
         <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {% for row in schedules %}
             <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              {# Название дня недели (например, “Понедельник”) #}
+              <!-- Название дня недели (например, “Понедельник”) -->
               <div class="text-sm font-semibold text-slate-900">{{ row.weekday_label }}</div>
 
-              {# Окна приёма (например, 09:00–13:00) #}
+              <!-- Окна приёма (например, 09:00–13:00) -->
               <div class="text-sm text-slate-700 mt-2 flex flex-wrap gap-2">
                 {% for w in row.windows %}
                   <span class="inline-flex rounded-full bg-white border border-slate-200 px-3 py-1">
@@ -128,7 +128,7 @@
           {% endfor %}
         </div>
       {% else %}
-        {# Если расписания нет — сообщаем пользователю #}
+        <!-- Если расписания нет — сообщаем пользователю -->
         <div class="mt-2 text-slate-600">Расписание не задано.</div>
       {% endif %}
     </div>

@@ -1,35 +1,42 @@
 {% extends "base.html" %}
-{# HOME-TEMPLATE: FIXED #}
+<!-- HOME-TEMPLATE: FIXED -->
 
 {% block title %}Главная — Mediscan{% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
+<!-- ========================================================================= -->
+<!-- HERO: первый экран (слева оффер + поиск + CTA, справа карточка врача)     -->
+<!-- ========================================================================= -->
 <section
   class="relative z-0 isolate overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 p-6 sm:p-8 lg:p-10 shadow-sm"
 >
+  <!-- Сетка: 12 колонок на lg+, одна колонка на мобилках -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
-    <!-- LEFT -->
+    <!-- ============================ LEFT: текст и действия ============================ -->
     <div class="lg:col-span-8">
+
+      <!-- Бейдж-оффер -->
       <span
         class="inline-flex items-center gap-2 rounded-full bg-yellow-400 text-black px-4 py-1 text-sm font-semibold shadow"
       >
         Онлайн-запись • результаты • напоминания
       </span>
 
+      <!-- Заголовок -->
       <h1 class="mt-5 text-3xl sm:text-4xl font-extrabold leading-tight text-slate-900">
         Анализы и диагностика<br>
         <span class="text-blue-600">в удобное время</span>
       </h1>
 
+      <!-- Подзаголовок -->
       <p class="mt-4 text-slate-700 max-w-xl">
         Быстро подберём услугу, покажем цены и запишем онлайн.
         Результаты — в личном кабинете и email.
       </p>
 
-      <!-- SEARCH -->
+      <!-- SEARCH: поиск по услугам (GET параметр q) -->
       <form action="{% url 'services:list' %}" method="get" class="mt-7">
         <div class="flex flex-col sm:flex-row gap-2">
           <input
@@ -47,7 +54,7 @@
         </div>
       </form>
 
-      <!-- CTA -->
+      <!-- CTA: основные действия -->
       <div class="mt-6 flex flex-wrap gap-3">
         <a
           href="{% url 'services:list' %}"
@@ -66,7 +73,7 @@
         </a>
       </div>
 
-      <!-- BENEFITS -->
+      <!-- BENEFITS: короткие преимущества в плитках -->
       <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
         <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">Любая форма оплаты</div>
         <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">SMS-напоминания</div>
@@ -75,44 +82,56 @@
       </div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- ============================ RIGHT: карточка врача (ВАЖНО) ============================ -->
+    <!-- ВАЖНО: текущая разметка ниже СЛОМАНА (там есть "...", и даже "<class=...">) -->
+    <!-- Это ломает DOM и из-за этого "едет" весь сайт (включая хедер/ЛК). -->
+    <!-- ЗАМЕНИ этот блок на корректный (я присылал исправленный вариант). -->
     <div class="lg:col-span-4 flex justify-end relative z-0 pointer-events-none">
-  <a class="hero-doctor-card w-full max-w-[380px] aspect-[3/4] ...">
-       <class="hero-doctor-card border border-slate-200 shadow-sm hover:shadow-md transition">
-    {% with d=doctors_slider.0 %}
-      <img
-        id="heroDoctorSlideImg"
-        class="hero-doctor-img transition-opacity duration-500 ease-out opacity-100 relative z-0 pointer-events-none"
-        src="{% if d and d.photo %}{{ d.photo.url }}{% endif %}"
-        alt="{% if d %}{{ d.full_name }}{% else %}Врач Mediscan{% endif %}"
-        loading="lazy"
-        decoding="async"
-      >
-    {% endwith %}
+      <!-- TODO: заменить на рабочую версию карточки врача -->
+      <a class="hero-doctor-card w-full max-w-[380px] aspect-[3/4] ...">
+        <class="hero-doctor-card border border-slate-200 shadow-sm hover:shadow-md transition">
 
-    <div class="hero-doctor-overlay"></div>
+        <!-- Стартовый доктор (первый в doctors_slider) -->
+        {% with d=doctors_slider.0 %}
+          <img
+            id="heroDoctorSlideImg"
+            class="hero-doctor-img transition-opacity duration-500 ease-out opacity-100 relative z-0 pointer-events-none"
+            src="{% if d and d.photo %}{{ d.photo.url }}{% endif %}"
+            alt="{% if d %}{{ d.full_name }}{% else %}Врач Mediscan{% endif %}"
+            loading="lazy"
+            decoding="async"
+          >
+        {% endwith %}
 
-    <div class="hero-doctor-bubble">
-      <div class="rounded-2xl border border-white/40 bg-white/75 backdrop-blur px-4 py-4 shadow-sm">
-        <div class="text-xm font-bold text-slate-800">Наши врачи</div>
+        <!-- Оверлей поверх фото (градиент/затемнение — зависит от CSS) -->
+        <div class="hero-doctor-overlay"></div>
 
-        <div class="mt-1 text-lg font-extrabold text-slate-900 leading-snug">
-          <span id="heroDoctorName">
-            {% if doctors_slider.0 %}{{ doctors_slider.0.full_name }}{% else %}Наши врачи{% endif %}
-          </span>
+        <!-- Баббл с текстом -->
+        <div class="hero-doctor-bubble">
+          <div class="rounded-2xl border border-white/40 bg-white/75 backdrop-blur px-4 py-4 shadow-sm">
+            <div class="text-xm font-bold text-slate-800">Наши врачи</div>
+
+            <div class="mt-1 text-lg font-extrabold text-slate-900 leading-snug">
+              <span id="heroDoctorName">
+                {% if doctors_slider.0 %}{{ doctors_slider.0.full_name }}{% else %}Наши врачи{% endif %}
+              </span>
+            </div>
+
+          </div>
         </div>
 
-      </div>
+      </a>
     </div>
-
-  </a>
-</div>
 
   </div>
 </section>
 
-<!-- PROMOS -->
+<!-- ========================================================================= -->
+<!-- PROMOS: блок акций                                                       -->
+<!-- ========================================================================= -->
 <section id="promos" class="relative z-10 mt-10">
+
+  <!-- Заголовок секции + ссылка "смотреть всё" -->
   <div class="flex items-end justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold">Акции</h2>
@@ -124,23 +143,29 @@
     </a>
   </div>
 
+  <!-- Сетка карточек акций -->
   <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
     {% for p in promos %}
       <div class="bg-white rounded-[28px] border border-slate-200 p-6 shadow-sm">
+
+        <!-- Бейдж акции (если задан) -->
         {% if p.badge %}
           <div class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
             {{ p.badge }}
           </div>
         {% endif %}
 
+        <!-- Заголовок -->
         <div class="mt-3 text-lg font-semibold">{{ p.title }}</div>
 
+        <!-- Подзаголовок/описание -->
         {% if p.subtitle %}
           <p class="mt-2 text-sm text-slate-600">{{ p.subtitle }}</p>
         {% elif p.description %}
           <p class="mt-2 text-sm text-slate-600 line-clamp-3">{{ p.description }}</p>
         {% endif %}
 
+        <!-- Картинка (если есть) -->
         {% if p.image %}
           <img
             src="{{ p.image.url }}"
@@ -151,6 +176,7 @@
           >
         {% endif %}
 
+        <!-- CTA кнопка -->
         <div class="mt-5 flex gap-2">
           {% if p.cta_url %}
             <a
@@ -169,6 +195,8 @@
           {% endif %}
         </div>
       </div>
+
+    <!-- Пустое состояние, если акций нет -->
     {% empty %}
       <div class="bg-white rounded-[28px] border border-slate-200 p-6 text-slate-600 md:col-span-3">
         Акции скоро появятся.
@@ -177,8 +205,12 @@
   </div>
 </section>
 
-<!-- SERVICES -->
+<!-- ========================================================================= -->
+<!-- SERVICES: блок популярных услуг                                           -->
+<!-- ========================================================================= -->
 <section id="services" class="mt-10">
+
+  <!-- Заголовок секции + ссылка "все услуги" -->
   <div class="flex items-end justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold">Популярные услуги</h2>
@@ -190,7 +222,10 @@
     </a>
   </div>
 
+  <!-- Сетка карточек направлений -->
   <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <!-- УЗИ -->
     <a href="{% url 'services:list' %}?q=УЗИ"
        class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
@@ -200,6 +235,7 @@
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
 
+    <!-- Анализы -->
     <a href="{% url 'services:list' %}?q=анализ"
        class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
@@ -209,6 +245,7 @@
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
 
+    <!-- Консультации -->
     <a href="{% url 'services:list' %}?q=консультация"
        class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
@@ -218,6 +255,7 @@
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
 
+    <!-- МРТ -->
     <a href="{% url 'services:list' %}?q=МРТ"
        class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
@@ -228,6 +266,7 @@
     </a>
   </div>
 
+  <!-- Блок-подсказка + кнопка открытия модалки "Задать вопрос" -->
   <div class="mt-6 bg-gradient-to-r from-blue-50 to-white border border-slate-200 rounded-[28px] p-6
               flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
     <div>
@@ -246,6 +285,9 @@
   </div>
 </section>
 
+<!-- ========================================================================= -->
+<!-- JS: мини-слайдер фото врача в HERO                                       -->
+<!-- ========================================================================= -->
 <script>
 (function () {
   const img = document.getElementById("heroDoctorSlideImg");

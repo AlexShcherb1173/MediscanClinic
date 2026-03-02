@@ -1,36 +1,36 @@
 {% extends "base.html" %}
 
-{# ===================== Страница: Список врачей ===================== #}
-{# Здесь выводится промо-блок + сетка карточек врачей + пагинация #}
+<!-- ===================== Страница: Список врачей ===================== -->
+<!-- Здесь выводится промо-блок + сетка карточек врачей + пагинация -->
 
 {% block title %}
-  {# Заголовок вкладки браузера #}
+  <!-- Заголовок вкладки браузера -->
   Врачи — Mediscan
 {% endblock %}
 
 {% block content %}
 
-{# ===================== HERO / промо-блок ===================== #}
+<!-- ===================== HERO / промо-блок ===================== -->
 <section class="rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 border border-blue-100 p-8 shadow-sm">
   <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
 
-    {# Левая часть: текст и описание страницы #}
+    <!-- Левая часть: текст и описание страницы -->
     <div>
-      {# “бейдж” с коротким позиционированием #}
+      <!-- “бейдж” с коротким позиционированием -->
       <div class="inline-flex items-center gap-2 rounded-full bg-yellow-400 text-blue-900 px-4 py-1 text-sm font-semibold shadow">
         Специалисты • опыт • расписание
       </div>
 
-      {# Главный заголовок страницы #}
+      <!-- Главный заголовок страницы -->
       <h1 class="mt-4 text-3xl font-extrabold text-slate-900">Врачи Mediscan</h1>
 
-      {# Подзаголовок: объясняем пользователю что делать #}
+      <!-- Подзаголовок: объясняем пользователю что делать -->
       <p class="mt-2 text-slate-700 max-w-2xl">
         Выберите врача по специализации и запишитесь онлайн. Подтверждение — по телефону и на email.
       </p>
     </div>
 
-    {# Правая часть: кнопка “Записаться” ведёт на страницу создания записи #}
+    <!-- Правая часть: кнопка “Записаться” ведёт на страницу создания записи -->
     <a
       href="{% url 'appointments:create' %}"
       class="inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow transition"
@@ -41,14 +41,14 @@
   </div>
 </section>
 
-{# ===================== Сетка врачей ===================== #}
+<!-- ===================== Сетка врачей ===================== -->
 <section class="mt-10">
 
-  {# Заголовок секции + индикатор пагинации #}
+  <!-- Заголовок секции + индикатор пагинации -->
   <div class="flex items-center justify-between">
     <h2 class="text-xl font-bold text-slate-900">Команда врачей</h2>
 
-    {# Если включена пагинация — показываем “Стр. X из Y” #}
+    <!-- Если включена пагинация — показываем “Стр. X из Y” -->
     {% if is_paginated %}
       <div class="text-sm text-slate-600">
         Стр. <b class="text-slate-900">{{ page_obj.number }}</b> из <b class="text-slate-900">{{ page_obj.paginator.num_pages }}</b>
@@ -56,20 +56,20 @@
     {% endif %}
   </div>
 
-  {# Карточки врачей (адаптивная сетка) #}
+  <!-- Карточки врачей (адаптивная сетка) -->
   <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 
     {% for d in doctors %}
-      {# Карточка кликабельна целиком и ведёт на профиль врача #}
+      <!-- Карточка кликабельна целиком и ведёт на профиль врача -->
       <a
         href="{% url 'staff:doctor_detail' d.pk %}"
         class="group bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
       >
 
-        {# Верх карточки: фото + ФИО + стаж #}
+        <!-- Верх карточки: фото + ФИО + стаж -->
         <div class="flex items-start gap-4">
 
-          {# Фото врача или заглушка, если фото нет #}
+          <!-- Фото врача или заглушка, если фото нет -->
           <div class="shrink-0">
             {% if d.photo %}
               <img
@@ -84,14 +84,14 @@
             {% endif %}
           </div>
 
-          {# Текстовая часть #}
+          <!-- Текстовая часть -->
           <div class="min-w-0">
-            {# ФИО (подчёркиваем при hover по карточке) #}
+            <!-- ФИО (подчёркиваем при hover по карточке) -->
             <div class="text-base font-bold text-slate-900 leading-snug group-hover:underline">
               {{ d.full_name }}
             </div>
 
-            {# Стаж врача (если поле пустое — выведется пусто; при желании можно добавить fallback) #}
+            <!-- Стаж врача (если поле пустое — выведется пусто; при желании можно добавить fallback) -->
             <div class="mt-1 text-sm text-slate-600">
               Стаж: <b class="text-slate-900">{{ d.experience_years }}</b> лет
             </div>
@@ -99,7 +99,7 @@
 
         </div>
 
-        {# Середина карточки: специализации (бейджи) #}
+        <!-- Середина карточки: специализации (бейджи) -->
         <div class="mt-4 flex flex-wrap gap-2">
           {% for sp in d.specialties.all %}
             <span class="inline-flex items-center rounded-full bg-sky-50 text-sky-800 border border-sky-200 px-3 py-1 text-xs font-semibold">
@@ -112,7 +112,7 @@
           {% endfor %}
         </div>
 
-        {# Низ карточки: подсказка + “Запись онлайн” #}
+        <!-- Низ карточки: подсказка + “Запись онлайн” -->
         <div class="mt-5 flex items-center justify-between">
           <span class="text-sm font-semibold text-blue-700">Открыть профиль →</span>
           <span class="inline-flex items-center rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 px-3 py-1 text-xs font-semibold">
@@ -122,7 +122,7 @@
 
       </a>
     {% empty %}
-      {# Если врачей нет — показываем сообщение #}
+      <!-- Если врачей нет — показываем сообщение -->
       <div class="bg-white rounded-2xl border border-slate-200 p-6 text-slate-700">
         Врачи пока не добавлены.
       </div>
@@ -130,11 +130,11 @@
 
   </div>
 
-  {# ===================== Пагинация ===================== #}
+  <!-- ===================== Пагинация ===================== -->
   {% if is_paginated %}
     <nav class="mt-8 flex items-center justify-center gap-2">
 
-      {# Кнопка “назад” #}
+      <!-- Кнопка “назад” -->
       {% if page_obj.has_previous %}
         <a
           class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
@@ -146,12 +146,12 @@
         <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400">←</span>
       {% endif %}
 
-      {# Текущая страница / всего страниц #}
+      <!-- Текущая страница / всего страниц -->
       <span class="px-3 py-2 text-sm text-slate-600">
         Стр. <b class="text-slate-900">{{ page_obj.number }}</b> из <b class="text-slate-900">{{ page_obj.paginator.num_pages }}</b>
       </span>
 
-      {# Кнопка “вперёд” #}
+      <!-- Кнопка “вперёд” -->
       {% if page_obj.has_next %}
         <a
           class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm"
