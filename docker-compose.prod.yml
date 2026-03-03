@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   web:
-    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic/web:${IMAGE_TAG:-latest}
     env_file: .env
     depends_on:
       db:
@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   celery:
-    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic/web:${IMAGE_TAG:-latest}
     command: celery -A config worker -l info --concurrency=1
     env_file: .env
     depends_on:
@@ -53,7 +53,7 @@ services:
     restart: unless-stopped
 
   celery-beat:
-    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic/web:${IMAGE_TAG:-latest}
     command: celery -A config beat -l info
     env_file: .env
     depends_on:
