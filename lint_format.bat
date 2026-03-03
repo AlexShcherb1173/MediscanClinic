@@ -33,7 +33,7 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo [3/4] Running flake8...
-python -m flake8 %TARGETS% --exclude=migrations
+python -m flake8 %TARGETS% --config "%CD%\.flake8" --exclude=migrations
 if errorlevel 1 exit /b 1
 
 echo.

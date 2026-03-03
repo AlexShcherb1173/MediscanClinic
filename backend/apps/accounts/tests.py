@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from unittest.mock import patch
-
 from apps.accounts.backends import PhoneBackend
 from apps.accounts.contact_utils import normalize_phone_or_email
 from apps.accounts.forms import LoginForm, RegisterForm

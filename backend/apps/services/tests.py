@@ -6,7 +6,6 @@ from urllib.parse import parse_qs, unquote, urlparse
 from apps.services.context_processors import popular_services
 from apps.services.models import Service, ServiceCategory
 from django.core.exceptions import ValidationError
-from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
