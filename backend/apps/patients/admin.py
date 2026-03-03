@@ -20,6 +20,7 @@ class PatientProfileAdmin(admin.ModelAdmin):
         - search_fields: поиск по телефону, ФИО и email пользователя;
         - list_select_related: оптимизация запроса к связанному объекту user.
     """
+
     list_display = ("id", "user", "birth_date")
     search_fields = ("user__phone", "user__full_name", "user__email")
     list_select_related = ("user",)

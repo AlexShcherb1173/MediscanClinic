@@ -120,9 +120,7 @@ class DoctorSchedule(models.Model):
         """
         super().clean()
         if self.time_from and self.time_to and self.time_to <= self.time_from:
-            raise ValidationError(
-                {"time_to": "Время 'До' должно быть позже времени 'С'."}
-            )
+            raise ValidationError({"time_to": "Время 'До' должно быть позже времени 'С'."})
 
     def __str__(self) -> str:
         """

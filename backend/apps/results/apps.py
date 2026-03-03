@@ -17,6 +17,7 @@ class ResultsConfig(AppConfig):
         - verbose_name — человекочитаемое имя в админке;
         - ready() — подключение сигналов при инициализации приложения.
     """
+
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.results"
     verbose_name = "Результаты исследований"

@@ -13,5 +13,6 @@ class ContactsConfig(AppConfig):
         - default_auto_field — тип автоинкрементного первичного ключа по умолчанию;
         - name — Python-путь к приложению внутри проекта.
     """
+
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.contacts"

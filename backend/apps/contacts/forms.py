@@ -7,10 +7,9 @@
 
 from __future__ import annotations
 
+from apps.accounts.contact_utils import normalize_phone_or_email
 from django import forms
 from django.core.exceptions import ValidationError
-
-from apps.accounts.contact_utils import normalize_phone_or_email
 
 
 class ContactForm(forms.Form):
@@ -55,6 +54,7 @@ class ContactForm(forms.Form):
         if len(v) < 2:
             raise forms.ValidationError("Введите имя (минимум 2 символа).")
         return v
+
 
 class AskQuestionForm(forms.Form):
     """

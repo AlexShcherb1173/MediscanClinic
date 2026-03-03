@@ -11,9 +11,7 @@ from datetime import time as dt_time
 from datetime import timedelta
 
 
-def generate_time_slots(
-    start: dt_time, end: dt_time, step_minutes: int = 30
-) -> list[dt_time]:
+def generate_time_slots(start: dt_time, end: dt_time, step_minutes: int = 30) -> list[dt_time]:
     """
     Генерирует список временных слотов между двумя значениями времени.
     Логика:

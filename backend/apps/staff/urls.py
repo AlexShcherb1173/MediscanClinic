@@ -14,7 +14,6 @@ app_name = "staff"
 urlpatterns = [
     # Список всех активных врачей
     path("", doctor_list, name="doctor_list"),
-
     # Детальная страница врача по первичному ключу
     path("<int:pk>/", doctor_detail, name="doctor_detail"),
 ]

@@ -7,9 +7,9 @@ Management-команда для заполнения стандартных с�
 не создавая дубликатов.
 """
 
+from apps.pages.models import Page
 from django.core.management.base import BaseCommand
 
-from apps.pages.models import Page
 """
 Сопоставление slug страницы и шаблонных данных для заполнения.
 Каждый элемент словаря содержит:
@@ -174,6 +174,4 @@ class Command(BaseCommand):
             created += int(is_created)
             updated += int(not is_created)
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}"))

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from apps.promos.models import Promo
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-
-from apps.promos.models import Promo
 
 
 class PromoModelTests(TestCase):
@@ -77,15 +76,9 @@ class PromoViewsTests(TestCase):
         promo_list фильтрует только is_active=True и сортирует:
         sort_order ASC, created_at DESC (см. views.py)
         """
-        p_active1 = Promo.objects.create(
-            title="A1", slug="", is_active=True, sort_order=10
-        )
-        p_inactive = Promo.objects.create(
-            title="INACTIVE", slug="", is_active=False, sort_order=1
-        )
-        p_active2 = Promo.objects.create(
-            title="A2", slug="", is_active=True, sort_order=20
-        )
+        p_active1 = Promo.objects.create(title="A1", slug="", is_active=True, sort_order=10)
+        p_inactive = Promo.objects.create(title="INACTIVE", slug="", is_active=False, sort_order=1)
+        p_active2 = Promo.objects.create(title="A2", slug="", is_active=True, sort_order=20)
 
         url = reverse("promos:list")
         r = self.client.get(url)

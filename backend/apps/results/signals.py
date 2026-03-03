@@ -14,9 +14,7 @@ from .telegram import send_telegram_message
 
 
 @receiver(post_save, sender=ResearchResult)
-def notify_new_result(
-    sender, instance: ResearchResult, created: bool, **kwargs
-) -> None:
+def notify_new_result(sender, instance: ResearchResult, created: bool, **kwargs) -> None:
     """
     Обработчик сигнала post_save для модели ResearchResult.
     Логика:

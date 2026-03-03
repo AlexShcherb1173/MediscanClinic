@@ -16,20 +16,18 @@ import calendar
 from datetime import date as dt_date
 from datetime import datetime, time, timedelta
 
+from apps.promos.models import Promo
+from apps.services.models import Service
+from apps.staff.models import Doctor
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
 
-from apps.promos.models import Promo
-from apps.services.models import Service
-from apps.staff.models import Doctor
-
 from .forms import AppointmentCreateForm
 from .models import Appointment, AppointmentSlot
-from .notifications import (AppointmentNotification, notify_email,
-                            notify_telegram)
+from .notifications import AppointmentNotification, notify_email, notify_telegram
 
 
 def appointments_index(request):
@@ -134,9 +132,7 @@ def _user_full_name(user) -> str:
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
-            full = (
-                getattr(obj, "full_name", "") or getattr(obj, "fio", "") or ""
-            ).strip()
+            full = (getattr(obj, "full_name", "") or getattr(obj, "fio", "") or "").strip()
             if full:
                 return full
 
@@ -290,14 +286,10 @@ def slots(request):
     )
     service_id = _safe_int(service_id_raw)
 
-    date_str = (
-        request.GET.get("preferred_date") or request.GET.get("date") or ""
-    ).strip()
+    date_str = (request.GET.get("preferred_date") or request.GET.get("date") or "").strip()
     day = parse_date(date_str) if date_str else None
 
-    full_name = (
-        request.GET.get("full_name") or request.GET.get("id_full_name") or ""
-    ).strip()
+    full_name = (request.GET.get("full_name") or request.GET.get("id_full_name") or "").strip()
     phone = (request.GET.get("phone") or request.GET.get("id_phone") or "").strip()
     patient_ready = (len(full_name) >= 3) and (len(phone) >= 6)
 
@@ -441,24 +433,18 @@ def appointment_create(request):
 
     if promo_slug:
         promo = get_object_or_404(Promo, slug=promo_slug, is_active=True)
-        promo_services_qs = promo.services.filter(
-            is_active=True, category__is_active=True
-        )
+        promo_services_qs = promo.services.filter(is_active=True, category__is_active=True)
 
         if not service_id and promo_services_qs.count() == 1:
             service_id = str(promo_services_qs.first().id)
             locked_service = True
 
     service = (
-        get_object_or_404(
-            Service, id=service_id, is_active=True, category__is_active=True
-        )
+        get_object_or_404(Service, id=service_id, is_active=True, category__is_active=True)
         if service_id
         else None
     )
-    doctor = (
-        get_object_or_404(Doctor, id=doctor_id, is_active=True) if doctor_id else None
-    )
+    doctor = get_object_or_404(Doctor, id=doctor_id, is_active=True) if doctor_id else None
 
     draft = request.session.get("appointment_draft", {}) or {}
 
@@ -477,9 +463,7 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
-            service_queryset=(
-                promo_services_qs if promo_services_qs is not None else None
-            ),
+            service_queryset=(promo_services_qs if promo_services_qs is not None else None),
         )
 
         if form.is_valid():
@@ -487,9 +471,7 @@ def appointment_create(request):
 
             try:
                 with transaction.atomic():
-                    slot_locked = AppointmentSlot.objects.select_for_update().get(
-                        pk=slot_obj.pk
-                    )
+                    slot_locked = AppointmentSlot.objects.select_for_update().get(pk=slot_obj.pk)
                     slot_day = timezone.localtime(slot_obj.starts_at).date()
                     if slot_day < timezone.localdate():
                         form.add_error("slot", "Нельзя записаться на прошедшую дату.")
@@ -511,9 +493,7 @@ def appointment_create(request):
                     slot_locked.save(update_fields=["is_booked"])
 
                     appointment: Appointment = form.save(commit=False)
-                    appointment.user = (
-                        request.user if request.user.is_authenticated else None
-                    )
+                    appointment.user = request.user if request.user.is_authenticated else None
 
                     appointment.slot = slot_locked
                     appointment.service = slot_locked.service
@@ -524,9 +504,7 @@ def appointment_create(request):
 
             except (IntegrityError, AppointmentSlot.DoesNotExist):
                 form.add_error("slot", "Этот слот уже занят. Выберите другой.")
-                return render(
-                    request, "appointments/create.html", {**base_ctx, "form": form}
-                )
+                return render(request, "appointments/create.html", {**base_ctx, "form": form})
 
             payload = AppointmentNotification(
                 full_name=appointment.full_name,
@@ -575,9 +553,7 @@ def appointment_create(request):
             doctor_id=doctor.id if doctor else None,
             lock_service=locked_service,
             lock_doctor=locked_doctor,
-            service_queryset=(
-                promo_services_qs if promo_services_qs is not None else None
-            ),
+            service_queryset=(promo_services_qs if promo_services_qs is not None else None),
             initial=initial,
         )
 

@@ -5,8 +5,10 @@
 - календарь врача в админке (дневной вид с шагом 20 минут)
 - подсветка строк в списке в зависимости от статуса и времени приёма
 """
+
 from datetime import datetime, time, timedelta
 
+from apps.staff.models import Doctor
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -14,8 +16,6 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.html import format_html
-
-from apps.staff.models import Doctor
 
 from .models import Appointment
 
@@ -28,7 +28,6 @@ class AppointmentAdmin(admin.ModelAdmin):
     - inline-кнопки для подтверждения/отмены записи прямо из списка
     - отдельная страница «Календарь врача» в админке
     """
-
 
     class Media:
         css = {"all": ("admin/admin.css",)}

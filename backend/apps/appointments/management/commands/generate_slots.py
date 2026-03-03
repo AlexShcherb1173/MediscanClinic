@@ -17,12 +17,11 @@ from __future__ import annotations
 
 from datetime import datetime, time, timedelta
 
+from apps.appointments.models import AppointmentSlot
+from apps.services.models import Service
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
-
-from apps.appointments.models import AppointmentSlot
-from apps.services.models import Service
 
 
 class Command(BaseCommand):
@@ -52,9 +51,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--end", type=str, default="20:00", help="Day end HH:MM (default: 20:00)"
         )
-        parser.add_argument(
-            "--step", type=int, default=20, help="Step in minutes (default: 20)"
-        )
+        parser.add_argument("--step", type=int, default=20, help="Step in minutes (default: 20)")
         parser.add_argument(
             "--replace",
             action="store_true",
@@ -96,9 +93,9 @@ class Command(BaseCommand):
         date_to = today + timedelta(days=days)  # non-inclusive end
 
         service_ids = list(
-            Service.objects.filter(
-                is_active=True, category__is_active=True
-            ).values_list("id", flat=True)
+            Service.objects.filter(is_active=True, category__is_active=True).values_list(
+                "id", flat=True
+            )
         )
         if not service_ids:
             self.stderr.write(self.style.WARNING("No active services found."))
@@ -117,9 +114,7 @@ class Command(BaseCommand):
         total_planned = len(service_ids) * days * per_day
         self.stdout.write(f"Active services: {len(service_ids)}")
         self.stdout.write(f"Days: {days} ({date_from}..{date_to})")
-        self.stdout.write(
-            f"Per day slots: {per_day} ({start_s}..{end_s}, step {step_min}m)"
-        )
+        self.stdout.write(f"Per day slots: {per_day} ({start_s}..{end_s}, step {step_min}m)")
         self.stdout.write(f"Planned total: {total_planned}")
 
         if dry_run:
@@ -132,9 +127,7 @@ class Command(BaseCommand):
                     starts_at__date__gte=date_from,
                     starts_at__date__lt=date_to,
                 ).delete()
-                self.stdout.write(
-                    self.style.WARNING(f"Deleted: {deleted} objects in range")
-                )
+                self.stdout.write(self.style.WARNING(f"Deleted: {deleted} objects in range"))
 
             created = 0
             skipped = 0
@@ -165,9 +158,7 @@ class Command(BaseCommand):
 
                     # Сбрасываем батч, чтобы не раздувать память
                     if len(batch) >= 5000:
-                        res = AppointmentSlot.objects.bulk_create(
-                            batch, ignore_conflicts=True
-                        )
+                        res = AppointmentSlot.objects.bulk_create(batch, ignore_conflicts=True)
                         created += len(res)
                         skipped += len(batch) - len(res)
                         batch = []

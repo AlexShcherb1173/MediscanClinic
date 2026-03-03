@@ -42,4 +42,4 @@ def send_telegram_message(text: str) -> None:
     try:
         requests.post(url, json=payload, timeout=10)
     except Exception:
-       return
+        return

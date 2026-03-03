@@ -2,16 +2,15 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from apps.accounts.backends import PhoneBackend
+from apps.accounts.contact_utils import normalize_phone_or_email
+from apps.accounts.forms import LoginForm, RegisterForm
+from apps.accounts.utils import normalize_phone
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-
-from apps.accounts.backends import PhoneBackend
-from apps.accounts.contact_utils import normalize_phone_or_email
-from apps.accounts.forms import LoginForm, RegisterForm
-from apps.accounts.utils import normalize_phone
 
 User = get_user_model()
 
@@ -58,15 +57,11 @@ class AccountsUserModelTests(TestCase):
         )
         self.assertEqual(str(u), "Пользователь")
 
-        u2 = User.objects.create_user(
-            phone="79990000033", password="123456", full_name=""
-        )
+        u2 = User.objects.create_user(phone="79990000033", password="123456", full_name="")
         self.assertEqual(str(u2), "+79990000033")
 
     def test_touch_updates_last_seen(self):
-        u = User.objects.create_user(
-            phone="79990000044", password="123456", full_name="X"
-        )
+        u = User.objects.create_user(phone="79990000044", password="123456", full_name="X")
         self.assertIsNone(u.last_seen_at)
         u.touch()
         u.refresh_from_db()
@@ -84,9 +79,7 @@ class AccountsBackendTests(TestCase):
         self.backend = PhoneBackend()
 
     def test_authenticate_by_username_phone(self):
-        u = self.backend.authenticate(
-            None, username="7 999 000-00-55", password="123456"
-        )
+        u = self.backend.authenticate(None, username="7 999 000-00-55", password="123456")
         self.assertIsNotNone(u)
         self.assertEqual(u.pk, self.user.pk)
 
@@ -104,9 +97,7 @@ class AccountsBackendTests(TestCase):
         self.assertIsNone(u)
 
     def test_authenticate_no_phone(self):
-        u = self.backend.authenticate(
-            None, username=None, phone=None, password="123456"
-        )
+        u = self.backend.authenticate(None, username=None, phone=None, password="123456")
         self.assertIsNone(u)
 
 
@@ -196,9 +187,7 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(r.status_code, 302)
 
     def test_logout_view(self):
-        user = User.objects.create_user(
-            phone="79990001122", password="123456", full_name="X"
-        )
+        user = User.objects.create_user(phone="79990001122", password="123456", full_name="X")
         self.client.force_login(user)
 
         url = reverse("accounts:logout")

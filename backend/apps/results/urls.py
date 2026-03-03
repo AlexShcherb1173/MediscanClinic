@@ -14,7 +14,6 @@ app_name = "results"
 urlpatterns = [
     # Список результатов текущего пользователя
     path("", views.my_results, name="my_results"),
-
     # Скачивание PDF-файла результата по первичному ключу
     path("download/<int:pk>/", views.download_result, name="download"),
 ]

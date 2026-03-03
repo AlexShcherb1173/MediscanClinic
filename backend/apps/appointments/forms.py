@@ -9,14 +9,13 @@
 
 from __future__ import annotations
 
+from apps.accounts.utils import normalize_phone
+from apps.services.models import Service
+from apps.staff.models import Doctor
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-
-from apps.accounts.utils import normalize_phone
-from apps.services.models import Service
-from apps.staff.models import Doctor
 
 from .models import Appointment, AppointmentSlot
 
@@ -31,7 +30,6 @@ class AppointmentCreateForm(forms.ModelForm):
       можно передать service_id / doctor_id и при необходимости скрыть поля
       (lock_service / lock_doctor), чтобы пользователь не менял контекст.
     """
-
 
     phone = forms.CharField(
         label="Телефон",
@@ -103,16 +101,10 @@ class AppointmentCreateForm(forms.ModelForm):
         )
         self.fields["doctor"].queryset = Doctor.objects.filter(is_active=True)
 
-        selected_service = (
-            self.data.get("service") or self.initial.get("service") or service_id
-        )
+        selected_service = self.data.get("service") or self.initial.get("service") or service_id
 
-        selected_date_raw = self.data.get("preferred_date") or self.initial.get(
-            "preferred_date"
-        )
-        selected_date = (
-            parse_date(str(selected_date_raw)) if selected_date_raw else None
-        )
+        selected_date_raw = self.data.get("preferred_date") or self.initial.get("preferred_date")
+        selected_date = parse_date(str(selected_date_raw)) if selected_date_raw else None
 
         qs = AppointmentSlot.objects.filter(is_active=True)
 

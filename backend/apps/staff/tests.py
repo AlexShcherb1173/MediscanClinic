@@ -3,13 +3,12 @@ from __future__ import annotations
 from datetime import time, timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
-from django.urls import reverse
-from django.utils import timezone
-
 from apps.staff.context_processors import doctor_slider_items
 from apps.staff.models import Doctor, DoctorSchedule, Specialty
 from apps.staff.utils import generate_time_slots
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
 
 
 class StaffModelsTests(TestCase):

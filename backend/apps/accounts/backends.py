@@ -25,6 +25,7 @@ class PhoneBackend(ModelBackend):
     Ожидает пароль и значение телефона,
     переданное либо в параметре username, либо phone.
     """
+
     def authenticate(self, request, username=None, password=None, phone=None, **kwargs):
         """
         Аутентифицирует пользователя по номеру телефона.

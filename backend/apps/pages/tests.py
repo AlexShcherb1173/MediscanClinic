@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from apps.pages.models import Page
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
-
-from apps.pages.models import Page
 
 
 class PagesModelTests(TestCase):
@@ -129,9 +128,7 @@ class PagesViewsTests(TestCase):
         self.assertEqual(resp.context["page"].slug, "faq")
 
     def test_page_detail_db_page_unpublished_returns_404(self):
-        Page.objects.create(
-            title="Hidden", slug="hidden", content="x", is_published=False
-        )
+        Page.objects.create(title="Hidden", slug="hidden", content="x", is_published=False)
 
         url = reverse("pages:page_detail", kwargs={"slug": "hidden"})
         resp = self.client.get(url)

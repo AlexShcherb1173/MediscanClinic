@@ -10,16 +10,15 @@
 
 from __future__ import annotations
 
+from apps.accounts.utils import normalize_phone
+from apps.promos.models import Promo
+from apps.services.models import Service
+from apps.staff.models import Doctor
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator, RegexValidator
 from django.db import models
 from django.db.models import Q
-
-from apps.accounts.utils import normalize_phone
-from apps.promos.models import Promo
-from apps.services.models import Service
-from apps.staff.models import Doctor
 
 phone_validator = RegexValidator(
     regex=r"^\+[1-9]\d{1,14}$",
@@ -65,6 +64,7 @@ class AppointmentSlot(models.Model):
         - indexes: индексы для ускорения фильтраций (по услуге/времени и по статусам).
         - constraints: уникальный слот по (service, starts_at).
         """
+
         ordering = ("starts_at",)
         indexes = [
             models.Index(fields=["service", "starts_at"]),
@@ -165,17 +165,11 @@ class Appointment(models.Model):
     email = models.EmailField("Email", blank=True, validators=[EmailValidator()])
     comment = models.TextField("Комментарий", blank=True)
 
-    preferred_datetime = models.DateTimeField(
-        "Дата/время записи", null=True, blank=True
-    )
+    preferred_datetime = models.DateTimeField("Дата/время записи", null=True, blank=True)
 
     reminded_at = models.DateTimeField("Напоминание отправлено", null=True, blank=True)
-    reminder_email_sent = models.BooleanField(
-        "Email-напоминание отправлено", default=False
-    )
-    reminder_telegram_sent = models.BooleanField(
-        "Telegram-напоминание отправлено", default=False
-    )
+    reminder_email_sent = models.BooleanField("Email-напоминание отправлено", default=False)
+    reminder_telegram_sent = models.BooleanField("Telegram-напоминание отправлено", default=False)
     reminder_24h_sent = models.BooleanField("Напоминание 24ч отправлено", default=False)
     reminder_2h_sent = models.BooleanField("Напоминание 2ч отправлено", default=False)
 

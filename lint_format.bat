@@ -1,35 +1,51 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
-REM Переходим в backend (рядом с manage.py), независимо от того, откуда запустили .bat
-cd /d "%~dp0backend" || (echo Cannot cd to backend & exit /b 1)
+REM --- Переходим в backend (рядом с manage.py), независимо от места запуска ---
+cd /d "%~dp0backend" || (echo [ERROR] Cannot cd to backend & exit /b 1)
 
-REM Основная папка с Django apps
-set TARGET=apps
+REM --- Что проверяем ---
+set TARGETS=apps config
 
-if not exist "%TARGET%" (
-  echo Folder "%TARGET%" not found in: %CD%
-  echo Check your project structure.
-  dir
-  exit /b 1
+for %%D in (%TARGETS%) do (
+  if not exist "%%D" (
+    echo [ERROR] Folder "%%D" not found in: %CD%
+    dir
+    exit /b 1
+  )
 )
 
-echo Running black...
-python -m black "%TARGET%" --exclude "(/migrations/|\\migrations\\)"
+echo ==================================================
+echo MediscanClinic: lint ^& format
+echo Workdir: %CD%
+echo Targets: %TARGETS%
+echo ==================================================
+
+echo.
+echo [1/4] Running black...
+python -m black %TARGETS% --extend-exclude "migrations"
 if errorlevel 1 exit /b 1
 
-echo Running isort...
-python -m isort "%TARGET%" --skip migrations
+echo.
+echo [2/4] Running isort...
+python -m isort %TARGETS% --skip migrations
 if errorlevel 1 exit /b 1
 
-echo Running flake8...
-python -m flake8 "%TARGET%" --exclude=migrations
+echo.
+echo [3/4] Running flake8...
+python -m flake8 %TARGETS% --exclude=migrations
 if errorlevel 1 exit /b 1
 
-echo Running mypy...
-python -m mypy "%TARGET%" --exclude "(/migrations/|\\migrations\\)"
+echo.
+echo [4/4] Running mypy...
+REM ВАЖНО: лучше настроить mypy в pyproject.toml / mypy.ini и не городить exclude в батнике
+python -m mypy %TARGETS%
 if errorlevel 1 exit /b 1
 
-echo Done.
-pause
+echo.
+echo ✅ Done.
+
+REM Пауза только если запущено в интерактивной консоли
+if "%CI%"=="" pause
+
 endlocal

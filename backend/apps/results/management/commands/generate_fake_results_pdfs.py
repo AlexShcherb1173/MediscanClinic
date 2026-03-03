@@ -64,6 +64,7 @@ def _make_pdf(path: Path, title: str, patient_id: int, lines: list[str]) -> None
     c.showPage()
     c.save()
 
+
 """
 Набор демонстрационных файлов для генерации.
 Структура кортежа:

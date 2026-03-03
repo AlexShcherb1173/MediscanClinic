@@ -7,11 +7,10 @@
 - отображение страницы карты сайта.
 """
 
-from django.shortcuts import get_object_or_404, render
-
 from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
+from django.shortcuts import get_object_or_404, render
 
 from .models import Page
 
@@ -101,9 +100,7 @@ def home(request):
     Возвращает:
         HttpResponse с шаблоном pages/home.html.
     """
-    promos = Promo.objects.filter(is_active=True).order_by("sort_order", "-created_at")[
-        :3
-    ]
+    promos = Promo.objects.filter(is_active=True).order_by("sort_order", "-created_at")[:3]
 
     popular_services = (
         Service.objects.filter(

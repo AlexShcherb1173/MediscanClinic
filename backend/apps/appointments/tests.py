@@ -5,20 +5,18 @@ from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
+from apps.appointments.emailing import send_reminder_email
+from apps.appointments.forms import AppointmentCreateForm
+from apps.appointments.models import Appointment, AppointmentSlot
+from apps.appointments.tasks import normalize_emails, normalize_phone_for_smsru, smsru_send
+from apps.appointments.telegram_client import send_telegram_message
+from apps.appointments.utils import get_busy_time_labels
+from apps.services.models import Service, ServiceCategory
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-
-from apps.appointments.emailing import send_reminder_email
-from apps.appointments.forms import AppointmentCreateForm
-from apps.appointments.models import Appointment, AppointmentSlot
-from apps.appointments.tasks import (normalize_emails,
-                                     normalize_phone_for_smsru, smsru_send)
-from apps.appointments.telegram_client import send_telegram_message
-from apps.appointments.utils import get_busy_time_labels
-from apps.services.models import Service, ServiceCategory
 
 
 class AppointmentsBaseMixin:
@@ -183,9 +181,7 @@ class AppointmentFormTests(AppointmentsBaseMixin, TestCase):
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=11, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=11, minute=0),
             tz,
         )
         slot = self.create_slot(service, starts, is_active=False, is_booked=False)
@@ -210,9 +206,7 @@ class AppointmentFormTests(AppointmentsBaseMixin, TestCase):
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=11, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=11, minute=0),
             tz,
         )
         slot = self.create_slot(service, starts, is_active=True, is_booked=True)
@@ -260,9 +254,7 @@ class AppointmentFormTests(AppointmentsBaseMixin, TestCase):
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=12, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=12, minute=0),
             tz,
         )
         slot_s2 = self.create_slot(s2, starts)
@@ -331,9 +323,7 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=10, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=10, minute=0),
             tz,
         )
         slot = self.create_slot(service, starts)
@@ -363,16 +353,12 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
 
     @patch("apps.appointments.views.notify_email")
     @patch("apps.appointments.views.notify_telegram")
-    def test_appointment_create_post_books_slot_and_creates_appointment(
-        self, m_tg, m_email
-    ):
+    def test_appointment_create_post_books_slot_and_creates_appointment(self, m_tg, m_email):
         service = self.create_service()
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=13, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=13, minute=0),
             tz,
         )
         slot = self.create_slot(service, starts, is_active=True, is_booked=False)
@@ -409,9 +395,7 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
         starts = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=14, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=14, minute=0),
             tz,
         )
         slot = self.create_slot(service, starts, is_active=True, is_booked=False)
@@ -446,9 +430,7 @@ class AppointmentUtilsAndServicesTests(AppointmentsBaseMixin, TestCase):
         tz = timezone.get_current_timezone()
 
         dt1 = timezone.make_aware(
-            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                hour=9, minute=0
-            ),
+            timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=9, minute=0),
             tz,
         )
         slot = self.create_slot(service, dt1)
@@ -513,9 +495,7 @@ class AppointmentUtilsAndServicesTests(AppointmentsBaseMixin, TestCase):
     def test_normalize_emails(self):
         self.assertEqual(normalize_emails("a@b.com"), ["a@b.com"])
         self.assertEqual(normalize_emails(["a@b.com", " "]), ["a@b.com"])
-        self.assertEqual(
-            normalize_emails("['a@b.com', 'c@d.com']"), ["a@b.com", "c@d.com"]
-        )
+        self.assertEqual(normalize_emails("['a@b.com', 'c@d.com']"), ["a@b.com", "c@d.com"])
         self.assertEqual(normalize_emails(("x@y.com",)), ["x@y.com"])
         self.assertEqual(normalize_emails(""), [])
 
@@ -549,9 +529,7 @@ class AppointmentPhoneValidationTests(AppointmentsBaseMixin, TestCase):
     def test_valid_phone_e164_passes(self):
         a = Appointment(full_name="Test", phone="+79991234567")
         # но appointment без slot существовать не может — создадим минимальные service+slot
-        cat = ServiceCategory.objects.create(
-            name="Diag", slug="diag", order=1, is_active=True
-        )
+        cat = ServiceCategory.objects.create(name="Diag", slug="diag", order=1, is_active=True)
         svc = Service.objects.create(
             category=cat,
             name="UZI",

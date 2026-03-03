@@ -222,9 +222,7 @@ def send_appointment_reminders() -> None:
     until = now + timedelta(hours=48)
 
     qs = (
-        Appointment.objects.filter(
-            preferred_datetime__gt=now, preferred_datetime__lte=until
-        )
+        Appointment.objects.filter(preferred_datetime__gt=now, preferred_datetime__lte=until)
         .select_related("service", "doctor")
         .only(
             "id",

@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from django.test import TestCase, override_settings
-from django.urls import reverse
-
 from apps.contacts.forms import AskQuestionForm, ContactForm
 from apps.contacts.notifications import notify_contact_telegram
 from apps.contacts.telegram import send_telegram_message
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 
 class ContactsFormsTests(TestCase):
@@ -111,9 +110,7 @@ class ContactsNotificationsTests(TestCase):
         # should not raise
         notify_contact_telegram("<b>test</b>")
 
-    @override_settings(
-        TELEGRAM_BOT_TOKEN="", TELEGRAM_ADMIN_CHAT_ID="", TELEGRAM_API_URL=""
-    )
+    @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_ADMIN_CHAT_ID="", TELEGRAM_API_URL="")
     def test_admin_telegram_client_requires_settings(self):
         with self.assertRaises(RuntimeError):
             send_telegram_message("hello")

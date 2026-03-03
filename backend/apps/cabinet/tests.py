@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from apps.cabinet.context_processors import cabinet_badges
+from apps.results.models import ResearchResult
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-
-from apps.cabinet.context_processors import cabinet_badges
-from apps.results.models import ResearchResult
 
 User = get_user_model()
 
@@ -93,15 +92,9 @@ class CabinetViewsTests(TestCase):
 
     def test_results_marks_unread_as_viewed(self):
         # 2 unread for self.user, 1 unread for other
-        r1 = ResearchResult.objects.create(
-            patient=self.user, title="R1", is_viewed=False
-        )
-        r2 = ResearchResult.objects.create(
-            patient=self.user, title="R2", is_viewed=False
-        )
-        ResearchResult.objects.create(
-            patient=self.other, title="R_other", is_viewed=False
-        )
+        r1 = ResearchResult.objects.create(patient=self.user, title="R1", is_viewed=False)
+        r2 = ResearchResult.objects.create(patient=self.user, title="R2", is_viewed=False)
+        ResearchResult.objects.create(patient=self.other, title="R_other", is_viewed=False)
 
         self.client.force_login(self.user)
         url = reverse("cabinet:results")

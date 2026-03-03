@@ -17,6 +17,7 @@ from django.utils import timezone
 
 from .models import ResearchResult
 
+
 @login_required
 def my_results(request):
     """
@@ -30,6 +31,7 @@ def my_results(request):
     """
     qs = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")
     return render(request, "cabinet/results.html", {"results": qs})
+
 
 @login_required
 def download_result(request, pk: int):

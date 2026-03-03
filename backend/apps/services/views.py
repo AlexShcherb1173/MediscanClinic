@@ -90,9 +90,9 @@ class ServiceListView(ListView):
         Возвращает:
             QuerySet[Service]: Отфильтрованный и отсортированный queryset.
         """
-        qs = Service.objects.filter(
-            is_active=True, category__is_active=True
-        ).select_related("category")
+        qs = Service.objects.filter(is_active=True, category__is_active=True).select_related(
+            "category"
+        )
 
         category_slug = self.kwargs.get("category_slug")
         if category_slug:

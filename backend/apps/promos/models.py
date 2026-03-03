@@ -11,11 +11,10 @@ Promo — маркетинговая сущность, отображаемая 
 
 from __future__ import annotations
 
+from apps.services.models import Service
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-
-from apps.services.models import Service
 
 
 class Promo(models.Model):

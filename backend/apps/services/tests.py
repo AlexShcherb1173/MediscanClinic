@@ -3,13 +3,12 @@ from __future__ import annotations
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlparse
 
+from apps.services.context_processors import popular_services
+from apps.services.models import Service, ServiceCategory
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-
-from apps.services.context_processors import popular_services
-from apps.services.models import Service, ServiceCategory
 
 
 class ServiceModelsTests(TestCase):
@@ -106,9 +105,7 @@ class ServicesContextProcessorTests(TestCase):
 
 def _create_services_dataset():
     active_cat = ServiceCategory.objects.create(name="УЗИ", slug="uzi", is_active=True)
-    inactive_cat = ServiceCategory.objects.create(
-        name="Скрытая", slug="hidden", is_active=False
-    )
+    inactive_cat = ServiceCategory.objects.create(name="Скрытая", slug="hidden", is_active=False)
 
     # Active services in active category
     s1 = Service.objects.create(
@@ -272,9 +269,7 @@ class ServicesViewsTests(TestCase):
         self.assertEqual(resp.status_code, 404)
 
     def test_service_detail_view_404_for_inactive_category(self):
-        cat = ServiceCategory.objects.create(
-            name="Скрытая", slug="hidden", is_active=False
-        )
+        cat = ServiceCategory.objects.create(name="Скрытая", slug="hidden", is_active=False)
         Service.objects.create(
             category=cat,
             name="Услуга",

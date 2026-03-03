@@ -9,12 +9,11 @@
 
 from __future__ import annotations
 
+from apps.appointments.models import Appointment
+from apps.results.models import ResearchResult
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
-
-from apps.appointments.models import Appointment
-from apps.results.models import ResearchResult
 
 
 @login_required
@@ -27,12 +26,8 @@ def dashboard(request):
     Доступ:
         Требуется авторизация (login_required).
     """
-    last_appointments = Appointment.objects.filter(user=request.user).order_by(
-        "-created_at"
-    )[:5]
-    last_results = ResearchResult.objects.filter(patient=request.user).order_by(
-        "-created_at"
-    )[:5]
+    last_appointments = Appointment.objects.filter(user=request.user).order_by("-created_at")[:5]
+    last_results = ResearchResult.objects.filter(patient=request.user).order_by("-created_at")[:5]
 
     return render(
         request,

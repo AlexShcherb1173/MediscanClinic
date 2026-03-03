@@ -27,9 +27,7 @@ def doctor_list(request):
         HttpResponse со страницей списка врачей.
     """
     doctors = (
-        Doctor.objects.filter(is_active=True)
-        .prefetch_related("specialties")
-        .order_by("full_name")
+        Doctor.objects.filter(is_active=True).prefetch_related("specialties").order_by("full_name")
     )
     return render(request, "staff/doctor_list.html", {"doctors": doctors})
 
@@ -65,9 +63,7 @@ def doctor_detail(request, pk: int):
         HttpResponse со страницей профиля врача.
     """
     doctor = get_object_or_404(
-        Doctor.objects.filter(is_active=True).prefetch_related(
-            "specialties", "schedules"
-        ),
+        Doctor.objects.filter(is_active=True).prefetch_related("specialties", "schedules"),
         pk=pk,
     )
 

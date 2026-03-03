@@ -48,9 +48,7 @@ def _user_full_name(user) -> str:
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
-            full = (
-                getattr(obj, "full_name", "") or getattr(obj, "fio", "") or ""
-            ).strip()
+            full = (getattr(obj, "full_name", "") or getattr(obj, "fio", "") or "").strip()
             if full:
                 return full
 
