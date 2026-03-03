@@ -1,141 +1,203 @@
 {% extends "base.html" %}
-<!-- HOME-TEMPLATE: UPDATED-999 -->
+<!-- HOME-TEMPLATE: FIXED -->
+
 {% block title %}Главная — Mediscan{% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
-<section class="rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 border border-blue-100 p-10 shadow-sm">
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<!-- ========================================================================= -->
+<!-- HERO: первый экран (слева оффер + поиск + CTA, справа карточка врача)     -->
+<!-- ========================================================================= -->
+<section
+  class="relative z-0 isolate overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-sky-50 to-yellow-50 p-6 sm:p-8 lg:p-10 shadow-sm"
+>
+  <!-- Сетка: 12 колонок на lg+, одна колонка на мобилках -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
-    <!-- LEFT -->
-    <div class="lg:col-span-7">
-      <span class="inline-flex items-center gap-2 rounded-full bg-yellow-400 text-black px-4 py-1 text-sm font-semibold shadow">
+    <!-- ============================ LEFT: текст и действия ============================ -->
+    <div class="lg:col-span-8">
+
+      <!-- Бейдж-оффер -->
+      <span
+        class="inline-flex items-center gap-2 rounded-full bg-yellow-400 text-black px-4 py-1 text-sm font-semibold shadow"
+      >
         Онлайн-запись • результаты • напоминания
       </span>
 
-      <h1 class="mt-5 text-4xl font-extrabold leading-tight text-slate-900">
+      <!-- Заголовок -->
+      <h1 class="mt-5 text-3xl sm:text-4xl font-extrabold leading-tight text-slate-900">
         Анализы и диагностика<br>
         <span class="text-blue-600">в удобное время</span>
       </h1>
 
+      <!-- Подзаголовок -->
       <p class="mt-4 text-slate-700 max-w-xl">
         Быстро подберём услугу, покажем цены и запишем онлайн.
-        Результаты — в личном кабинете и Telegram.
+        Результаты — в личном кабинете и email.
       </p>
 
-      <!-- SEARCH -->
+      <!-- SEARCH: поиск по услугам (GET параметр q) -->
       <form action="{% url 'services:list' %}" method="get" class="mt-7">
-        <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row gap-2">
           <input
             name="q"
-            class="w-full rounded-full border-blue-200 focus:border-blue-500 px-5 py-3 shadow-sm"
-            placeholder="МРТ, УЗИ, анализ крови..."
+            class="w-full rounded-full border border-blue-200 bg-white px-5 py-3 shadow-sm
+                   focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            placeholder="УЗИ, анализ крови..."
           >
-          <button class="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow">
+          <button
+            type="submit"
+            class="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow"
+          >
             Найти
           </button>
         </div>
       </form>
 
-      <!-- CTA -->
+      <!-- CTA: основные действия -->
       <div class="mt-6 flex flex-wrap gap-3">
-        <a href="{% url 'services:list' %}"
-           class="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg hover:scale-[1.03] transition">
+        <a
+          href="{% url 'services:list' %}"
+          class="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg
+                 hover:scale-[1.03] transition"
+        >
           Каталог услуг
         </a>
-        <a href="{% url 'appointments:create' %}"
-           class="rounded-full bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 font-semibold shadow-lg hover:scale-[1.03] transition">
+
+        <a
+          href="{% url 'appointments:create' %}"
+          class="rounded-full bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 font-semibold shadow-lg
+                 hover:scale-[1.03] transition"
+        >
           Записаться
         </a>
       </div>
 
-      <!-- BENEFITS -->
+      <!-- BENEFITS: короткие преимущества в плитках -->
       <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-        <div class="bg-white rounded-xl p-3 border border-blue-100 shadow-sm">Оплата на месте</div>
-        <div class="bg-white rounded-xl p-3 border border-blue-100 shadow-sm">SMS-напоминания</div>
-        <div class="bg-white rounded-xl p-3 border border-blue-100 shadow-sm">PDF-результаты</div>
-        <div class="bg-white rounded-xl p-3 border border-blue-100 shadow-sm">Поддержка 24/7</div>
+        <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">Любая форма оплаты</div>
+        <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">SMS-напоминания</div>
+        <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">PDF-результаты</div>
+        <div class="rounded-xl bg-white p-3 border border-blue-100 shadow-sm">Поддержка 24/7</div>
       </div>
     </div>
 
-    <!-- RIGHT QUICK -->
-    <div class="lg:col-span-5 grid grid-cols-2 gap-4">
-      <a class="rounded-2xl bg-white p-5 border border-blue-100 shadow hover:shadow-md hover:-translate-y-1 transition">
-        <div class="text-blue-600 font-semibold">Результаты</div>
-        <div class="text-xs text-slate-500 mt-1">Скачать PDF</div>
-      </a>
-      <a href="#promos" class="rounded-2xl bg-yellow-50 p-5 border border-yellow-200 shadow hover:shadow-md hover:-translate-y-1 transition">
-        <div class="text-yellow-700 font-semibold">Акции</div>
-        <div class="text-xs text-slate-600 mt-1">Выгодные предложения</div>
-      </a>
-      <a href="#services" class="rounded-2xl bg-sky-50 p-5 border border-sky-200 shadow hover:shadow-md hover:-translate-y-1 transition">
-        <div class="text-sky-700 font-semibold">Услуги</div>
-        <div class="text-xs text-slate-600 mt-1">Каталог</div>
-      </a>
+    <!-- ============================ RIGHT: карточка врача (ВАЖНО) ============================ -->
+    <!-- ВАЖНО: текущая разметка ниже СЛОМАНА (там есть "...", и даже "<class=...">) -->
+    <!-- Это ломает DOM и из-за этого "едет" весь сайт (включая хедер/ЛК). -->
+    <!-- ЗАМЕНИ этот блок на корректный (я присылал исправленный вариант). -->
+    <div class="lg:col-span-4 flex justify-end relative z-0 pointer-events-none">
+      <!-- TODO: заменить на рабочую версию карточки врача -->
+      <a class="hero-doctor-card w-full max-w-[380px] aspect-[3/4] ...">
+        <class="hero-doctor-card border border-slate-200 shadow-sm hover:shadow-md transition">
 
-      {# Врачи убрали с главной. Позже вернём в отдельную страницу staff #}
-      <a href="{% url 'services:list' %}"
-         class="rounded-2xl bg-blue-50 p-5 border border-blue-200 shadow hover:shadow-md hover:-translate-y-1 transition">
-        <div class="text-blue-700 font-semibold">Запись</div>
-        <div class="text-xs text-slate-600 mt-1">выбрать услугу</div>
+        <!-- Стартовый доктор (первый в doctors_slider) -->
+        {% with d=doctors_slider.0 %}
+          <img
+            id="heroDoctorSlideImg"
+            class="hero-doctor-img transition-opacity duration-500 ease-out opacity-100 relative z-0 pointer-events-none"
+            src="{% if d and d.photo %}{{ d.photo.url }}{% endif %}"
+            alt="{% if d %}{{ d.full_name }}{% else %}Врач Mediscan{% endif %}"
+            loading="lazy"
+            decoding="async"
+          >
+        {% endwith %}
+
+        <!-- Оверлей поверх фото (градиент/затемнение — зависит от CSS) -->
+        <div class="hero-doctor-overlay"></div>
+
+        <!-- Баббл с текстом -->
+        <div class="hero-doctor-bubble">
+          <div class="rounded-2xl border border-white/40 bg-white/75 backdrop-blur px-4 py-4 shadow-sm">
+            <div class="text-xm font-bold text-slate-800">Наши врачи</div>
+
+            <div class="mt-1 text-lg font-extrabold text-slate-900 leading-snug">
+              <span id="heroDoctorName">
+                {% if doctors_slider.0 %}{{ doctors_slider.0.full_name }}{% else %}Наши врачи{% endif %}
+              </span>
+            </div>
+
+          </div>
+        </div>
+
       </a>
     </div>
+
   </div>
 </section>
 
-<!-- PROMOS -->
-<section id="promos" class="mt-10">
-  <div class="flex items-end justify-between">
+<!-- ========================================================================= -->
+<!-- PROMOS: блок акций                                                       -->
+<!-- ========================================================================= -->
+<section id="promos" class="relative z-10 mt-10">
+
+  <!-- Заголовок секции + ссылка "смотреть всё" -->
+  <div class="flex items-end justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold">Акции</h2>
-      <p class="text-slate-600 text-sm mt-1">Актуальные предложения и комплексы.</p>
+      <p class="mt-1 text-sm text-slate-600">Актуальные предложения и комплексы.</p>
     </div>
-    <a href="{% url 'services:list' %}" class="text-sm font-medium text-blue-700 hover:underline">
+
+    <a href="{% url 'promos:list' %}" class="text-sm font-medium text-blue-700 hover:underline">
       Смотреть всё →
     </a>
   </div>
 
+  <!-- Сетка карточек акций -->
   <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
     {% for p in promos %}
       <div class="bg-white rounded-[28px] border border-slate-200 p-6 shadow-sm">
+
+        <!-- Бейдж акции (если задан) -->
         {% if p.badge %}
           <div class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
             {{ p.badge }}
           </div>
         {% endif %}
 
+        <!-- Заголовок -->
         <div class="mt-3 text-lg font-semibold">{{ p.title }}</div>
 
+        <!-- Подзаголовок/описание -->
         {% if p.subtitle %}
           <p class="mt-2 text-sm text-slate-600">{{ p.subtitle }}</p>
         {% elif p.description %}
           <p class="mt-2 text-sm text-slate-600 line-clamp-3">{{ p.description }}</p>
         {% endif %}
 
+        <!-- Картинка (если есть) -->
         {% if p.image %}
-          <img src="{{ p.image.url }}" alt="{{ p.title }}"
-               class="mt-4 w-full h-36 object-cover rounded-2xl border border-slate-200">
+          <img
+            src="{{ p.image.url }}"
+            alt="{{ p.title }}"
+            class="mt-4 w-full h-36 object-cover rounded-2xl border border-slate-200"
+            loading="lazy"
+            decoding="async"
+          >
         {% endif %}
 
+        <!-- CTA кнопка -->
         <div class="mt-5 flex gap-2">
           {% if p.cta_url %}
-            <a href="{{ p.cta_url }}"
-               class="inline-flex rounded-full bg-blue-600 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-700">
+            <a
+              href="{{ p.cta_url }}"
+              class="inline-flex rounded-full bg-blue-600 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-700"
+            >
               {{ p.cta_text|default:"Подробнее" }}
             </a>
           {% else %}
-            <a href="{% url 'services:list' %}"
-               class="inline-flex rounded-full bg-blue-600 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-700">
+            <a
+              href="{% url 'promos:list' %}"
+              class="inline-flex rounded-full bg-blue-600 text-white px-5 py-2.5 text-sm font-medium hover:bg-blue-700"
+            >
               {{ p.cta_text|default:"Подробнее" }}
             </a>
           {% endif %}
         </div>
       </div>
-    {% empty %}
-      <div class="text-xs text-slate-500 mt-2">
 
-      </div>
+    <!-- Пустое состояние, если акций нет -->
+    {% empty %}
       <div class="bg-white rounded-[28px] border border-slate-200 p-6 text-slate-600 md:col-span-3">
         Акции скоро появятся.
       </div>
@@ -143,29 +205,29 @@
   </div>
 </section>
 
-<!-- SERVICES (cards) -->
+<!-- ========================================================================= -->
+<!-- SERVICES: блок популярных услуг                                           -->
+<!-- ========================================================================= -->
 <section id="services" class="mt-10">
-  <div class="flex items-end justify-between">
+
+  <!-- Заголовок секции + ссылка "все услуги" -->
+  <div class="flex items-end justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold">Популярные услуги</h2>
-      <p class="text-slate-600 text-sm mt-1">Быстрый доступ к направлениям.</p>
+      <p class="mt-1 text-sm text-slate-600">Быстрый доступ к направлениям.</p>
     </div>
+
     <a href="{% url 'services:list' %}" class="text-sm font-medium text-blue-700 hover:underline">
       Все услуги →
     </a>
   </div>
 
+  <!-- Сетка карточек направлений -->
   <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- card -->
-    <a href="{% url 'services:list' %}?q=МРТ" class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50">
-      <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
-      <div class="mt-4 font-semibold">МРТ</div>
-      <div class="mt-1 text-sm text-slate-600">Высокоточная визуализация</div>
-      <div class="mt-4 text-sm font-semibold text-slate-900">от 3 500 ₽</div>
-      <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
-    </a>
 
-    <a href="{% url 'services:list' %}?q=УЗИ" class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50">
+    <!-- УЗИ -->
+    <a href="{% url 'services:list' %}?q=УЗИ"
+       class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
       <div class="mt-4 font-semibold">УЗИ</div>
       <div class="mt-1 text-sm text-slate-600">Скрининг и диагностика</div>
@@ -173,7 +235,9 @@
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
 
-    <a href="{% url 'services:list' %}?q=анализ" class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50">
+    <!-- Анализы -->
+    <a href="{% url 'services:list' %}?q=анализ"
+       class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
       <div class="mt-4 font-semibold">Анализы</div>
       <div class="mt-1 text-sm text-slate-600">Лаборатория</div>
@@ -181,24 +245,122 @@
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
 
-    <a href="{% url 'services:list' %}?q=консультация" class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50">
+    <!-- Консультации -->
+    <a href="{% url 'services:list' %}?q=консультация"
+       class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
       <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
       <div class="mt-4 font-semibold">Консультации</div>
       <div class="mt-1 text-sm text-slate-600">Специалисты</div>
       <div class="mt-4 text-sm font-semibold text-slate-900">от 2 000 ₽</div>
       <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
-  </div>
 
-  <!-- CTA strip -->
-  <div class="mt-6 bg-gradient-to-r from-blue-50 to-white border border-slate-200 rounded-[28px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-    <div>
-      <div class="text-sm font-semibold">Не знаете, что выбрать?</div>
-      <div class="text-sm text-slate-600 mt-1">Подскажем по симптомам или направлению врача.</div>
-    </div>
-    <a href="#feedback" class="inline-flex rounded-full bg-blue-600 text-white px-6 py-3 text-sm font-medium hover:bg-blue-700">
-      Задать вопрос
+    <!-- МРТ -->
+    <a href="{% url 'services:list' %}?q=МРТ"
+       class="group bg-white rounded-3xl border border-slate-200 p-6 hover:bg-slate-50 transition">
+      <div class="h-10 w-10 rounded-2xl bg-blue-50 border border-slate-200"></div>
+      <div class="mt-4 font-semibold">МРТ</div>
+      <div class="mt-1 text-sm text-slate-600">Диагностика</div>
+      <div class="mt-4 text-sm font-semibold text-slate-900">от 3 500 ₽</div>
+      <div class="mt-3 text-sm text-blue-700 font-medium group-hover:underline">Открыть →</div>
     </a>
   </div>
+
+  <!-- Блок-подсказка + кнопка открытия модалки "Задать вопрос" -->
+  <div class="mt-6 bg-gradient-to-r from-blue-50 to-white border border-slate-200 rounded-[28px] p-6
+              flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      <div class="text-sm font-semibold">Не знаете, что выбрать?</div>
+      <div class="mt-1 text-sm text-slate-600">Подскажем по симптомам или направлению врача.</div>
+    </div>
+
+    <button
+      type="button"
+      data-open-ask-question
+      class="inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700
+             px-6 py-3 text-sm font-semibold text-white shadow-sm transition active:scale-95"
+    >
+      Задать вопрос
+    </button>
+  </div>
 </section>
+
+<!-- ========================================================================= -->
+<!-- JS: мини-слайдер фото врача в HERO                                       -->
+<!-- ========================================================================= -->
+<script>
+(function () {
+  const img = document.getElementById("heroDoctorSlideImg");
+  const nameEl = document.getElementById("heroDoctorName");
+  if (!img) return;
+
+  const items = [
+    {% for d in doctors_slider %}
+      {% if d.photo %}
+        { url: "{{ d.photo.url|escapejs }}", name: "{{ d.full_name|escapejs }}" },
+      {% endif %}
+    {% endfor %}
+  ];
+
+  if (items.length < 2) return;
+
+  let i = 0;
+
+  function show() {
+    img.classList.remove("opacity-0");
+    img.classList.add("opacity-100");
+  }
+  function hide() {
+    img.classList.add("opacity-0");
+    img.classList.remove("opacity-100");
+  }
+
+  function preload(src) {
+    return new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(true);
+      im.onerror = () => reject(new Error("load failed: " + src));
+      im.src = src;
+    });
+  }
+
+  async function apply(index) {
+    const it = items[index];
+
+    try {
+      await preload(it.url);
+      hide();
+
+      setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+
+        img.src = it.url;
+        img.closest(".hero-doctor-card")?.style.setProperty("--hero-bg", `url("${it.url}")`);
+        if (nameEl) nameEl.textContent = it.name || "Наши врачи";
+
+        // если из кеша — load может не сработать
+        if (img.complete) {
+          show();
+        } else {
+          img.onload = show;
+          img.onerror = show; // чтобы не зависнуть в opacity-0
+        }
+      }, 220);
+
+    } catch (e) {
+      show();
+    }
+  }
+
+  // гарантируем видимость на старте
+  show();
+
+  setInterval(() => {
+    i = (i + 1) % items.length;
+    apply(i);
+  }, 3500);
+})();
+</script>
+
 {% endblock %}

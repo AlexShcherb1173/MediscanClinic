@@ -1,0 +1,177 @@
+"""
+Management-команда для заполнения стандартных статических страниц (Page).
+Создаёт или обновляет предопределённые страницы раздела «О нас» (about-*),
+заполняя их HTML-контентом по шаблону.
+Команда идемпотентна:
+её можно выполнять многократно — данные будут корректно обновляться,
+не создавая дубликатов.
+"""
+
+from apps.pages.models import Page
+from django.core.management.base import BaseCommand
+
+"""
+Сопоставление slug страницы и шаблонных данных для заполнения.
+Каждый элемент словаря содержит:
+- title: Заголовок страницы;
+- content: HTML-контент (рекомендуется использовать Tailwind + prose-классы).
+Используется в management-команде для создания или обновления страниц.
+"""
+TEMPLATES = {
+    "about-history": {
+        "title": "История Mediscan",
+        "content": """
+<div class="prose max-w-none">
+  <h1>История Mediscan</h1>
+  <p><strong>Mediscan</strong> — сервис, который делает запись и выбор услуг понятными и быстрыми.</p>
+
+  <h2>Коротко</h2>
+  <ul>
+    <li>каталог услуг с описаниями;</li>
+    <li>онлайн-запись по слотам;</li>
+    <li>подтверждения и напоминания.</li>
+  </ul>
+
+  <div class="not-prose rounded-2xl border border-slate-200 bg-white p-4">
+    <div class="font-semibold">Подсказка</div>
+    <div class="text-sm text-slate-600 mt-1">
+      Этот текст — шаблон. Замените на реальную историю компании.
+    </div>
+  </div>
+</div>
+""".strip(),
+    },
+    "about-mission": {
+        "title": "Миссия",
+        "content": """
+<div class="prose max-w-none">
+  <h1>Миссия</h1>
+  <p>
+    Наша миссия — сделать медицинскую диагностику понятной, доступной и спокойной:
+    без сложных терминов, очередей и неопределённости.
+  </p>
+
+  <h2>Принципы</h2>
+  <ul>
+    <li><strong>Прозрачность</strong> — понятные услуги, цены, подготовка.</li>
+    <li><strong>Сервис</strong> — подтверждение записи и поддержка.</li>
+    <li><strong>Безопасность</strong> — бережная работа с персональными данными.</li>
+  </ul>
+
+  <div class="not-prose grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-4">
+      <div class="font-semibold">Пациент</div>
+      <div class="text-sm text-slate-600 mt-1">Ставим удобство пациента на первое место.</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4">
+      <div class="font-semibold">Качество</div>
+      <div class="text-sm text-slate-600 mt-1">Следуем стандартам и контролю процессов.</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4">
+      <div class="font-semibold">Технологии</div>
+      <div class="text-sm text-slate-600 mt-1">Автоматизируем запись и коммуникации.</div>
+    </div>
+  </div>
+</div>
+""".strip(),
+    },
+    "about-quality": {
+        "title": "Качество",
+        "content": """
+<div class="prose max-w-none">
+  <h1>Качество</h1>
+  <p>
+    Мы выстраиваем процессы так, чтобы пациент получал стабильный результат:
+    понятную услугу, корректную подготовку и аккуратное сопровождение.
+  </p>
+
+  <h2>Как мы контролируем качество</h2>
+  <ul>
+    <li>регламенты и чек-листы;</li>
+    <li>контроль расписания и слотов;</li>
+    <li>поддержка и обратная связь;</li>
+    <li>обновление описаний услуг и памяток.</li>
+  </ul>
+
+  <div class="not-prose rounded-2xl border border-sky-200 bg-sky-50 p-4">
+    <div class="font-semibold text-sky-900">Важно</div>
+    <div class="text-sm text-sky-900 mt-1">
+      Этот раздел можно дополнить реальными документами и стандартами клиники.
+    </div>
+  </div>
+</div>
+""".strip(),
+    },
+    "about-licenses": {
+        "title": "Лицензии",
+        "content": """
+<div class="prose max-w-none">
+  <h1>Лицензии</h1>
+  <p>
+    Здесь размещается информация о лицензиях и разрешительных документах.
+    Можно добавить номера, даты, ссылки на сканы, адреса филиалов.
+  </p>
+
+  <h2>Документы</h2>
+  <ul>
+    <li>Лицензия на медицинскую деятельность — № ____ от ____</li>
+    <li>Санитарно-эпидемиологическое заключение — № ____ от ____</li>
+    <li>Сведения о юр. лице и адресах — ____</li>
+  </ul>
+
+  <div class="not-prose rounded-2xl border border-slate-200 bg-white p-4">
+    <div class="font-semibold">Сканы</div>
+    <div class="text-sm text-slate-600 mt-1">
+      Если сканы будут в медиа — добавьте ссылки или вставьте изображения в HTML.
+    </div>
+  </div>
+</div>
+""".strip(),
+    },
+}
+"""
+Mapping of page slugs to template data for seeding.
+
+Each item provides:
+- title: page title
+- content: HTML content (Tailwind + prose classes recommended)
+"""
+
+
+class Command(BaseCommand):
+    """
+    Команда для заполнения (seed) стандартных CMS-страниц.
+    Создаёт или обновляет объекты Page на основе словаря `TEMPLATES`.
+    Подходит для первичной инициализации проекта или обновления шаблонов.
+    """
+
+    help = "Create/update default Pages templates (about-*)"
+
+    def handle(self, *args, **options):
+        """
+        Выполняет команду заполнения страниц.
+        Для каждого slug из `TEMPLATES`:
+            - создаёт объект Page, если он отсутствует;
+            - либо обновляет существующий объект (title, content, is_published).
+        Использует update_or_create(), что делает операцию безопасной
+        для повторного запуска.
+        В конце выводит в консоль сводку:
+            - количество созданных страниц;
+            - количество обновлённых страниц.
+        """
+        created = 0
+        updated = 0
+
+        for slug, data in TEMPLATES.items():
+            _, is_created = Page.objects.update_or_create(
+                slug=slug,
+                defaults={
+                    "title": data["title"],
+                    "content": data["content"],
+                    "is_published": True,
+                },
+            )
+            created += int(is_created)
+            updated += int(not is_created)
+
+        self.stdout.write(self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}"))

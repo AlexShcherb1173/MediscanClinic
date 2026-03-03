@@ -1,30 +1,56 @@
 {% extends "base.html" %}
+<!-- ===================== Страница: Список акций ===================== -->
+<!-- Показывает: заголовок → сетку карточек акций → (если пусто) заглушку → блок популярных услуг -->
+
 {% block title %}Акции — Mediscan{% endblock %}
 
 {% block content %}
+
+<!-- ---------- Заголовок страницы ---------- -->
 <div class="flex items-end justify-between gap-4">
   <div>
+    <!-- Основной заголовок -->
     <h1 class="text-2xl font-semibold">Акции</h1>
+
+    <!-- Короткое описание/подсказка -->
     <p class="mt-1 text-sm text-slate-600">Актуальные предложения и комплексы.</p>
   </div>
 </div>
 
+<!-- ---------- Сетка карточек акций ---------- -->
 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+  <!-- promos — список акций, пришедший из view -->
   {% for p in promos %}
-    <a href="{% url 'promos:detail' p.slug %}"
-       class="block bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+
+    <!-- Карточка акции кликабельна целиком, ведёт на детальную страницу -->
+    <a
+      href="{% url 'promos:detail' p.slug %}"
+      class="block bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition"
+    >
+      <!-- Название акции -->
       <div class="text-sm font-semibold text-slate-900">{{ p.title }}</div>
+
+      <!-- Короткое описание (если заполнено) -->
       {% if p.short_description %}
-        <div class="mt-2 text-sm text-slate-600 line-clamp-3">{{ p.short_description }}</div>
+        <div class="mt-2 text-sm text-slate-600 line-clamp-3">
+          {{ p.short_description }}
+        </div>
       {% endif %}
+
+      <!-- Подсказка/CTA внизу карточки -->
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
+
   {% empty %}
+    <!-- Заглушка, если в базе нет активных акций -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 text-slate-700 md:col-span-2 xl:col-span-3">
       Акции скоро появятся.
     </div>
   {% endfor %}
 </div>
 
+<!-- ---------- Переиспользуемый блок популярных услуг ---------- -->
 {% include "includes/popular_services.html" %}
+
 {% endblock %}

@@ -1,0 +1,44 @@
+[
+  {
+    "model": "results.researchresult",
+    "pk": 1,
+    "fields": {
+      "patient": 1,
+      "title": "Общий анализ крови",
+      "result_date": "2026-02-10",
+      "file": "results/user_1/sample1.pdf",
+      "comment": "Показатели в пределах нормы.",
+      "is_viewed": false,
+      "viewed_at": null,
+      "created_at": "2026-02-10T09:30:00Z"
+    }
+  },
+  {
+    "model": "results.researchresult",
+    "pk": 2,
+    "fields": {
+      "patient": 1,
+      "title": "Биохимический анализ крови",
+      "result_date": "2026-02-15",
+      "file": "results/user_1/sample2.pdf",
+      "comment": "Повышен уровень холестерина.",
+      "is_viewed": false,
+      "viewed_at": null,
+      "created_at": "2026-02-15T11:15:00Z"
+    }
+  },
+  {
+    "model": "results.researchresult",
+    "pk": 3,
+    "fields": {
+      "patient": 1,
+      "title": "МРТ поясничного отдела",
+      "result_date": "2026-01-28",
+      "file": "results/user_1/sample3.pdf",
+      "comment": "Протрузия L4-L5.",
+      "is_viewed": true,
+      "viewed_at": "2026-01-29T10:00:00Z",
+      "created_at": "2026-01-28T14:45:00Z"
+    }
+  }
+]

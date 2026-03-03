@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+<!-- Заголовок страницы во вкладке браузера -->
+{% block title %}Вход — Mediscan{% endblock %}
+
+{% block content %}
+<!-- Центрируем карточку формы по ширине страницы -->
+<div class="max-w-xl mx-auto">
+  <!-- Карточка с формой входа -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+
+    <!-- Заголовок страницы -->
+    <h1 class="text-2xl font-extrabold text-slate-900">Вход</h1>
+
+    <!-- Подзаголовок с пояснением способа входа -->
+    <div class="text-sm text-slate-600 mt-1">Вход по телефону</div>
+
+    <!-- Общие ошибки формы (например: неверный логин/пароль) -->
+    {% if form.non_field_errors %}
+      <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <!-- Форма входа -->
+    <form method="post" class="mt-6 space-y-4">
+      {# CSRF-токен обязателен для POST-форм в Django #}
+      {% csrf_token %}
+
+      <!-- Поле "Телефон" -->
+      <div>
+        <label for="id_phone" class="block text-sm font-semibold text-slate-800 mb-1">
+          Телефон
+        </label>
+        <input
+          id="id_phone"
+          name="phone"
+          type="tel"
+          value="{{ form.phone.value|default:'' }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          placeholder="+7 999 000-00-00"
+          autocomplete="tel"
+        />
+
+        <!-- Ошибки конкретно поля phone -->
+        {% if form.phone.errors %}
+          <div class="mt-1 text-sm text-red-700">
+            {{ form.phone.errors }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Поле "Пароль" -->
+      <div>
+        <label for="id_password" class="block text-sm font-semibold text-slate-800 mb-1">
+          Пароль
+        </label>
+        <input
+          id="id_password"
+          type="password"
+          name="password"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3
+                 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          autocomplete="current-password"
+        />
+
+        <!-- Ошибки конкретно поля password -->
+        {% if form.password.errors %}
+          <div class="mt-1 text-sm text-red-700">
+            {{ form.password.errors }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Кнопка отправки формы -->
+      <button
+        type="submit"
+        class="w-full inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700
+               text-white px-6 py-3 font-semibold transition"
+      >
+        Войти
+      </button>
+
+      <!-- Ссылка на регистрацию, если у пользователя нет аккаунта -->
+      <div class="text-sm text-slate-600">
+        Нет аккаунта?
+        <a href="{% url 'accounts:register' %}"
+           class="text-blue-700 font-semibold hover:underline">
+          Зарегистрироваться
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

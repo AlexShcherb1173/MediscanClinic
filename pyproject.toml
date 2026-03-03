@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 100
+extend-exclude = '''
+/migrations/
+'''
+
+[tool.isort]
+profile = "black"
+skip = ["migrations"]
+line_length = 100

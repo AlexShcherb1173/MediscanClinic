@@ -1,18 +1,60 @@
 {% extends "base.html" %}
-{% block title %}{{ category.name }}{% endblock %}
+<!-- ===================== Страница: Услуги в категории ===================== -->
+<!-- Показывает список услуг, относящихся к выбранной категории -->
+
+{% block title %}
+  <!-- Заголовок вкладки браузера -->
+  {{ category.name }}
+{% endblock %}
 
 {% block content %}
-<h1>{{ category.name }}</h1>
 
-<p><a href="{% url 'service_list' %}">← Все услуги</a></p>
+  <!-- ===================== Заголовок страницы ===================== -->
+  <h1>
+    <!-- Название текущей категории услуг -->
+    {{ category.name }}
+  </h1>
 
-{% for s in services %}
-  <div style="padding: 12px; border: 1px solid #ddd; margin-bottom: 10px;">
-    <div><b><a href="{% url 'service_detail' s.slug %}">{{ s.name }}</a></b></div>
-    <div>Цена: {{ s.price }} ₽</div>
-    {% if s.short_description %}<div>{{ s.short_description }}</div>{% endif %}
-  </div>
-{% empty %}
-  <p>В этой категории пока нет услуг.</p>
-{% endfor %}
+  <!-- ===================== Навигация назад ===================== -->
+  <p>
+    <!-- Ссылка на общий список услуг -->
+    <a href="{% url 'service_list' %}">← Все услуги</a>
+  </p>
+
+  <!-- ===================== Список услуг категории ===================== -->
+  {% for s in services %}
+
+    <!-- Карточка услуги -->
+    <div style="padding: 12px; border: 1px solid #ddd; margin-bottom: 10px;">
+
+      <!-- Название услуги + ссылка на детальную страницу -->
+      <div>
+        <b>
+          <a href="{% url 'service_detail' s.slug %}">
+            {{ s.name }}
+          </a>
+        </b>
+      </div>
+
+      <!-- Цена услуги -->
+      <div>
+        Цена: {{ s.price }} ₽
+      </div>
+
+      <!-- Короткое описание (если заполнено) -->
+      {% if s.short_description %}
+        <div>
+          {{ s.short_description }}
+        </div>
+      {% endif %}
+
+    </div>
+
+  {% empty %}
+
+    <!-- Сообщение, если в категории пока нет услуг -->
+    <p>В этой категории пока нет услуг.</p>
+
+  {% endfor %}
+
 {% endblock %}

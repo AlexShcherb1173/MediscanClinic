@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет — Mediscan{% endblock %}
+
+{% block content %}
+<!--Основной контейнер страницы "Личный кабинет" -->
+<div class="max-w-6xl mx-auto space-y-6">
+
+  <!-- ================= Header ================= -->
+  <!-- Верхняя карточка: заголовок, данные пользователя, действия (кнопки) -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+      <!--Левая часть: заголовок + краткие данные профиля + карточка пациента -->
+      <div class="space-y-4">
+        <div>
+          <!-- Заголовок страницы -->
+          <h1 class="text-2xl font-extrabold text-slate-900">Личный кабинет</h1>
+
+          <!-- Строка с логином (username) и email (если указан) -->
+            {{ request.user.get_username }}
+            {% if request.user.email %}
+              <span class="text-slate-300">•</span>
+              {{ request.user.email }}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Patient card -->
+        <!-- Карточка пациента: отображаем ФИО из контекст-процессора и телефон (если есть) -->}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div class="text-xs uppercase tracking-wide text-slate-500">Пациент</div>
+
+          <!-- ФИО пациента (если нет — выводим прочерк) -->
+          <div class="mt-1 text-xl font-semibold text-slate-900">
+            {{ lk_full_name|default:"—" }}
+          </div>
+
+          <!--# Телефон пациента (показываем только если есть значение) -->
+          {% if lk_phone %}
+            <div class="mt-1 text-sm text-slate-600">
+              Телефон: {{ lk_phone }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Правая часть: панель быстрых действий -->
+      <div class="flex flex-wrap gap-2">
+
+        <!-- Быстрая запись на приём -->
+        <a href="{% url 'appointments:create' %}"
+           class="inline-flex items-center justify-center rounded-full bg-yellow-400 px-4 py-2
+                  text-sm font-extrabold text-blue-900 hover:bg-yellow-300 transition">
+          Записаться
+        </a>
+
+        <!-- Переход к разделу результатов исследований -->
+        <a href="{% url 'cabinet:results' %}"
+           class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2
+                  text-sm font-semibold hover:bg-slate-50 transition">
+          Результаты
+        </a>
+
+        <!-- Открытие модалки "Обратная связь" (ловится JS по data-open-feedback) -->
+        <button type="button" data-open-feedback
+                class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2
+                       text-sm font-semibold hover:bg-slate-50 transition">
+          Обратная связь
+        </button>
+
+        <!-- Выход из аккаунта -->
+        <a href="{% url 'accounts:logout' %}"
+           class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2
+                  text-sm font-semibold hover:bg-slate-50 transition">
+          Выйти
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= Grid ================= -->
+  <!-- Две колонки: "Мои записи" и "Последние результаты" -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ================= Appointments ================= -->
+    <!-- Блок последних записей: показываем несколько последних и ссылку на всю историю -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-lg font-extrabold text-slate-900">Мои записи</h2>
+
+        <!-- Ссылка на страницу полной истории записей -->
+        <a href="{% url 'cabinet:appointments' %}"
+           class="text-sm font-semibold text-blue-700 hover:underline">
+          Вся история →
+        </a>
+      </div>
+
+      <!-- Список последних записей -->
+      <div class="mt-4 space-y-3">
+        {% if last_appointments %}
+          {% for a in last_appointments %}
+            <!-- Карточка одной записи -->
+            <div class="rounded-2xl border border-slate-200 p-4">
+              <div class="flex items-start justify-between gap-3">
+
+                <!-- Левая часть: услуга + дата/время + врач (если назначен) -->
+                <div class="min-w-0">
+                  <div class="font-semibold text-slate-900">
+                    {% if a.service %}
+                      {{ a.service.name }}
+                    {% else %}
+                      Запись
+                    {% endif %}
+                  </div>
+
+                  <div class="mt-1 text-sm text-slate-600">
+                    {% if a.preferred_datetime %}
+                      {{ a.preferred_datetime|date:"d.m.Y H:i" }}
+                    {% endif %}
+
+                    {% if a.doctor %}
+                      <span class="text-slate-300">•</span>
+                      {{ a.doctor.full_name }}
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Правая часть: бейдж статуса записи (цвет зависит от статуса) -->
+                <div class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
+                  {% if a.status == 'new' %}bg-blue-50 text-blue-700
+                  {% elif a.status == 'confirmed' %}bg-amber-50 text-amber-700
+                  {% elif a.status == 'completed' %}bg-emerald-50 text-emerald-700
+                  {% else %}bg-slate-100 text-slate-700{% endif %}">
+                  {{ a.get_status_display }}
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <!-- Пустое состояние: если записей пока нет -->
+          <div class="text-sm text-slate-600">
+            Пока нет записей. Нажмите <span class="font-semibold">«Записаться»</span>, чтобы создать первую.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ================= Results ================= -->
+    <!-- Блок последних результатов исследований: пока заглушка/плейсхолдер -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-lg font-extrabold text-slate-900">Последние результаты</h2>
+
+        <!-- Ссылка на страницу всех результатов -->
+        <a href="{% url 'cabinet:results' %}"
+           class="text-sm font-semibold text-blue-700 hover:underline">
+          Все результаты →
+        </a>
+      </div>
+
+      <div class="mt-4 text-sm text-slate-600">
+        {% if last_results %}
+          <!-- TODO: сюда вывести last_results (список последних PDF/результатов) -->
+          <!-- тут выведи last_results -->
+        {% else %}
+          <!-- Пустое состояние: результатов пока нет -->
+          Результатов пока нет.
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

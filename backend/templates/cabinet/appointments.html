@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Мои записи — Mediscan{% endblock %}
+
+{% block content %}
+<!-- Основной контейнер страницы истории записей -->
+<div class="max-w-6xl mx-auto space-y-6">
+
+  <!-- ================= Header ================= -->
+  <!-- Верхний блок с заголовком и кнопками действий -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6
+              flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+    <!-- Заголовок и подзаголовок -->
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">История записей</h1>
+      <div class="text-slate-600 text-sm mt-1">
+        Все ваши записи в клинике
+      </div>
+    </div>
+
+    <!-- Кнопки навигации: назад в кабинет и новая запись -->
+    <div class="flex gap-2 flex-wrap">
+      <a href="{% url 'cabinet:dashboard' %}"
+         class="inline-flex items-center justify-center rounded-full
+                border border-slate-200 px-4 py-2 text-sm font-semibold
+                hover:bg-slate-50 transition">
+        ← В кабинет
+      </a>
+
+      <a href="{% url 'appointments:create' %}"
+         class="inline-flex items-center justify-center rounded-full
+                bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-extrabold
+                hover:bg-yellow-300 transition">
+        Записаться
+      </a>
+    </div>
+  </div>
+
+  <!-- ================= List ================= -->
+  <!-- Блок со списком записей пользователя -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+
+    {% if appointments %}
+      <!-- Если у пользователя есть записи -->
+      <div class="space-y-4">
+
+        {% for a in appointments %}
+          <!-- Карточка одной записи -->
+          <div class="rounded-2xl border border-slate-200 p-5 hover:shadow-sm transition">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+              <!-- Информация о записи -->
+              <div>
+                <!-- Название услуги (если есть), иначе просто "Запись" -->
+                <div class="text-lg font-semibold text-slate-900">
+                  {% if a.service %}
+                    {{ a.service.name }}
+                  {% else %}
+                    Запись
+                  {% endif %}
+                </div>
+
+                <!-- Дата/время + врач (если назначен) -->
+                <div class="text-sm text-slate-600 mt-1 flex flex-wrap items-center gap-x-2">
+                  {% if a.preferred_datetime %}
+                    <span>{{ a.preferred_datetime|date:"d.m.Y H:i" }}</span>
+                  {% endif %}
+
+                  {% if a.doctor %}
+                    <span class="text-slate-300">•</span>
+                    <span>{{ a.doctor.full_name }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Статус записи -->
+              <!-- Цвет бейджа зависит от значения a.status -->
+              <div class="text-xs font-semibold px-3 py-1 rounded-full
+                {% if a.status == 'new' %}bg-blue-50 text-blue-700
+                {% elif a.status == 'confirmed' %}bg-amber-50 text-amber-700
+                {% elif a.status == 'completed' %}bg-emerald-50 text-emerald-700
+                {% elif a.status == 'canceled' %}bg-red-50 text-red-700
+                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                {{ a.get_status_display }}
+              </div>
+
+            </div>
+
+            <!-- Если пользователь оставлял комментарий — показываем его -->
+            {% if a.comment %}
+              <div class="mt-4 text-sm text-slate-700 border-t border-slate-100 pt-4">
+                <span class="font-semibold text-slate-800">Комментарий:</span>
+                {{ a.comment }}
+              </div>
+            {% endif %}
+
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- Если записей нет -->
+      <div class="text-slate-600 text-sm">
+        У вас пока нет записей.
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

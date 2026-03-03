@@ -2,132 +2,245 @@
 <!doctype html>
 <html lang="ru">
 <head>
+  <!-- Кодировка + адаптивность -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Заголовок вкладки (переопределяется в дочерних шаблонах) -->
   <title>{% block title %}Mediscan{% endblock %}</title>
 
-  <!-- ✅ Tailwind output (локально через static) -->
+  <!-- Собранный Tailwind CSS (или ваш общий CSS) -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
-  <style>
+  <!-- HTMX для AJAX/partial update (если используете) -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
-    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+  <!-- CSRF-токен в meta (используем ниже в HTMX-хедере) -->
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
+  <style>
+    /* Анимация “пилюль” (кнопки/пункты меню) */
+    .nav-pill{
+      transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+      will-change: transform;
+    }
+    .nav-pill:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.10); }
+    .nav-pill:active{ transform: translateY(0); box-shadow: none; }
+
+    /* Плавный скролл по якорям + отступ под шапку */
+    html{ scroll-behavior:smooth; scroll-padding-top:92px; }
+
+    /* Ripple-эффект (если используете где-то в JS) */
+    .ripple{
+      position:absolute;border-radius:9999px;transform:translate(-50%,-50%);
+      pointer-events:none;animation:ripple 600ms ease-out;background:rgba(255,255,255,0.55);
+    }
+    @keyframes ripple{
+      from{ width:0;height:0;opacity:.9; }
+      to{ width:520px;height:520px;opacity:0; }
+    }
   </style>
 </head>
 
-<script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
 <body class="min-h-screen bg-sky-300 text-slate-900">
 
-<!-- Topbar -->
+<!-- ===================== HEADER ===================== -->
 <header class="bg-blue-600 text-white border-b border-blue-700">
   <div class="max-w-6xl mx-auto px-4">
 
-    <!-- Top row -->
+    <!-- TOP ROW: логотип + город/телефон + CTA/ЛК -->
     <div class="h-16 flex items-center justify-between gap-4">
-      <!-- Logo -->
-      <a href="{% url 'pages:home' %}" class="flex items-center gap-3 shrink-0">
-        <div class="h-10 w-10 rounded-2xl bg-white/15 border border-white/20"></div>
-        <div class="leading-tight">
-          <div class="font-semibold text-lg text-white">Mediscan</div>
-          <div class="text-xs text-blue-100">диагностика и анализы</div>
-        </div>
-      </a>
 
-      <!-- City + phone -->
-      <div class="hidden lg:flex items-center gap-6">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-blue-100">Город</span>
-          <button type="button"
-            class="inline-flex items-center gap-2 px-3 py-2 rounded-full
-                   bg-white/10 hover:bg-white/20 text-sm text-white transition">
-            <span class="font-medium text-white">{{ current_city|default:"Выберите" }}</span>
-            <span class="text-blue-100">▾</span>
-          </button>
-        </div>
+      <!-- LEFT GROUP: Logo + City/Call -->
+      <div class="flex items-center gap-4 min-w-0">
 
-        <a href="tel:+79856987282"
-           class="text-sm font-semibold text-white hover:underline whitespace-nowrap">
-          +7 (985) 698-72-82
+        <!-- Logo: переход на главную -->
+        <a href="{% url 'pages:home' %}" class="flex items-center gap-3 shrink-0">
+          <div class="h-10 w-10 rounded-2xl bg-white/15 border border-white/20"></div>
+          <div class="leading-tight">
+            <div class="font-semibold text-lg text-white">Mediscan</div>
+            <div class="text-xs text-blue-100">диагностика и анализы</div>
+          </div>
         </a>
+
+        <!-- City + Call (desktop): блок показываем только на lg+ -->
+        <div class="hidden lg:flex items-center gap-2">
+
+          <!-- City dropdown -->
+          <div class="relative">
+            <button
+              type="button"
+              id="cityToggle"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-full
+                     bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition nav-pill"
+              aria-haspopup="menu"
+              aria-expanded="false"
+            >
+              <span class="text-blue-100 font-medium">Город</span>
+              <span id="cityLabel" class="font-extrabold text-white">{{ current_city|default:"Москва" }}</span>
+              <span class="text-blue-100" aria-hidden="true">▾</span>
+            </button>
+
+            <!-- Выпадающий список городов -->
+            <div
+              id="cityMenu"
+              class="hidden absolute left-0 mt-2 w-60 rounded-2xl bg-white shadow-lg
+                     border border-slate-200 overflow-hidden z-50 text-slate-900"
+              role="menu"
+            >
+              <button type="button" class="city-option w-full text-left px-4 py-2 text-sm hover:bg-slate-50" role="menuitem">Москва</button>
+              <button type="button" class="city-option w-full text-left px-4 py-2 text-sm hover:bg-slate-50" role="menuitem">Санкт-Петербург</button>
+              <button type="button" class="city-option w-full text-left px-4 py-2 text-sm hover:bg-slate-50" role="menuitem">Казань</button>
+            </div>
+          </div>
+
+          <!-- Call button: телефон (обновляется скриптом при смене города) -->
+          <a
+            id="callBtn"
+            href="tel:+79856987282"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                   bg-white/10 hover:bg-white/20 text-sm font-extrabold text-white transition nav-pill"
+          >
+            <!-- Иконка телефона (inline SVG) -->
+            <svg class="h-4 w-4 text-blue-100" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2
+                       19.86 19.86 0 0 1-8.63-3.07
+                       19.5 19.5 0 0 1-6-6
+                       19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3
+                       a2 2 0 0 1 2 1.72c.12.86.3 1.7.54 2.5
+                       a2 2 0 0 1-.45 2.11L8.09 9.91
+                       a16 16 0 0 0 6 6l1.58-1.58
+                       a2 2 0 0 1 2.11-.45c.8.24 1.64.42 2.5.54
+                       A2 2 0 0 1 22 16.92Z"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <!-- Текст номера (обновляется скриптом при смене города) -->
+            <span id="callText" class="whitespace-nowrap">+7 (985) 698-72-82</span>
+          </a>
+
+        </div>
       </div>
 
-      <!-- Actions -->
+      <!-- RIGHT GROUP: Search/Book/Results/LK -->
       <div class="flex items-center gap-2 shrink-0">
-        <button id="openSearch"
-          class="hidden md:inline-flex items-center justify-center rounded-full
-                 bg-white/10 hover:bg-white/20
-                 px-4 py-2 text-sm text-white transition">
+
+        <!-- Search (mobile/tablet): открывает модалку поиска -->
+        <button
+          type="button"
+          data-open-search
+          class="lg:hidden hidden md:inline-flex items-center justify-center rounded-full
+                 bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
+        >
           Поиск
         </button>
 
-        <a href="{% url 'appointments:create' %}"
-           class="inline-flex items-center justify-center rounded-full
-                  bg-yellow-400 text-blue-900
-                  px-4 py-2 text-sm font-semibold
-                  hover:bg-yellow-300 transition whitespace-nowrap">
+        <!-- CTA: запись -->
+        <a
+          href="{% url 'appointments:create' %}"
+          class="inline-flex items-center justify-center rounded-full
+                 bg-yellow-400 text-blue-900 px-4 py-2 text-sm font-extrabold
+                 hover:bg-yellow-300 transition whitespace-nowrap nav-pill"
+        >
           Записаться
         </a>
 
-        <a href="#"
-           class="hidden sm:inline-flex rounded-full
-                  bg-white/10 hover:bg-white/20
-                  px-4 py-2 text-sm text-white transition">
-          Результаты
-        </a>
+        <!-- Ветка для авторизованного пользователя -->
+        {% if request.user.is_authenticated %}
+          <!-- Результаты (с бейджем непрочитанных) -->
+          <a
+            href="{% url 'cabinet:results' %}"
+            class="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
+          >
+            <span>Результаты</span>
+            {% if unread_results_count|default:0 %}
+              <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-extrabold">
+                {{ unread_results_count }}
+              </span>
+            {% endif %}
+          </a>
 
-        <a href="#"
-           class="hidden sm:inline-flex rounded-full
-                  bg-white/10 hover:bg-white/20
-                  px-4 py-2 text-sm text-white transition">
-          ЛК
-        </a>
+          <!-- Личный кабинет -->
+          <a
+            href="{% url 'cabinet:dashboard' %}"
+            class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
+          >
+            ЛК
+          </a>
+        {% else %}
+          <!-- Для гостя: “Результаты” ведут на логин -->
+          <a
+            href="{% url 'accounts:login' %}"
+            class="hidden sm:inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
+          >
+            <span>Результаты</span>
+          </a>
 
-        <a href="#"
-           class="hidden sm:inline-flex rounded-full
-                  bg-white/10 hover:bg-white/20
-                  px-4 py-2 text-sm text-white transition">
-          Корзина
-        </a>
+          <!-- Войти -->
+          <a
+            href="{% url 'accounts:login' %}"
+            class="hidden sm:inline-flex rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-semibold text-white transition nav-pill"
+          >
+            Войти
+          </a>
+        {% endif %}
       </div>
+
     </div>
 
-    <!-- Second row: main menu -->
+    <!-- SECOND ROW: основное меню -->
     {% with p=request.path %}
-      {% with base="px-4 py-2 rounded-full text-sm transition font-semibold" %}
+      {% with base="px-4 py-2 rounded-full text-sm transition font-semibold nav-pill" %}
         {% with inactive="bg-white/10 hover:bg-white/20 text-white" %}
           {% with active="bg-yellow-400 text-blue-900 hover:bg-yellow-300" %}
+            <nav class="pb-4 flex flex-wrap gap-2" aria-label="Основное меню">
 
-            <nav class="pb-4 flex flex-wrap gap-2">
-              <a href="/services/"
-                 class="{{ base }} {% if p|slice:":10" == "/services/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+              <!-- Услуги -->
+              <a
+                href="/services/"
+                class="{{ base }} {% if p|slice:':10' == '/services/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
+              >
                 Услуги
               </a>
 
-              <a href="{% url 'promos:list' %}"
-                 class="{{ base }} {% if p|slice:":8" == "/promos/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+              <!-- Акции -->
+              <a
+                href="{% url 'promos:list' %}"
+                class="{{ base }} {% if p|slice:':8' == '/promos/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
+              >
                 Акции
               </a>
 
-              <a href="{% url 'staff:doctor_list' %}"
-                 class="{{ base }} {% if p|slice:":9" == "/doctors/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+              <!-- Врачи -->
+              <a
+                href="{% url 'staff:doctor_list' %}"
+                class="{{ base }} {% if p|slice:':9' == '/doctors/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
+              >
                 Врачи
               </a>
 
-              <a href="{% url 'contacts:home' %}"
-                 class="{{ base }} {% if p|slice:":10" == "/contacts/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+              <!-- Контакты -->
+              <a
+                href="{% url 'contacts:home' %}"
+                class="{{ base }} {% if p|slice:':10' == '/contacts/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
+              >
                 Контакты
               </a>
 
-              <a href="/#feedback" class="{{ base }} {{ inactive }}">Обратная связь</a>
-              <a href="/#telegram" class="{{ base }} {{ inactive }}">Telegram-бот</a>
+              <!-- Обратная связь (открывает модалку) -->
+              <button type="button" data-open-feedback class="{{ base }} {{ inactive }}">
+                Обратная связь
+              </button>
 
-              <a href="{% url 'pages:page_detail' 'about' %}"
-                 class="{{ base }} {% if p|slice:":11" == "/page/about/" %}{{ active }}{% else %}{{ inactive }}{% endif %}">
+              <!-- О компании -->
+              <a
+                href="{% url 'pages:page_detail' 'about' %}"
+                class="{{ base }} {% if p|slice:':12' == '/page/about/' %}{{ active }}{% else %}{{ inactive }}{% endif %}"
+              >
                 О компании
               </a>
-            </nav>
 
+            </nav>
           {% endwith %}
         {% endwith %}
       {% endwith %}
@@ -136,22 +249,26 @@
   </div>
 </header>
 
-<!-- Search modal -->
-<div id="searchModal" class="hidden fixed inset-0 bg-black/30 z-50">
+<!-- ===================== SEARCH MODAL ===================== -->
+<div id="searchModal" class="hidden fixed inset-0 bg-black/30 z-50" role="dialog" aria-modal="true" aria-label="Поиск по сайту">
   <div class="max-w-2xl mx-auto mt-24 bg-white rounded-2xl p-4 shadow-lg">
     <div class="flex items-center justify-between">
       <div class="font-semibold">Поиск по сайту</div>
-      <button id="closeSearch" class="px-3 py-1 rounded-xl hover:bg-slate-100">✕</button>
+      <button type="button" data-close-search class="px-3 py-1 rounded-xl hover:bg-slate-100" aria-label="Закрыть">✕</button>
     </div>
+
+    <!-- Поиск ведёт на каталог услуг (GET параметр q) -->
     <form class="mt-3" action="/services/" method="get">
-      <input name="q" placeholder="Например: МРТ, УЗИ, анализ крови"
-             class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0">
+      <input
+        name="q"
+        placeholder="Например: УЗИ, анализ крови"
+        class="w-full rounded-xl border-slate-200 focus:border-slate-400 focus:ring-0"
+      >
       <div class="mt-3 flex gap-2">
-        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800">
+        <button type="submit" class="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800">
           Искать
         </button>
-        <button type="button" id="closeSearch2"
-                class="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50">
+        <button type="button" data-close-search class="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50">
           Закрыть
         </button>
       </div>
@@ -159,33 +276,70 @@
   </div>
 </div>
 
+<!-- ===================== MAIN ===================== -->
 <main class="max-w-6xl mx-auto px-4 py-8">
+  <!-- Django messages: системные уведомления -->
+  {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for m in messages %}
+        <div class="rounded-2xl border p-3 text-sm
+          {% if m.tags == 'success' %}
+            border-green-200 bg-green-50 text-green-800
+          {% elif m.tags == 'error' %}
+            border-red-200 bg-red-50 text-red-800
+          {% elif m.tags == 'warning' %}
+            border-amber-200 bg-amber-50 text-amber-800
+          {% else %}
+            border-slate-200 bg-white text-slate-800
+          {% endif %}
+        ">
+          {{ m }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Контент конкретной страницы -->
   {% block content %}{% endblock %}
 </main>
 
-<!-- Footer (yellow) -->
+<!-- ===================== FOOTER ===================== -->
 <footer class="bg-yellow-200 border-t border-yellow-200">
   <div class="max-w-6xl mx-auto px-4 py-10">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+      <!-- Блок бренда + контакты -->
       <div class="md:col-span-4">
         <div class="font-semibold text-lg text-yellow-900">Mediscan</div>
         <div class="mt-2 text-sm text-yellow-800">
           Медицинская диагностика и лабораторные исследования.
         </div>
+
+        <!-- Телефон/почта (телефон обновляется скриптом при смене города) -->
         <div class="mt-4 text-sm">
-          <a class="font-semibold text-yellow-900 hover:text-yellow-700 hover:underline transition"
-             href="tel:+74951234567">+7 (495) 123-45-67</a><br>
-          <span class="text-yellow-800">info@mediscan.example</span>
+          <a
+            id="footerPhone"
+            class="font-semibold text-yellow-900 hover:text-yellow-700 hover:underline transition"
+            href="tel:+79856987282"
+          >
+            +7 (985) 698-72-82
+          </a>
+          <br>
+          <span class="text-yellow-800">lenovo2015549@gmail.com</span>
         </div>
       </div>
 
+      <!-- Быстрые ссылки -->
       <div class="md:col-span-3">
-        <div class="text-sm font-semibold text-yellow-900">Карта сайта</div>
+        <a
+          href="{% url 'pages:sitemap' %}"
+          class="text-sm font-semibold text-yellow-900 hover:text-yellow-700 transition"
+        >
+          Карта сайта
+        </a>
+
         <div class="mt-3 space-y-2 text-sm text-yellow-800">
-          <a class="block hover:text-yellow-700 hover:underline transition"
-             href="{% url 'pages:page_detail' 'about' %}">
-            О компании
-          </a>
+          <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'about' %}">О компании</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="/services/">Услуги</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'promos:list' %}">Акции</a>
           <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'staff:doctor_list' %}">Врачи</a>
@@ -193,55 +347,301 @@
         </div>
       </div>
 
-      <div class="md:col-span-2">
-        <div class="text-sm font-semibold text-yellow-900">Мессенджеры</div>
-        <div class="mt-3 space-y-2 text-sm text-yellow-800">
-          <a class="block hover:text-yellow-700 hover:underline transition" href="/#telegram">Telegram</a>
-          <a class="block hover:text-yellow-700 hover:underline transition" href="#">WhatsApp</a>
-          <a class="block hover:text-yellow-700 hover:underline transition" href="#">VK</a>
-        </div>
-      </div>
-
+      <!-- Юридический блок -->
       <div class="md:col-span-3">
         <div class="text-sm font-semibold text-yellow-900">Юридическая информация</div>
         <div class="mt-3 text-xs text-yellow-800 leading-relaxed">
           Информация на сайте носит справочный характер и не является публичной офертой.
           Возможны противопоказания — необходима консультация специалиста.
-          <div class="mt-3">
-            <a class="hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'privacy' %}">Политика конфиденциальности</a><br>
-            <a class="hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'personal-data' %}">Политика персональных данных</a>
+
+          <div class="mt-3 space-y-1">
+            <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'privacy' %}">
+              Политика конфиденциальности
+            </a>
+            <a class="block hover:text-yellow-700 hover:underline transition" href="{% url 'pages:page_detail' 'personal-data' %}">
+              Политика персональных данных
+            </a>
           </div>
         </div>
       </div>
+
     </div>
 
+    <!-- Копирайт -->
     <div class="mt-8 text-xs text-yellow-700">
       © {{ now|date:"Y" }} Mediscan. Все права защищены.
     </div>
   </div>
 </footer>
 
-<!-- Search modal JS -->
+<!-- Контейнер для toast-уведомлений (если используете JS-тосты) -->
+<div id="toast-root" class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none"></div>
+
+<!-- ===================== FEEDBACK MODAL ===================== -->
+<!-- Модалка обратной связи (открывается по data-open-feedback; логика в feedback-modal.js) -->
+<div id="feedback-modal" class="fixed inset-0 z-[9999] hidden" aria-hidden="true">
+  <!-- Затемнение/overlay (клик по нему закрывает модалку) -->
+  <div
+    data-feedback-close
+    class="absolute inset-0 z-[9999] bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"
+  ></div>
+
+  <!-- container -->
+  <div class="relative z-[10000] h-full w-full flex items-center justify-center p-4">
+    <div
+      id="feedback-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feedback-title"
+      class="w-full max-w-2xl opacity-0 translate-y-2 transition-all duration-200"
+    >
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+
+        <!-- Шапка модалки: заголовок + кнопка закрытия -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <div id="feedback-title" class="text-lg font-extrabold text-slate-900">Обратная связь</div>
+            <div class="text-sm text-slate-500">Напишите нам — отправим администратору на Email и в Telegram.</div>
+          </div>
+
+          <button
+            type="button"
+            data-feedback-close
+            class="inline-flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
+            aria-label="Закрыть"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Тело модалки: форма -->
+        <div class="p-6">
+          <form id="feedback-form" action="{% url 'contacts:feedback' %}" method="post" class="space-y-4" novalidate>
+            {% csrf_token %}
+
+            <!-- Общие ошибки формы (non-field), показываем/прячем через JS -->
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 hidden" data-nf></div>
+
+            <!-- Поля формы -->
+            <div class="space-y-4" id="feedback-form-body">
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Ваше имя</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Ваше имя"
+                  required
+                  minlength="2"
+                >
+                <!-- Ошибка конкретного поля (подставляется JS) -->
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="name"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Email"
+                  required
+                >
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="email"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Сообщение</label>
+                <textarea
+                  name="message"
+                  rows="8"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Сообщение"
+                  required
+                ></textarea>
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="message"></div>
+              </div>
+            </div>
+
+            <!-- Кнопка отправки + loader -->
+            <div class="pt-1">
+              <button
+                type="submit"
+                id="feedback-submit"
+                class="relative overflow-hidden inline-flex items-center justify-center gap-2
+                       rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95
+                       text-white px-6 py-3 font-semibold shadow-sm transition-all duration-200
+                       focus:outline-none focus:ring-4 focus:ring-blue-200"
+              >
+                <span id="feedback-btn-text">Отправить</span>
+                <svg id="feedback-btn-loader" class="hidden w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Согласие на обработку ПД -->
+            <div class="text-xs text-slate-500">
+              Нажимая «Отправить», вы соглашаетесь на обработку персональных данных.
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ASK QUESTION MODAL ===================== -->
+<!-- Модалка “Задать вопрос” (открывается по data-open-ask-question; логика в ask-question-modal.js) -->
+<div id="askq-modal" class="fixed inset-0 z-[9998] hidden" aria-hidden="true">
+  <!-- Затемнение/overlay -->
+  <div data-askq-close class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+
+  <div class="relative h-full w-full flex items-center justify-center p-4">
+    <div
+      id="askq-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="askq-title"
+      class="w-full max-w-2xl transform opacity-0 translate-y-2 transition-all duration-200"
+    >
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+
+        <!-- Шапка модалки -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <div id="askq-title" class="text-lg font-extrabold text-slate-900">Задать вопрос</div>
+            <div class="text-sm text-slate-500">Подскажем по симптомам или направлению врача. Отправим на Email и в Telegram.</div>
+          </div>
+
+          <button
+            type="button"
+            data-askq-close
+            class="inline-flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
+            aria-label="Закрыть"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Тело модалки: форма -->
+        <div class="p-6">
+          <form id="askq-form" action="{% url 'contacts:ask_question' %}" method="post" class="space-y-4" novalidate>
+            {% csrf_token %}
+
+            <!-- Общие ошибки формы -->
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 hidden" data-nf></div>
+
+            <!-- Поля -->
+            <div class="space-y-4" id="askq-form-body">
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Ваше имя</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Ваше имя"
+                  required
+                  minlength="2"
+                >
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="name"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Телефон или Email</label>
+                <input
+                  type="text"
+                  name="contact"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Телефон или email"
+                  required
+                >
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="contact"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-800 mb-1">Вопрос</label>
+                <textarea
+                  name="question"
+                  rows="7"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
+                         focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  placeholder="Опишите ваш вопрос"
+                  required
+                ></textarea>
+                <div class="mt-1 text-sm text-red-700 hidden" data-err="question"></div>
+              </div>
+            </div>
+
+            <!-- Кнопки: отправить / отмена -->
+            <div class="pt-1 flex items-center gap-3">
+              <button
+                type="submit"
+                id="askq-submit"
+                class="relative overflow-hidden inline-flex items-center justify-center gap-2
+                       rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95
+                       text-white px-6 py-3 font-semibold shadow-sm transition-all duration-200
+                       focus:outline-none focus:ring-4 focus:ring-blue-200"
+              >
+                <span id="askq-btn-text">Отправить</span>
+                <svg id="askq-btn-loader" class="hidden w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 00-8 8h4a4 4 0 014-4v-4z"></path>
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                data-askq-close
+                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white
+                       px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-slate-50 transition"
+              >
+                Отмена
+              </button>
+            </div>
+
+            <!-- Согласие на обработку ПД -->
+            <div class="text-xs text-slate-500">
+              Нажимая «Отправить», вы соглашаетесь на обработку персональных данных.
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+
+<!-- Search modal JS: открытие/закрытие + Esc + клик по оверлею -->
 <script>
 (function () {
   const modal = document.getElementById("searchModal");
-  const openBtn = document.getElementById("openSearch");
-  const closeBtn = document.getElementById("closeSearch");
-  const closeBtn2 = document.getElementById("closeSearch2");
+  const openBtns = document.querySelectorAll("[data-open-search]");
+  const closeBtns = document.querySelectorAll("[data-close-search]");
 
-  if (!modal || !openBtn || !closeBtn || !closeBtn2) return;
+  if (!modal || openBtns.length === 0 || closeBtns.length === 0) return;
 
   function open() { modal.classList.remove("hidden"); }
   function close() { modal.classList.add("hidden"); }
 
-  openBtn.addEventListener("click", open);
-  closeBtn.addEventListener("click", close);
-  closeBtn2.addEventListener("click", close);
+  openBtns.forEach((btn) => btn.addEventListener("click", open));
+  closeBtns.forEach((btn) => btn.addEventListener("click", close));
+
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 })();
 </script>
 
-<!-- Invitro-like smooth anchor scroll with header offset -->
+<!-- Smooth anchor scroll: корректный скролл к якорям с учётом высоты header -->
 <script>
 (function () {
   const HEADER_SELECTOR = "header";
@@ -250,7 +650,6 @@
   function headerOffset() {
     const header = document.querySelector(HEADER_SELECTOR);
     if (!header) return EXTRA_OFFSET;
-
     const style = getComputedStyle(header);
     const isFixed = style.position === "fixed" || style.position === "sticky";
     const h = isFixed ? header.getBoundingClientRect().height : 0;
@@ -267,13 +666,10 @@
   document.addEventListener("click", (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
-
     const hash = a.getAttribute("href");
     if (!hash || hash === "#") return;
-
     const target = document.querySelector(hash);
     if (!target) return;
-
     e.preventDefault();
     history.replaceState(null, "", hash);
     scrollToHash(hash);
@@ -287,6 +683,109 @@
   });
 })();
 </script>
+
+<!-- HTMX CSRF header: добавляем X-CSRFToken ко всем HTMX запросам -->
+<script>
+document.body.addEventListener("htmx:configRequest", (e) => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+  if (token) e.detail.headers["X-CSRFToken"] = token;
+});
+</script>
+
+<!-- City dropdown + localStorage + phone map: выбор города → меняем телефон/лейблы -->
+<script>
+(function () {
+  const STORAGE_KEY = "mediscan_city";
+
+  // Маппинг “город → телефон”
+  const CITY_PHONE = {
+    "Москва": { display: "+7 (985) 698-72-82", tel: "+79856987282" },
+    "Санкт-Петербург": { display: "+7 (812) 000-00-00", tel: "+78120000000" },
+    "Казань": { display: "+7 (843) 000-00-00", tel: "+78430000000" },
+  };
+
+  const ui = {
+    toggle: document.getElementById("cityToggle"),
+    menu: document.getElementById("cityMenu"),
+    label: document.getElementById("cityLabel"),
+    call: document.getElementById("callBtn"),
+    callText: document.getElementById("callText"),
+  };
+
+  const footerPhone = document.getElementById("footerPhone");
+  const ok = ui.toggle && ui.menu && ui.label;
+
+  // Применяем выбранный город к UI и сохраняем в localStorage
+  function applyCity(city) {
+    if (!city) return;
+    const info = CITY_PHONE[city] || CITY_PHONE["Москва"];
+
+    if (ok) ui.label.textContent = city;
+
+    if (ui.call) ui.call.href = "tel:" + info.tel;
+    if (ui.callText) ui.callText.textContent = info.display;
+
+    if (footerPhone) {
+      footerPhone.href = "tel:" + info.tel;
+      footerPhone.textContent = info.display;
+    }
+
+    localStorage.setItem(STORAGE_KEY, city);
+  }
+
+  // Стартовое значение: localStorage → текущий label → “Москва”
+  const saved = (localStorage.getItem(STORAGE_KEY) || "").trim();
+  const initial = saved || (ok ? ui.label.textContent.trim() : "") || "Москва";
+  applyCity(initial);
+
+  // aria-expanded для доступности
+  function setExpanded(isOpen) {
+    if (!ui.toggle) return;
+    ui.toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+
+  // Логика открытия/закрытия меню + выбор пункта
+  if (ok) {
+    ui.toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isHidden = ui.menu.classList.toggle("hidden");
+      setExpanded(!isHidden);
+    });
+
+    ui.menu.querySelectorAll(".city-option").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        applyCity(btn.textContent.trim());
+        ui.menu.classList.add("hidden");
+        setExpanded(false);
+      });
+    });
+
+    // Клик вне меню закрывает список
+    document.addEventListener("click", () => {
+      ui.menu.classList.add("hidden");
+      setExpanded(false);
+    });
+
+    // Escape закрывает меню
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        ui.menu.classList.add("hidden");
+        setExpanded(false);
+      }
+    });
+  }
+})();
+</script>
+
+<!-- Блок для подключения page-specific скриптов из дочерних шаблонов -->
+{% block scripts %}{% endblock %}
+
+<!-- Внешние скрипты модалок (открытие/закрытие, отправка, валидация, тосты) -->
+<script src="{% static 'js/feedback-modal.js' %}"></script>
+<script src="{% static 'js/ask-question-modal.js' %}"></script>
 
 </body>
 </html>

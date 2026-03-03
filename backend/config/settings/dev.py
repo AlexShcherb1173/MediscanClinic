@@ -1,13 +1,44 @@
-from .base import *  # noqa
+"""
+Настройки Django для окружения разработки (dev).
+Основаны на config/settings/base.py.
+Особенности:
+- DEBUG включён;
+- упрощённое логирование в консоль;
+- предназначены только для локальной разработки.
+"""
 
+from .base import *  # noqa: F403,F401
+
+# -----------------------------------------------------------------------------
+# Основные параметры разработки
+# -----------------------------------------------------------------------------
+
+# В dev-окружении DEBUG всегда включён.
 DEBUG = True
+# В DEV не используем Manifest storage (иначе будут 404 на хэшированные файлы)
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+# -----------------------------------------------------------------------------
+# Логирование (dev)
+# -----------------------------------------------------------------------------
+
+"""
+В режиме разработки:
+- выводим логи в консоль;
+- отключаем propagate для логгера appointments,
+  чтобы избежать дублирования сообщений.
+"""
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
-        "console": {"class": "logging.StreamHandler"},
+        # Консольный вывод (удобно при запуске через runserver или Docker)
+        "console": {
+            "class": "logging.StreamHandler",
+        },
     },
     "loggers": {
+        # Логгер приложения appointments
         "appointments": {
             "handlers": ["console"],
             "level": "INFO",

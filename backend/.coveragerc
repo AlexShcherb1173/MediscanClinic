@@ -1,0 +1,16 @@
+[run]
+source = apps
+omit =
+    */migrations/*
+    */admin.py
+    */management/*
+    */tasks.py
+    */tasks_*.py
+    */smsru.py
+    */telegram.py
+    */telegram_client.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:

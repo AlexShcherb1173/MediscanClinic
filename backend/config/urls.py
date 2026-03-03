@@ -1,40 +1,89 @@
 """
-URL configuration for config project.
+Корневой URL-конфиг проекта MediscanClinic.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Отвечает за маршрутизацию:
+- админ-панель;
+- главную страницу и CMS (pages);
+- каталог услуг;
+- записи;
+- врачей;
+- акции;
+- контакты;
+- личный кабинет;
+- результаты исследований;
+- аутентификацию.
+
+В режиме DEBUG дополнительно обслуживает static и media-файлы
+средствами Django (не использовать в production).
 """
 
-from django.contrib import admin
-from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 
 urlpatterns = [
+    # -------------------------------------------------------------------------
+    # Административная панель
+    # -------------------------------------------------------------------------
     path("admin/", admin.site.urls),
-
-    # Главная: только pages
-    path("", include(("apps.pages.urls", "pages"), namespace="pages")),
-
+    # -------------------------------------------------------------------------
+    # Главная страница и CMS-страницы
+    # -------------------------------------------------------------------------
+    path(
+        "",
+        include(("apps.pages.urls", "pages"), namespace="pages"),
+    ),
+    # -------------------------------------------------------------------------
+    # Каталог услуг и запись
+    # -------------------------------------------------------------------------
     path("services/", include("apps.services.urls")),
     path("appointments/", include("apps.appointments.urls")),
-
-    path("core/", include(("apps.core.urls", "core"), namespace="core")),
-    path("doctors/", include(("apps.staff.urls", "staff"), namespace="staff")),
-    path("promos/", include(("apps.promos.urls", "promos"), namespace="promos")),
-    path("contacts/", include("apps.contacts.urls", namespace="contacts")),
+    # -------------------------------------------------------------------------
+    # Врачи
+    # -------------------------------------------------------------------------
+    path(
+        "doctors/",
+        include(("apps.staff.urls", "staff"), namespace="staff"),
+    ),
+    # -------------------------------------------------------------------------
+    # Акции
+    # -------------------------------------------------------------------------
+    path(
+        "promos/",
+        include(("apps.promos.urls", "promos"), namespace="promos"),
+    ),
+    # -------------------------------------------------------------------------
+    # Контакты
+    # -------------------------------------------------------------------------
+    path(
+        "contacts/",
+        include("apps.contacts.urls", namespace="contacts"),
+    ),
+    # -------------------------------------------------------------------------
+    # Личный кабинет и результаты
+    # -------------------------------------------------------------------------
+    path("accounts/", include("apps.cabinet.urls")),
+    path("results/", include("apps.results.urls")),
+    # -------------------------------------------------------------------------
+    # Аутентификация (логин, регистрация и т.д.)
+    # -------------------------------------------------------------------------
+    path("auth/", include("apps.accounts.urls")),
 ]
 
+
+# -----------------------------------------------------------------------------
+# Обслуживание static/media в режиме разработки
+# -----------------------------------------------------------------------------
+# В production static и media должны обслуживаться через Nginx / CDN.
+# -----------------------------------------------------------------------------
+
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATIC_ROOT,
+    )
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )

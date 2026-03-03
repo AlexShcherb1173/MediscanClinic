@@ -7,34 +7,36 @@
       "slug": "kompleks-zdorove-15",
       "badge": "Скидка",
       "subtitle": "Анализы + консультация. Действует до конца месяца.",
-      "description": "",
-      "cta_text": "Подобрать",
-      "cta_url": "/services/?q=комплекс",
+      "description": "Базовая проверка организма: ключевые анализы + консультация врача. Подходит, если давно не обследовались или хотите стартовать с понятного набора.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=kompleks-zdorove-15",
       "starts_at": null,
       "ends_at": null,
       "is_active": true,
       "sort_order": 10,
       "created_at": "2026-01-29T00:00:00Z",
-      "updated_at": "2026-01-29T00:00:00Z"
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [14, 15, 16, 19, 22, 23, 1]
     }
   },
   {
     "model": "promos.promo",
     "pk": 2,
     "fields": {
-      "title": "МРТ ночью — выгоднее",
-      "slug": "mrt-nochyu",
-      "badge": "Ночь",
-      "subtitle": "Слоты после 20:00 по сниженной цене (если доступны).",
-      "description": "",
-      "cta_text": "Подробнее",
-      "cta_url": "/services/?q=МРТ",
+      "title": "Диагностика вечером — выгоднее",
+      "slug": "diagnostika-vecherom",
+      "badge": "Вечер",
+      "subtitle": "ЭКГ, УЗИ и спирометрия в вечерние часы (при наличии слотов).",
+      "description": "Если днём нет времени — выберите диагностику на вечер. Подтвердим запись и напомним о визите.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=diagnostika-vecherom",
       "starts_at": null,
       "ends_at": null,
       "is_active": true,
       "sort_order": 20,
       "created_at": "2026-01-29T00:00:00Z",
-      "updated_at": "2026-01-29T00:00:00Z"
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [24, 25, 26, 27, 28, 29, 30, 33]
     }
   },
   {
@@ -44,16 +46,157 @@
       "title": "Профилактический базовый чек-ап",
       "slug": "checkup-basic",
       "badge": "Чек-ап",
-      "subtitle": "Набор анализов для контроля здоровья.",
-      "description": "",
-      "cta_text": "Смотреть",
-      "cta_url": "/services/?q=чек-ап",
+      "subtitle": "Готовые наборы обследований: базовый и расширенный.",
+      "description": "Удобный формат: готовый набор обследований без лишних выборов. Подходит для ежегодной профилактики и контроля показателей.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=checkup-basic",
       "starts_at": null,
       "ends_at": null,
       "is_active": true,
       "sort_order": 30,
       "created_at": "2026-01-29T00:00:00Z",
-      "updated_at": "2026-01-29T00:00:00Z"
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [47, 48]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 4,
+    "fields": {
+      "title": "Здоровое сердце — обследование",
+      "slug": "zdorovoe-serdce",
+      "badge": "Комплекс",
+      "subtitle": "ЭКГ + Холтер + СМАД — удобно в один период.",
+      "description": "Комплекс для оценки работы сердца и давления. Помогает выявить скрытые эпизоды аритмий и скачки давления в течение суток.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=zdorovoe-serdce",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 40,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [25, 31, 32]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 5,
+    "fields": {
+      "title": "Щитовидная железа — контроль",
+      "slug": "shchitovidka-kontrol",
+      "badge": "Пакет",
+      "subtitle": "УЗИ + гормоны (ТТГ, свободный Т4).",
+      "description": "Удобный набор для первичной проверки щитовидной железы и контроля терапии. Быстро и понятно: УЗИ + ключевые гормоны.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=shchitovidka-kontrol",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 50,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [28, 22, 23]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 6,
+    "fields": {
+      "title": "ЖКТ: консультация + УЗИ",
+      "slug": "gastro-komplekt",
+      "badge": "Пакет",
+      "subtitle": "Консультация гастроэнтеролога + УЗИ брюшной полости.",
+      "description": "Подходит при дискомфорте в животе, вздутии, нарушениях стула. Начинаем с консультации и базовой УЗ-оценки органов.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=gastro-komplekt",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 60,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [4, 26]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 7,
+    "fields": {
+      "title": "Иммунитет и дефициты — витамин D + ферритин",
+      "slug": "deficity-d-ferritin",
+      "badge": "Анализы",
+      "subtitle": "Два ключевых анализа при усталости и снижении энергии.",
+      "description": "Частый выбор при слабости, сонливости, выпадении волос и снижении тонуса. Результаты помогают понять, есть ли дефицит железа и витамина D.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=deficity-d-ferritin",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 70,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [21, 20]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 8,
+    "fields": {
+      "title": "Базовые анализы перед приёмом",
+      "slug": "base-analizy-pered-priemom",
+      "badge": "Анализы",
+      "subtitle": "ОАК + ОАМ + Биохимия + Глюкоза — самый частый набор.",
+      "description": "Минимальный набор, который помогает врачу быстрее оценить состояние и дать рекомендации уже на первом приёме.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=base-analizy-pered-priemom",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 80,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [14, 15, 16, 17]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 9,
+    "fields": {
+      "title": "Процедуры без очередей",
+      "slug": "procedury-bez-ocheredey",
+      "badge": "Процедуры",
+      "subtitle": "Инъекции, капельницы, перевязки — по записи.",
+      "description": "Выберите процедуру и удобное время. Выполняем строго по назначению врача, с соблюдением стерильности.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=procedury-bez-ocheredey",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 90,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [34, 35, 36, 37, 38, 39, 40]
+    }
+  },
+  {
+    "model": "promos.promo",
+    "pk": 10,
+    "fields": {
+      "title": "Онлайн-консультация — быстро и удобно",
+      "slug": "online-consult-fast",
+      "badge": "Онлайн",
+      "subtitle": "Разбор симптомов и анализов по видеосвязи.",
+      "description": "Если нет возможности приехать — онлайн-приём поможет определить план обследований и следующие шаги.",
+      "cta_text": "Записаться",
+      "cta_url": "/appointments/create/?promo=online-consult-fast",
+      "starts_at": null,
+      "ends_at": null,
+      "is_active": true,
+      "sort_order": 100,
+      "created_at": "2026-01-29T00:00:00Z",
+      "updated_at": "2026-01-29T00:00:00Z",
+      "services": [13]
     }
   }
 ]

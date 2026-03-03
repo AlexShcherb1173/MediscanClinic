@@ -2,73 +2,95 @@
 {% block title %}О компании — Mediscan{% endblock %}
 
 {% block content %}
+
+<!-- ===================== Хлебные крошки ===================== -->
+<!-- Навигация: Главная / О компании -->
 <nav class="text-sm text-slate-500">
   <a class="hover:text-slate-900" href="{% url 'pages:home' %}">Главная</a>
   <span class="mx-2">/</span>
   <span class="text-slate-700">О компании</span>
 </nav>
 
+<!-- ===================== Основной блок страницы ===================== -->
 <div class="mt-4 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+  <!-- Заголовок страницы + краткое описание -->
   <h1 class="text-2xl font-semibold text-slate-900">О компании</h1>
   <p class="mt-2 text-slate-600">
     Здесь собрана информация о Mediscan: миссия, качество, безопасность и документы.
   </p>
 
+  <!-- ===================== Сетка карточек-разделов ===================== -->
+  <!-- Карточки ведут на статические страницы (page_detail) и на список врачей -->
   <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
+    <!-- История компании -->
     <a href="{% url 'pages:page_detail' 'about-history' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">История компании</div>
       <div class="mt-1 text-sm text-slate-600">Как создавался Mediscan и как мы развиваемся.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Миссия и ценности -->
     <a href="{% url 'pages:page_detail' 'about-mission' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Миссия и ценности</div>
       <div class="mt-1 text-sm text-slate-600">Принципы работы, ответственность и подход к пациентам.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Политика качества -->
     <a href="{% url 'pages:page_detail' 'about-quality' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Политика качества</div>
       <div class="mt-1 text-sm text-slate-600">Контроль качества, оборудование, стандарты.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Лицензии и сертификаты -->
     <a href="{% url 'pages:page_detail' 'about-licenses' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Лицензии и сертификаты</div>
       <div class="mt-1 text-sm text-slate-600">Документы и подтверждения соответствия.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Конфиденциальность и безопасность -->
     <a href="{% url 'pages:page_detail' 'privacy' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Конфиденциальность и безопасность</div>
       <div class="mt-1 text-sm text-slate-600">Как мы защищаем медицинскую тайну и данные.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Политика обработки персональных данных -->
     <a href="{% url 'pages:page_detail' 'personal-data' %}"
-       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-slate-200 bg-slate-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Политика персональных данных</div>
       <div class="mt-1 text-sm text-slate-600">Условия обработки персональных данных.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Открыть →</div>
     </a>
 
+    <!-- Команда врачей (выделенная карточка как основной CTA) -->
     <a href="{% url 'staff:doctor_list' %}"
-       class="group rounded-2xl border border-blue-200 bg-blue-50 p-5 hover:bg-white hover:shadow-sm transition">
+       class="group rounded-2xl border border-blue-200 bg-blue-50 p-5
+              hover:bg-white hover:shadow-sm transition">
       <div class="font-semibold text-slate-900 group-hover:text-blue-700">Команда врачей</div>
       <div class="mt-1 text-sm text-slate-600">Профили врачей, специализации и запись.</div>
       <div class="mt-4 text-sm font-semibold text-blue-700">Перейти к врачам →</div>
     </a>
 
   </div>
-</section>
-
-
-  </div>
 </div>
+
+<!-- ===================== ВАЖНО: исправление разметки ===================== -->
+<!-- В исходной версии были лишние закрывающие теги и </section> без открытия. -->
+<!-- Здесь структура закрыта корректно. -->
+
 {% endblock %}

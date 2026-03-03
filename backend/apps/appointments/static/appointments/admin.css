@@ -1,5 +1,0 @@
-/* Цвета строк записей по статусу */
-tr.status-new { background: #fffbe6; }
-tr.status-confirmed { background: #e6fffa; }
-tr.status-completed { background: #f0fdf4; }
-tr.status-canceled { background: #fef2f2; }

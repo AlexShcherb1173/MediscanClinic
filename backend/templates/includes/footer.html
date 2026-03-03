@@ -1,5 +1,36 @@
-<hr>
-<footer>
-  <div>© {{ settings.site_name|default:"Mediscan" }}</div>
-  <div>{{ settings.legal_info }}</div>
+<!-- ===================== Footer ===================== -->
+<!--
+  Футер сайта:
+  - mt-10 — отступ сверху от основного контента
+  - border-t — верхняя граница
+  - bg-white — белый фон
+-->
+<footer class="mt-10 border-t border-slate-200 bg-white">
+
+  <!--
+    Внутренний контейнер:
+    - ограничение ширины (max-w-6xl)
+    - центрирование (mx-auto)
+    - адаптивные отступы
+    - flex-раскладка: колонка на мобильных, строка на md+
+  -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+    <!-- Блок с названием сайта и копирайтом -->
+    <div class="text-sm text-slate-600">
+      © {{ settings.site_name|default:"Mediscan" }}
+    </div>
+
+    <!--
+      Юридическая информация:
+      - выводится только если задана в настройках (settings.legal_info)
+      - обычно здесь размещают ИНН, ОГРН, лицензию и т.д.
+    -->
+    {% if settings.legal_info %}
+      <div class="text-xs text-slate-500 leading-relaxed">
+        {{ settings.legal_info }}
+      </div>
+    {% endif %}
+
+  </div>
 </footer>

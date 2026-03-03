@@ -1,92 +1,134 @@
 {% extends "base.html" %}
+<!-- ===================== Страница: Детальная акция ===================== -->
+<!-- Показывает: хлебные крошки → заголовок/бейдж → описание → список услуг по акции -->
+
 {% block title %}{{ promo.title }} — Акции — Mediscan{% endblock %}
 
 {% block content %}
+
+<!-- ---------- Хлебные крошки: навигация по сайту ---------- -->
 <nav class="text-sm text-slate-500">
+  <!-- Ссылка на главную страницу -->
   <a class="hover:text-slate-900" href="{% url 'pages:home' %}">Главная</a>
+
   <span class="mx-2">/</span>
+
+  <!-- Ссылка на список всех акций -->
   <a class="hover:text-slate-900" href="{% url 'promos:list' %}">Акции</a>
+
   <span class="mx-2">/</span>
+
+  <!-- Текущая акция (без ссылки) -->
   <span class="text-slate-700">{{ promo.title }}</span>
 </nav>
 
+<!-- ---------- Карточка акции ---------- -->
 <div class="mt-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+  <!-- Верхний блок: заголовок + кнопка "Все акции" -->
   <div class="flex items-start justify-between gap-4">
     <div>
+      <!-- Название акции -->
       <h1 class="text-2xl font-semibold text-slate-900">{{ promo.title }}</h1>
+
+      <!-- Подзаголовок (если задан) -->
       {% if promo.subtitle %}
         <div class="mt-1 text-slate-600">{{ promo.subtitle }}</div>
       {% endif %}
+
+      <!-- Бейдж акции (например: "-15%" / "Комплекс" / "Хит") -->
       {% if promo.badge %}
         <div class="mt-3 inline-flex items-center rounded-full bg-yellow-100 text-yellow-900 px-3 py-1 text-xs font-semibold">
           {{ promo.badge }}
         </div>
       {% endif %}
     </div>
-    <a href="{% url 'promos:list' %}"
-       class="shrink-0 inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+
+    <!-- Быстрый возврат к списку акций -->
+    <a
+      href="{% url 'promos:list' %}"
+      class="shrink-0 inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+    >
       Все акции
     </a>
   </div>
 
+  <!-- ---------- Описание акции ---------- -->
   {% if promo.description %}
+    <!-- linebreaks: переносы строк превращаются в <p>/<br> -->
     <div class="mt-5 prose max-w-none">
       {{ promo.description|linebreaks }}
     </div>
   {% else %}
+    <!-- Плейсхолдер, если описание ещё не заполнено -->
     <div class="mt-5 text-slate-600">Описание скоро появится.</div>
   {% endif %}
 
-  {# ===== Услуги по акции (карточки) ===== #}
+  <!-- ===================== Услуги по акции ===================== -->
   <div class="mt-8">
     <div class="flex items-end justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold text-slate-900">Услуги по акции</h2>
-        <p class="mt-1 text-sm text-slate-600">Нажмите “Записаться”, чтобы услуга подставилась автоматически.</p>
+        <p class="mt-1 text-sm text-slate-600">
+          Нажмите “Записаться”, чтобы услуга подставилась автоматически.
+        </p>
       </div>
     </div>
 
     {% if promo_services %}
+      <!-- Сетка карточек услуг (адаптивная) -->
       <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
         {% for s in promo_services %}
           <div class="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
+
+            <!-- Категория услуги -->
             <div class="text-xs text-slate-500">{{ s.category.name }}</div>
+
+            <!-- Название услуги -->
             <div class="mt-1 font-semibold text-slate-900 leading-snug">
               {{ s.name }}
             </div>
 
+            <!-- Цена + CTA -->
             <div class="mt-3 flex items-center justify-between">
               <div class="text-sm text-slate-700">
+                <!-- Если цена задана — показываем "от ..." -->
                 {% if s.price_from %}от {{ s.price_from }} ₽{% endif %}
               </div>
 
-              <a href="{% url 'appointments:create' %}?service={{ promo.service_id }}"
-   class="rounded-full bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 font-semibold shadow">
-  Записаться
-</a>
+              <!-- CTA: ведём на страницу записи и передаём service + promo в query string -->
+              <a
+                href="{% url 'appointments:create' %}?service={{ s.id }}&promo={{ promo.slug }}"
+                class="rounded-full bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 font-semibold shadow"
+              >
+                Записаться
+              </a>
             </div>
 
-            <a href="{% url 'services:detail' s.slug %}"
-               class="mt-3 inline-flex text-sm font-semibold text-blue-700 hover:underline">
+            <!-- Ссылка на подробную страницу услуги -->
+            <a
+              href="{% url 'services:detail' s.slug %}"
+              class="mt-3 inline-flex text-sm font-semibold text-blue-700 hover:underline"
+            >
               Открыть услугу →
             </a>
+
           </div>
         {% endfor %}
+
       </div>
     {% else %}
+      <!-- Сообщение, если услуги к акции не привязаны -->
       <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-700">
         Для этой акции пока не привязаны услуги. Привяжи их в админке.
       </div>
     {% endif %}
   </div>
 
-  <div class="mt-8 flex flex-wrap gap-3">
-    <a href="{% url 'appointments:create' %}?next={{ request.path }}"
-       class="inline-flex items-center justify-center rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
-      Записаться (без выбора услуги)
-    </a>
-  </div>
 </div>
 
+<!-- ---------- Блок популярных услуг (общий include) ---------- -->
 {% include "includes/popular_services.html" %}
+
 {% endblock %}

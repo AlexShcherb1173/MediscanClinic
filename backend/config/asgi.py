@@ -1,7 +1,39 @@
+"""
+ASGI-конфигурация проекта MediscanClinic.
+
+Экспортирует ASGI-приложение как переменную уровня модуля `application`.
+
+Используется ASGI-серверами (Uvicorn, Daphne, Hypercorn) для:
+- асинхронной обработки HTTP-запросов;
+- поддержки WebSocket;
+- работы с async views;
+- интеграции с Channels (если будет добавлено).
+
+По умолчанию подключает Django через get_asgi_application().
+"""
+
 import os
 
-from django.core.wsgi import get_wsgi_application
+from django.core.asgi import get_asgi_application
+
+# -----------------------------------------------------------------------------
+# Настройка переменной окружения DJANGO_SETTINGS_MODULE
+# -----------------------------------------------------------------------------
+# Указывает Django, какой модуль настроек использовать.
+# Для production обычно используется:
+#   config.settings.prod
+# Для разработки:
+#   config.settings.dev
+#
+# Если переменная уже задана (через env или сервер),
+# setdefault её не перезапишет.
+# -----------------------------------------------------------------------------
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-application = get_wsgi_application()
+
+# -----------------------------------------------------------------------------
+# Инициализация ASGI-приложения Django
+# -----------------------------------------------------------------------------
+
+application = get_asgi_application()
