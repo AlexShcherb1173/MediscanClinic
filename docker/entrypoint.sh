@@ -1,10 +1,13 @@
-#!/usr/bin/env sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Running migrations..."
+cd /app/backend
+
+echo "==> migrate"
 python manage.py migrate --noinput
 
-echo "Collecting static..."
-python manage.py collectstatic --noinput || true
+echo "==> collectstatic"
+python manage.py collectstatic --noinput
 
+echo "==> start: $*"
 exec "$@"
