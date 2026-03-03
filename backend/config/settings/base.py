@@ -8,7 +8,6 @@
 - база данных, static/media;
 - интеграции: Celery, Telegram, Email (SMTP), Яндекс.Карты, SMS;
 - базовые настройки логирования.
-
 Окружение-специфичные переопределения должны находиться в:
 - config/settings/dev.py
 - config/settings/prod.py
