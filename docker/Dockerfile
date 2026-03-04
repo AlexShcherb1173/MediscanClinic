@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl \
   && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /app/backend/requirements.txt
+COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 # ---------- lint ----------
@@ -29,17 +29,33 @@ FROM node:20-alpine AS frontend
 WORKDIR /app/backend
 
 COPY backend/package.json backend/package-lock.json backend/tailwind.config.js ./
+# Tailwind content scanning — чтобы классы не вырезались, нужны шаблоны/аппы
+COPY backend/templates ./templates
+COPY backend/apps ./apps
 COPY backend/static_src ./static_src
-
+COPY backend/static ./static
 RUN npm ci
 RUN npm run build:css
 
 # ---------- runtime ----------
+# ---------- runtime ----------
 FROM base AS runtime
 
-COPY backend /app/backend
+# гарантируем ключевые файлы
+COPY backend/manage.py /app/backend/manage.py
+COPY backend/config /app/backend/config
+COPY backend/apps /app/backend/apps
+COPY backend/templates /app/backend/templates
+COPY backend/static /app/backend/static
+COPY backend/static_src /app/backend/static_src
+COPY backend/__init__.py /app/backend/__init__.py
 
-# подменяем собранный css
+# (опционально) если есть другие корневые файлы в backend
+COPY backend/mypy.ini /app/backend/mypy.ini
+COPY backend/.flake8 /app/backend/.flake8
+COPY backend/.coveragerc /app/backend/.coveragerc
+
+# собранный css
 COPY --from=frontend /app/backend/static/css/app.css /app/backend/static/css/app.css
 
 COPY docker/entrypoint.sh /entrypoint.sh
