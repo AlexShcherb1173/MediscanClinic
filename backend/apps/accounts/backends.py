@@ -1,10 +1,8 @@
 """
 Бэкенд аутентификации по номеру телефона.
-
 PhoneBackend поддерживает оба варианта вызова:
 - authenticate(username="<телефон>", password=...)
 - authenticate(phone="<телефон>", password=...)
-
 Номер телефона предварительно нормализуется через
 accounts.utils.normalize_phone().
 """
