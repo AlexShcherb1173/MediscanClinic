@@ -16,26 +16,27 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # ---------- lint ----------
 FROM base AS lint
 
-# dev deps (линтеры/тесты) — ожидается файл в backend/
 COPY backend/requirements-dev.txt /app/backend/requirements-dev.txt
 RUN pip install --no-cache-dir -r /app/backend/requirements-dev.txt
 
 COPY backend /app/backend
 WORKDIR /app/backend
 
-# Важно: flake8 config может лежать в backend/.flake8
 CMD ["bash", "-lc", "black apps config --check && isort apps config --check-only && flake8 apps config --config .flake8 && mypy apps config --config-file mypy.ini && pytest -q"]
 
 # ---------- frontend (tailwind) ----------
 FROM node:20-alpine AS frontend
-WORKDIR /app
-COPY package.json package-lock.json tailwind.config.js ./
-COPY backend/static_src ./backend/static_src
+WORKDIR /app/backend
+
+COPY backend/package.json backend/package-lock.json backend/tailwind.config.js ./
+COPY backend/static_src ./static_src
+
 RUN npm ci
 RUN npm run build:css
 
 # ---------- runtime ----------
 FROM base AS runtime
+
 COPY backend /app/backend
 
 # подменяем собранный css

@@ -1,10 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./templates/**/*.html",
-    "./apps/**/templates/**/*.html",
-    "./static/**/*.js"
-  ],
+  "./backend/templates/**/*.html",
+  "./backend/apps/**/templates/**/*.html",
+  "./backend/static/**/*.js",
+
+  // если вдруг запускаешь из backend/
+  "./templates/**/*.html",
+  "./apps/**/templates/**/*.html",
+  "./static/**/*.js",
+],
   safelist: [
     "bg-green-100",
     "bg-green-200",
