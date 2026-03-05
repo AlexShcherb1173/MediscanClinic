@@ -2,23 +2,38 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: ${DB_NAME:-mediscan_db}
-      POSTGRES_USER: ${DB_USER:-mediscan}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mediscan_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h 127.0.0.1 -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - mediscan_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
 
   web:
     image: ghcr.io/${GHCR_OWNER:-alexshcherb1173}/mediscanclinic/web:${IMAGE_TAG:-latest}
     env_file: .env
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - mediscan_static:/app/backend/staticfiles
       - mediscan_media:/app/backend/media
@@ -29,8 +44,12 @@ services:
     command: celery -A config worker -l info --concurrency=1
     env_file: .env
     depends_on:
-      - db
-      - redis
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   celery-beat:
@@ -38,8 +57,12 @@ services:
     command: celery -A config beat -l info
     env_file: .env
     depends_on:
-      - db
-      - redis
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   nginx:
@@ -47,7 +70,7 @@ services:
     depends_on:
       - web
     ports:
-      - "8081:80"
+      - "${APP_PORT:-8081}:80"
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - mediscan_static:/static:ro
@@ -56,5 +79,6 @@ services:
 
 volumes:
   mediscan_pgdata:
+  mediscan_redisdata:
   mediscan_static:
   mediscan_media:

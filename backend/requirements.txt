@@ -7,3 +7,4 @@ redis>=5.0
 celery>=5.3
 requests>=2.31
 Pillow>=10.0
+django-environ>=0.11

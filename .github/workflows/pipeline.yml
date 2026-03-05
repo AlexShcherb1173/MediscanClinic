@@ -5,6 +5,10 @@ on:
   push:
     branches: ["main", "develop"]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   lint-test:
     runs-on: ubuntu-latest
