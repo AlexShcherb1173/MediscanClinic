@@ -103,7 +103,7 @@ class AskQuestionForm(forms.Form):
         raw = self.cleaned_data.get("contact", "")
         try:
             normalized = normalize_phone_or_email(raw)
-        except ValidationError as e:
+        except ValidationError:
             raise forms.ValidationError("Укажите телефон или email")
 
         # Вернём нормализованную строку (email lower / телефон E.164)
