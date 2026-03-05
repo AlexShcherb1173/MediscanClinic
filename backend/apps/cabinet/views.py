@@ -9,11 +9,12 @@
 
 from __future__ import annotations
 
-from apps.appointments.models import Appointment
-from apps.results.models import ResearchResult
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
+
+from apps.appointments.models import Appointment
+from apps.results.models import ResearchResult
 
 
 @login_required

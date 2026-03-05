@@ -5,6 +5,12 @@ from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.test import TestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+
 from apps.appointments.emailing import send_reminder_email
 from apps.appointments.forms import AppointmentCreateForm
 from apps.appointments.models import Appointment, AppointmentSlot
@@ -12,11 +18,6 @@ from apps.appointments.tasks import normalize_emails, normalize_phone_for_smsru,
 from apps.appointments.telegram_client import send_telegram_message
 from apps.appointments.utils import get_busy_time_labels
 from apps.services.models import Service, ServiceCategory
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.test import TestCase, override_settings
-from django.urls import reverse
-from django.utils import timezone
 
 
 class AppointmentsBaseMixin:
@@ -141,9 +142,7 @@ class AppointmentModelsTests(AppointmentsBaseMixin, TestCase):
 class AppointmentFormTests(AppointmentsBaseMixin, TestCase):
     def test_form_slot_queryset_filtered_by_service_and_date(self):
         service = self.create_service()
-        other_service = self.create_service(
-            name="Рентген", category=service.category, price_from="1200.00"
-        )
+        other_service = self.create_service(name="Рентген", category=service.category, price_from="1200.00")
 
         day = timezone.localdate() + timedelta(days=2)
         tz = timezone.get_current_timezone()
@@ -151,18 +150,14 @@ class AppointmentFormTests(AppointmentsBaseMixin, TestCase):
         slot_ok = self.create_slot(
             service,
             timezone.make_aware(
-                timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                    hour=10, minute=0
-                ),
+                timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=10, minute=0),
                 tz,
             ),
         )
         self.create_slot(
             other_service,
             timezone.make_aware(
-                timezone.datetime.combine(day, timezone.datetime.min.time()).replace(
-                    hour=10, minute=20
-                ),
+                timezone.datetime.combine(day, timezone.datetime.min.time()).replace(hour=10, minute=20),
                 tz,
             ),
         )
@@ -285,9 +280,7 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
     def test_slots_requires_service(self):
         url = reverse("appointments:slots")
         day = str(timezone.localdate() + timedelta(days=1))
-        r = self.client.get(
-            url, {"full_name": "Анна", "phone": "+79990000000", "preferred_date": day}
-        )
+        r = self.client.get(url, {"full_name": "Анна", "phone": "+79990000000", "preferred_date": day})
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context["patient_ready"])
         self.assertFalse(r.context["service_selected"])
@@ -297,9 +290,7 @@ class AppointmentViewsTests(AppointmentsBaseMixin, TestCase):
         service = self.create_service()
 
         # preferred_date отсутствует
-        r = self.client.get(
-            url, {"full_name": "Анна", "phone": "+79990000000", "service": service.id}
-        )
+        r = self.client.get(url, {"full_name": "Анна", "phone": "+79990000000", "service": service.id})
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context["patient_ready"])
         self.assertTrue(r.context["service_selected"])

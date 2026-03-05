@@ -27,12 +27,7 @@ def doctor_slider_items(request) -> dict[str, Any]:
     Возвращает:
         dict: {"doctor_slider_items": list[dict[str, str]]}
     """
-    qs = (
-        Doctor.objects.filter(is_active=True)
-        .exclude(photo="")
-        .only("id", "full_name", "photo")
-        .order_by("?")[:12]
-    )
+    qs = Doctor.objects.filter(is_active=True).exclude(photo="").only("id", "full_name", "photo").order_by("?")[:12]
 
     items: list[dict[str, str]] = []
     for d in qs:

@@ -17,11 +17,12 @@ from __future__ import annotations
 
 from datetime import datetime, time, timedelta
 
-from apps.appointments.models import AppointmentSlot
-from apps.services.models import Service
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
+
+from apps.appointments.models import AppointmentSlot
+from apps.services.models import Service
 
 
 class Command(BaseCommand):
@@ -39,18 +40,14 @@ class Command(BaseCommand):
     help = "Generate AppointmentSlot for each active service (08:00-20:00, step 20 min) for N days вперед."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--days", type=int, default=14, help="How many days вперед (default: 14)"
-        )
+        parser.add_argument("--days", type=int, default=14, help="How many days вперед (default: 14)")
         parser.add_argument(
             "--start",
             type=str,
             default="08:00",
             help="Day start HH:MM (default: 08:00)",
         )
-        parser.add_argument(
-            "--end", type=str, default="20:00", help="Day end HH:MM (default: 20:00)"
-        )
+        parser.add_argument("--end", type=str, default="20:00", help="Day end HH:MM (default: 20:00)")
         parser.add_argument("--step", type=int, default=20, help="Step in minutes (default: 20)")
         parser.add_argument(
             "--replace",
@@ -93,9 +90,7 @@ class Command(BaseCommand):
         date_to = today + timedelta(days=days)  # non-inclusive end
 
         service_ids = list(
-            Service.objects.filter(is_active=True, category__is_active=True).values_list(
-                "id", flat=True
-            )
+            Service.objects.filter(is_active=True, category__is_active=True).values_list("id", flat=True)
         )
         if not service_ids:
             self.stderr.write(self.style.WARNING("No active services found."))

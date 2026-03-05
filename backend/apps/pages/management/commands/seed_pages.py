@@ -7,8 +7,9 @@ Management-команда для заполнения стандартных с�
 не создавая дубликатов.
 """
 
-from apps.pages.models import Page
 from django.core.management.base import BaseCommand
+
+from apps.pages.models import Page
 
 """
 Сопоставление slug страницы и шаблонных данных для заполнения.

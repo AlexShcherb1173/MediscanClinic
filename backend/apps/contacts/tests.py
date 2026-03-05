@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from django.test import TestCase, override_settings
+from django.urls import reverse
+
 from apps.contacts.forms import AskQuestionForm, ContactForm
 from apps.contacts.notifications import notify_contact_telegram
 from apps.contacts.telegram import send_telegram_message
-from django.test import TestCase, override_settings
-from django.urls import reverse
 
 
 class ContactsFormsTests(TestCase):
@@ -28,16 +29,12 @@ class ContactsFormsTests(TestCase):
         self.assertIn("question", f.errors)
 
         # Валидный email-контакт
-        f2 = AskQuestionForm(
-            data={"name": "Alex", "contact": "TeSt@Test.com", "question": "Hello?"}
-        )
+        f2 = AskQuestionForm(data={"name": "Alex", "contact": "TeSt@Test.com", "question": "Hello?"})
         self.assertTrue(f2.is_valid(), f2.errors)
         self.assertEqual(f2.cleaned_data["contact"], "test@test.com")
 
         # Валидный phone-контакт (E.164 нормализуется)
-        f3 = AskQuestionForm(
-            data={"name": "Alex", "contact": "8 (999) 123-45-67", "question": "Hello?"}
-        )
+        f3 = AskQuestionForm(data={"name": "Alex", "contact": "8 (999) 123-45-67", "question": "Hello?"})
         self.assertTrue(f3.is_valid(), f3.errors)
         self.assertEqual(f3.cleaned_data["contact"], "+79991234567")
 

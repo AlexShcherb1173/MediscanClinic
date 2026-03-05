@@ -63,9 +63,7 @@ def notify_email(payload: AppointmentNotification) -> None:
         f"Дата/время: {payload.preferred_datetime_iso}\n"
     )
 
-    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(
-        settings, "DEFAULT_FROM_EMAIL", ""
-    )
+    to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
     recipients = normalize_emails(to_email)
     if not recipients:
         return

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from apps.accounts.utils import normalize_phone
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
+
+from apps.accounts.utils import normalize_phone
 
 
 @dataclass(frozen=True)

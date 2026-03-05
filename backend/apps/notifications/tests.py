@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
+from django.test import TestCase, override_settings
+
 from apps.notifications.tasks import send_telegram_text_task
 from apps.notifications.telegram_client import send_telegram_message
-from django.test import TestCase, override_settings
 
 
 class TelegramClientTests(TestCase):

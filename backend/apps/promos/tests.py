@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from apps.promos.models import Promo
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from apps.promos.models import Promo
 
 
 class PromoModelTests(TestCase):
@@ -51,14 +52,10 @@ class PromoModelTests(TestCase):
         p_inactive = Promo.objects.create(title="B", is_active=False)
         self.assertFalse(p_inactive.is_current)
 
-        p_future = Promo.objects.create(
-            title="C", is_active=True, starts_at=now + timedelta(days=1)
-        )
+        p_future = Promo.objects.create(title="C", is_active=True, starts_at=now + timedelta(days=1))
         self.assertFalse(p_future.is_current)
 
-        p_ended = Promo.objects.create(
-            title="D", is_active=True, ends_at=now - timedelta(minutes=1)
-        )
+        p_ended = Promo.objects.create(title="D", is_active=True, ends_at=now - timedelta(minutes=1))
         self.assertFalse(p_ended.is_current)
 
         p_in_window = Promo.objects.create(

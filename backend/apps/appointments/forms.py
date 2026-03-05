@@ -9,13 +9,14 @@
 
 from __future__ import annotations
 
-from apps.accounts.utils import normalize_phone
-from apps.services.models import Service
-from apps.staff.models import Doctor
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+
+from apps.accounts.utils import normalize_phone
+from apps.services.models import Service
+from apps.staff.models import Doctor
 
 from .models import Appointment, AppointmentSlot
 

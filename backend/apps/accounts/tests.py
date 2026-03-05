@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from apps.accounts.backends import PhoneBackend
-from apps.accounts.contact_utils import normalize_phone_or_email
-from apps.accounts.forms import LoginForm, RegisterForm
-from apps.accounts.utils import normalize_phone
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from apps.accounts.backends import PhoneBackend
+from apps.accounts.contact_utils import normalize_phone_or_email
+from apps.accounts.forms import LoginForm, RegisterForm
+from apps.accounts.utils import normalize_phone
 
 User = get_user_model()
 
@@ -50,9 +51,7 @@ class AccountsUserManagerTests(TestCase):
 
 class AccountsUserModelTests(TestCase):
     def test_user_str(self):
-        u = User.objects.create_user(
-            phone="79990000022", password="123456", full_name="Пользователь"
-        )
+        u = User.objects.create_user(phone="79990000022", password="123456", full_name="Пользователь")
         self.assertEqual(str(u), "Пользователь")
 
         u2 = User.objects.create_user(phone="79990000033", password="123456", full_name="")

@@ -240,19 +240,11 @@ def send_appointment_reminders() -> None:
         dt = appt.preferred_datetime
         delta = dt - now
 
-        if (
-            (timedelta(hours=24) - timedelta(minutes=5))
-            <= delta
-            <= (timedelta(hours=24) + timedelta(minutes=5))
-        ):
+        if (timedelta(hours=24) - timedelta(minutes=5)) <= delta <= (timedelta(hours=24) + timedelta(minutes=5)):
             if not appt.reminder_24h_sent:
                 _send_and_mark(appt_id=appt.id, kind="24h")
 
-        if (
-            (timedelta(hours=2) - timedelta(minutes=5))
-            <= delta
-            <= (timedelta(hours=2) + timedelta(minutes=5))
-        ):
+        if (timedelta(hours=2) - timedelta(minutes=5)) <= delta <= (timedelta(hours=2) + timedelta(minutes=5)):
             if not appt.reminder_2h_sent:
                 _send_and_mark(appt_id=appt.id, kind="2h")
 
@@ -276,11 +268,7 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         При расширении логики стоит добавить явную валидацию kind.
     """
     with transaction.atomic():
-        appt = (
-            Appointment.objects.select_for_update()
-            .select_related("service", "doctor")
-            .get(id=appt_id)
-        )
+        appt = Appointment.objects.select_for_update().select_related("service", "doctor").get(id=appt_id)
 
         if kind == "24h" and appt.reminder_24h_sent:
             return
@@ -304,9 +292,7 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
         )
         send_telegram_text_task.delay(tg_text)
 
-        to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(
-            settings, "DEFAULT_FROM_EMAIL", ""
-        )
+        to_email = getattr(settings, "APPOINTMENTS_TO_EMAIL", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
         recipients = normalize_emails(to_email)
         if recipients:
             subject = f"Mediscan: напоминание о записи ({window_str})"
@@ -321,9 +307,7 @@ def _send_and_mark(appt_id: int, kind: str) -> None:
             send_email_task.delay(subject, body, recipients)
 
         sms_text = (
-            f"Mediscan: напоминание. {dt_str}. "
-            f"{service_name}. Врач: {doctor_name}. "
-            f"До приема: {window_str}."
+            f"Mediscan: напоминание. {dt_str}. " f"{service_name}. Врач: {doctor_name}. " f"До приема: {window_str}."
         )
         if getattr(settings, "SMS_RU_API_ID", ""):
             send_sms_task.delay(appt.phone, sms_text)

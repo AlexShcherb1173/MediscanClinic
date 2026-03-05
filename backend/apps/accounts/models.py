@@ -55,9 +55,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(
-        self, phone: str | None = None, password: str | None = None, **extra_fields
-    ):
+    def create_superuser(self, phone: str | None = None, password: str | None = None, **extra_fields):
         """
         Создаёт и сохраняет суперпользователя.
         Поддерживает «защиту от ошибки»: если в extra_fields пришёл username,

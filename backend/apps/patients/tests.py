@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from apps.patients.models import PatientProfile
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+
+from apps.patients.models import PatientProfile
 
 User = get_user_model()
 

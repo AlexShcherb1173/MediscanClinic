@@ -1,7 +1,8 @@
-from apps.accounts.models import User
-from apps.accounts.utils import normalize_phone
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
+from apps.accounts.models import User
+from apps.accounts.utils import normalize_phone
 
 
 class Command(BaseCommand):
@@ -15,9 +16,7 @@ class Command(BaseCommand):
                 # Detect duplicates after normalization
                 if User.objects.filter(phone=norm).exclude(pk=u.pk).exists():
                     self.stdout.write(
-                        self.style.WARNING(
-                            f"Duplicate after normalize: user_id={u.pk}, phone={u.phone} -> {norm}"
-                        )
+                        self.style.WARNING(f"Duplicate after normalize: user_id={u.pk}, phone={u.phone} -> {norm}")
                     )
                     continue
 

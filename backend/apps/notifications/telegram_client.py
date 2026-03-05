@@ -51,9 +51,7 @@ def _get_cfg() -> Optional[TelegramConfig]:
     """
     token = (getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "").strip()
     chat_id = (getattr(settings, "TELEGRAM_CHAT_ID", "") or "").strip()
-    api_base = (
-        getattr(settings, "TELEGRAM_API_BASE", "") or ""
-    ).strip() or "https://api.telegram.org"
+    api_base = (getattr(settings, "TELEGRAM_API_BASE", "") or "").strip() or "https://api.telegram.org"
 
     if not token or not chat_id:
         return None
@@ -82,9 +80,7 @@ def send_telegram_message(text: str, parse_mode: str = "Markdown") -> bool:
     """
     cfg = _get_cfg()
     if not cfg:
-        logger.warning(
-            "Telegram is not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)."
-        )
+        logger.warning("Telegram is not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID).")
         return False
 
     # Telegram Bot API message length limit is ~4096 chars for text.

@@ -8,7 +8,6 @@
 
 from datetime import datetime, time, timedelta
 
-from apps.staff.models import Doctor
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -16,6 +15,8 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.html import format_html
+
+from apps.staff.models import Doctor
 
 from .models import Appointment
 
@@ -119,11 +120,7 @@ class AppointmentAdmin(admin.ModelAdmin):
         now = timezone.now()
 
         for obj in qs:
-            if (
-                obj.preferred_datetime
-                and obj.preferred_datetime < now
-                and obj.status == Appointment.Status.CONFIRMED
-            ):
+            if obj.preferred_datetime and obj.preferred_datetime < now and obj.status == Appointment.Status.CONFIRMED:
                 obj.row_class = "status-completed"
             else:
                 obj.row_class = f"status-{obj.status}"
@@ -163,10 +160,7 @@ class AppointmentAdmin(admin.ModelAdmin):
             preferred_datetime__date=day,
         )
 
-        by_time = {
-            timezone.localtime(a.preferred_datetime).replace(second=0, microsecond=0): a
-            for a in appointments
-        }
+        by_time = {timezone.localtime(a.preferred_datetime).replace(second=0, microsecond=0): a for a in appointments}
 
         rows = [{"dt": dt, "appointment": by_time.get(dt)} for dt in slots]
 

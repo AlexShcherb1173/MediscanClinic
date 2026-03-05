@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-from apps.cabinet.context_processors import cabinet_badges
-from apps.results.models import ResearchResult
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
+from apps.cabinet.context_processors import cabinet_badges
+from apps.results.models import ResearchResult
 
 User = get_user_model()
 
 
 class CabinetAuthViewsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            phone="79990001234", password="123456", full_name="User"
-        )
+        self.user = User.objects.create_user(phone="79990001234", password="123456", full_name="User")
 
     def test_dashboard_requires_login(self):
         url = reverse("cabinet:dashboard")
@@ -55,9 +54,7 @@ class CabinetAuthViewsTests(TestCase):
 
 class CabinetContextProcessorTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            phone="79990009999", password="123456", full_name="User"
-        )
+        self.user = User.objects.create_user(phone="79990009999", password="123456", full_name="User")
 
     def test_badges_anonymous(self):
         class DummyReq:
@@ -78,12 +75,8 @@ class CabinetContextProcessorTests(TestCase):
 
 class CabinetViewsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            phone="79990001234", password="123456", full_name="User"
-        )
-        self.other = User.objects.create_user(
-            phone="79990001235", password="123456", full_name="Other"
-        )
+        self.user = User.objects.create_user(phone="79990001234", password="123456", full_name="User")
+        self.other = User.objects.create_user(phone="79990001235", password="123456", full_name="Other")
 
     def test_dashboard_requires_login(self):
         url = reverse("cabinet:dashboard")
