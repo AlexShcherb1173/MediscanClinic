@@ -72,6 +72,7 @@ class AppointmentAdmin(admin.ModelAdmin):
         ]
         return custom + urls
 
+    @admin.display(description="Действия")
     def action_buttons(self, obj):
         """
         Рендерит кнопки «Подтвердить» / «Отменить» в колонке списка.
@@ -82,8 +83,6 @@ class AppointmentAdmin(admin.ModelAdmin):
             obj.pk,
             obj.pk,
         )
-
-    action_buttons.short_description = "Действия"
 
     def confirm_appointment(self, request, pk):
         """

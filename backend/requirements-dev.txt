@@ -9,3 +9,9 @@ pytest-django>=4.8
 coverage>=7.4
 django-stubs>=5.0
 types-requests
+mypy
+django-stubs
+types-requests
+types-python-dateutil
+types-PyYAML
+types-reportlab

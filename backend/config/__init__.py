@@ -7,6 +7,10 @@
     используется напрямую в этом файле, он должен быть доступен снаружи пакета.
 """
 
-from .celery import app as celery_app  # noqa: F401
+try:
+    from .celery import app as celery_app  # noqa: F401
+except Exception:
+    # mypy/pre-commit env может быть без celery, и это ок
+    celery_app = None
 
 __all__ = ("celery_app",)

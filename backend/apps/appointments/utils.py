@@ -7,10 +7,13 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
+from typing import Any, cast
 
 from django.utils import timezone
 
 from .models import Appointment
+
+normalize_phone_for_smsru = cast(Any, None)
 
 
 def get_busy_time_labels(service_id: int, day: date) -> set[str]:

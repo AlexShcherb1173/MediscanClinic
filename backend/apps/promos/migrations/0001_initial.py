@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=160, verbose_name="Заголовок")),
                 (
                     "slug",
-                    models.SlugField(
-                        blank=True, max_length=180, unique=True, verbose_name="Slug"
-                    ),
+                    models.SlugField(blank=True, max_length=180, unique=True, verbose_name="Slug"),
                 ),
                 (
                     "badge",
@@ -42,9 +40,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "subtitle",
-                    models.CharField(
-                        blank=True, max_length=220, verbose_name="Подзаголовок"
-                    ),
+                    models.CharField(blank=True, max_length=220, verbose_name="Подзаголовок"),
                 ),
                 ("description", models.TextField(blank=True, verbose_name="Описание")),
                 (
@@ -58,9 +54,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "cta_text",
-                    models.CharField(
-                        default="Подробнее", max_length=48, verbose_name="Текст кнопки"
-                    ),
+                    models.CharField(default="Подробнее", max_length=48, verbose_name="Текст кнопки"),
                 ),
                 (
                     "cta_url",
@@ -77,9 +71,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "ends_at",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="Окончание"
-                    ),
+                    models.DateTimeField(blank=True, null=True, verbose_name="Окончание"),
                 ),
                 (
                     "is_active",

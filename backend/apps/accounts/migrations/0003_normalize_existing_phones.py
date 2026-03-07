@@ -30,11 +30,7 @@ def normalize_phones_forward(apps, schema_editor):
 
     # Важно: пишем через SQL (обходим model validation и save())
     with schema_editor.connection.cursor() as cursor:
-        rows = list(
-            User.objects
-            .all()
-            .values_list("id", "phone")
-        )
+        rows = list(User.objects.all().values_list("id", "phone"))
 
         for user_id, raw_phone in rows:
             # 1) сохраняем исходник

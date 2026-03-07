@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
@@ -24,14 +26,14 @@ e164_phone_validator = RegexValidator(
 )
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager["User"]):
     """
     Менеджер пользователей, где уникальным идентификатором является телефон.
     """
 
     use_in_migrations = True
 
-    def create_user(self, phone: str, password: str | None = None, **extra_fields):
+    def create_user(self, phone: str, password: str | None = None, **extra_fields: Any) -> "User":
         """
         Создаёт и сохраняет пользователя с нормализованным телефоном.
         Args:
@@ -55,14 +57,14 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, phone: str | None = None, password: str | None = None, **extra_fields):
+    def create_superuser(self, phone: str, password: str | None = None, **extra_fields: Any) -> "User":
         """
         Создаёт и сохраняет суперпользователя.
         Поддерживает «защиту от ошибки»: если в extra_fields пришёл username,
         используем его как phone (чтобы не ломался createsuperuser).
         """
-        if phone is None and "username" in extra_fields:
-            phone = extra_fields.pop("username")
+        # if phone is None and "username" in extra_fields:
+        #     phone = extra_fields.pop("username")
 
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
@@ -76,6 +78,10 @@ class UserManager(BaseUserManager):
         return self.create_user(phone=phone, password=password, **extra_fields)
 
 
+objects = UserManager()
+REQUIRED_FIELDS = ["full_name"]
+
+
 class User(AbstractUser):
     """
     Кастомная модель пользователя с аутентификацией по телефону.
@@ -85,14 +91,12 @@ class User(AbstractUser):
         - телефон хранится только в формате E.164 (+7999...)
     """
 
-    username = None  # remove AbstractUser.username
+    username = None  # type: ignore[assignment]
 
     phone = models.CharField(
         "Телефон",
         max_length=16,  # '+' + up to 15 digits
         unique=True,
-        # null=True,  # временно (нужно для дедупликации)
-        # blank=True,  # временно
         validators=[e164_phone_validator],
         db_index=True,
         help_text="Формат хранения: E.164 (например +79991234567).",
@@ -103,9 +107,9 @@ class User(AbstractUser):
     last_seen_at = models.DateTimeField("Последняя активность", null=True, blank=True)
 
     USERNAME_FIELD = "phone"
-    REQUIRED_FIELDS: list[str] = ["full_name"]
+    REQUIRED_FIELDS = ["full_name"]
 
-    objects = UserManager()
+    objects = UserManager()  # type: ignore[assignment, misc]
 
     def clean(self) -> None:
         """

@@ -65,9 +65,7 @@ class Migration(migrations.Migration):
                     models.DecimalField(
                         decimal_places=2,
                         max_digits=10,
-                        validators=[
-                            django.core.validators.MinValueValidator(Decimal("0.01"))
-                        ],
+                        validators=[django.core.validators.MinValueValidator(Decimal("0.01"))],
                         verbose_name="Цена от",
                     ),
                 ),
@@ -78,9 +76,7 @@ class Migration(migrations.Migration):
                         decimal_places=2,
                         max_digits=10,
                         null=True,
-                        validators=[
-                            django.core.validators.MinValueValidator(Decimal("0.01"))
-                        ],
+                        validators=[django.core.validators.MinValueValidator(Decimal("0.01"))],
                         verbose_name="Цена до",
                     ),
                 ),
@@ -98,9 +94,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "featured_order",
-                    models.PositiveIntegerField(
-                        db_index=True, default=0, verbose_name="Порядок на главной"
-                    ),
+                    models.PositiveIntegerField(db_index=True, default=0, verbose_name="Порядок на главной"),
                 ),
                 (
                     "category",

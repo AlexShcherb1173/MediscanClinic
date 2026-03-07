@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name="appointmentslot",
-            constraint=models.UniqueConstraint(
-                fields=("service", "starts_at"), name="uniq_slot_service_starts_at"
-            ),
+            constraint=models.UniqueConstraint(fields=("service", "starts_at"), name="uniq_slot_service_starts_at"),
         ),
     ]

@@ -45,6 +45,7 @@ class PageAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Превью")
     def preview_link(self, obj: Page):
         """
         Генерирует ссылку предпросмотра страницы на фронтенде.
@@ -60,5 +61,3 @@ class PageAdmin(admin.ModelAdmin):
             "<a href='/page/{}/' target='_blank'>Открыть</a>",
             obj.slug,
         )
-
-    preview_link.short_description = "Превью"

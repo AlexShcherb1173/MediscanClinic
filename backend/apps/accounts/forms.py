@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.core.validators import EmailValidator, RegexValidator
@@ -53,7 +55,10 @@ class RegisterForm(forms.Form):
             self.add_error("password2", "Пароли не совпадают.")
         return cleaned
 
-    def save(self) -> User:
+    if TYPE_CHECKING:
+        from apps.accounts.models import User
+
+    def save(self) -> "User":
         """
         Создаёт пользователя через UserManager.
         Возвращает:

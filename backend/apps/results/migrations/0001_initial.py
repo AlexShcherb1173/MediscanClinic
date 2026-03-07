@@ -30,9 +30,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=255, verbose_name="Название")),
                 (
                     "result_date",
-                    models.DateField(
-                        blank=True, null=True, verbose_name="Дата исследования"
-                    ),
+                    models.DateField(blank=True, null=True, verbose_name="Дата исследования"),
                 ),
                 (
                     "file",
@@ -50,9 +48,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "viewed_at",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="Просмотрено в"
-                    ),
+                    models.DateTimeField(blank=True, null=True, verbose_name="Просмотрено в"),
                 ),
                 (
                     "created_at",

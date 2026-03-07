@@ -67,7 +67,7 @@ def _user_full_name(user) -> str:
     return (getattr(user, "username", "") or "").strip()
 
 
-def _user_phone(user) -> str:
+def _user_phone(user) -> dict[str, Any]:
     """
     Определяет номер телефона пользователя.
     Порядок поиска:
@@ -79,18 +79,20 @@ def _user_phone(user) -> str:
         если пользователь не аутентифицирован или телефон не найден.
     """
     if not user or not getattr(user, "is_authenticated", False):
-        return ""
+        return {"user_phone": ""}
 
     phone = (getattr(user, "phone", "") or "").strip()
     if phone:
-        return phone
+        # return phone
+        return {"user_phone": (phone or "").strip()}
 
     for rel in ("profile", "patient", "person"):
         obj = getattr(user, rel, None)
         if obj is not None:
             phone = (getattr(obj, "phone", "") or "").strip()
             if phone:
-                return phone
+                # return phone
+                return {"user_phone": (phone or "").strip()}
 
     last = (
         Appointment.objects.filter(user=user)
@@ -100,9 +102,10 @@ def _user_phone(user) -> str:
         .first()
     )
     if last:
-        return (last.phone or "").strip()
+        # return (last.phone or "").strip()
+        return {"user_phone": (phone or "").strip()}
 
-    return
+    return {}
 
 
 def lk_user_data(request) -> dict[str, Any]:

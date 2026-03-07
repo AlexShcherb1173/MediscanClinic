@@ -238,6 +238,8 @@ def send_appointment_reminders() -> None:
 
     for appt in qs:
         dt = appt.preferred_datetime
+        if not dt:
+            return
         delta = dt - now
 
         if (timedelta(hours=24) - timedelta(minutes=5)) <= delta <= (timedelta(hours=24) + timedelta(minutes=5)):
