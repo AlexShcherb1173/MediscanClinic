@@ -5,19 +5,12 @@
 {% block title %}Контакты — Mediscan{% endblock %}
 
 {% block content %}
-{#
-  Изоляция слоя страницы:
-  - isolate создаёт новый stacking context, чтобы модалки/оверлеи не конфликтовали
-  - z-10 поднимает контент над декоративными элементами
-#}
+
 <div class="relative isolate z-10 max-w-6xl mx-auto">
-  {# Заголовок страницы #}
   <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Контакты</h1>
 
-  {# Короткое описание, что пользователь найдёт на странице #}
   <p class="mt-1 text-slate-600">Адрес, телефон, Telegram и карта проезда.</p>
 
-  {# Django messages (например, "сообщение отправлено") #}
   {% if messages %}
     <div class="mt-4 space-y-2">
       {% for m in messages %}
@@ -28,21 +21,17 @@
     </div>
   {% endif %}
 
-  {#
-    Сетка из двух колонок:
-    - items-stretch — чтобы правая колонка (карта) тянулась по высоте левой
-  #}
+
   <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
 
-    {# ===================== ЛЕВАЯ КОЛОНКА: контакты + форма ===================== #}
+
     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-      {# Адрес клиники #}
       <div class="font-semibold text-slate-900">Адрес</div>
       <div class="mt-2 text-slate-700 leading-relaxed">
         {{ address }}
       </div>
 
-      {# Телефон и Email #}
+
       <div class="mt-5 font-semibold text-slate-900">Телефон / Email</div>
       <div class="mt-2 text-slate-700 space-y-1">
         <div>
@@ -53,7 +42,7 @@
         </div>
       </div>
 
-      {# Telegram показываем только если он передан в контекст #}
+
       {% if telegram_username %}
         <div class="mt-5 font-semibold text-slate-900">Telegram</div>
         <div class="mt-2">
@@ -69,26 +58,22 @@
         </div>
       {% endif %}
 
-      {# ===================== ФОРМА ОБРАТНОЙ СВЯЗИ ===================== #}
+
       <div class="mt-6">
         <div class="font-semibold text-slate-900">Форма обратной связи</div>
 
-        {#
-          novalidate — отключаем встроенную HTML-валидацию,
-          чтобы ошибки контролировались Django и выглядели единообразно.
-        #}
+
         <form method="post" class="mt-4 space-y-3" novalidate>
           {# CSRF-токен обязателен для POST в Django #}
           {% csrf_token %}
 
-          {# Ошибки формы, не привязанные к конкретному полю #}
           {% if form.non_field_errors %}
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
               {{ form.non_field_errors }}
             </div>
           {% endif %}
 
-          {# Поле "Имя" #}
+
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
             <input
@@ -105,7 +90,6 @@
             {% endif %}
           </div>
 
-          {# Поле "Email" #}
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.email.label }}</label>
             <input
@@ -122,7 +106,6 @@
             {% endif %}
           </div>
 
-          {# Поле "Сообщение" #}
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.message.label }}</label>
             <textarea
@@ -138,7 +121,6 @@
             {% endif %}
           </div>
 
-          {# Кнопка отправки формы #}
           <button
             type="submit"
             class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
@@ -150,17 +132,12 @@
       </div>
     </div>
 
-    {# ===================== ПРАВАЯ КОЛОНКА: карта Яндекса ===================== #}
-    {#
-      ВАЖНО по слоям:
-      - контейнер карты z-0, чтобы не перекрывать модалки/оверлеи
-      - сама карта абсолютная (inset-0) внутри контейнера
-    #}
+
     <div class="relative z-0 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[70vh] lg:h-full min-h-[420px]">
       {# Контейнер, куда Yandex Maps отрисует карту #}
       <div id="ymap" class="absolute inset-0"></div>
 
-      {# Кнопка "Построить маршрут" включится после успешного геокодинга/инициализации карты #}
+
       <button
         id="route-btn"
         type="button"
@@ -171,7 +148,7 @@
         Построить маршрут
       </button>
 
-      {# Если ключ не задан — показываем поверх карты подсказку #}
+
       {% if not ymaps_api_key %}
         <div class="absolute inset-0 z-20 flex items-center justify-center bg-white/80 p-6">
           <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
@@ -186,7 +163,7 @@
 {% endblock %}
 
 {% block scripts %}
-  {# Скрипты карты подключаем только если есть ключ #}
+
   {% if ymaps_api_key %}
     <script>
       // Глобальная конфигурация для static/js/contacts-map.js
@@ -203,10 +180,10 @@
       };
     </script>
 
-    {# API Яндекс.Карт (ключ берём из контекста) #}
+
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ ymaps_api_key }}&lang=ru_RU"></script>
 
-    {# Ваш JS, который инициализирует карту, маркер и кнопку маршрута #}
+
     <script src="{% static 'js/contacts-map.js' %}"></script>
   {% endif %}
 {% endblock %}
