@@ -10,3 +10,4 @@ Pillow>=10.0
 django-environ>=0.11
 phonenumbers>=8.13
 environ
+reportlab>=4.0
