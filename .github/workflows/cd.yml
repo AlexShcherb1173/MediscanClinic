@@ -78,12 +78,8 @@ jobs:
               exit 1
             fi
 
-            # Создаём .env только если его ещё нет.
-            # Это защищает прод от случайного затирания при неполном секрете.
             if [ ! -f .env ]; then
-              cat > .env << 'EOF'
-${{ secrets.MEDISCAN_ENV }}
-EOF
+              printf '%s\n' "${{ secrets.MEDISCAN_ENV }}" > .env
               echo ".env created from MEDISCAN_ENV secret"
             else
               echo ".env already exists, keeping current server file"
