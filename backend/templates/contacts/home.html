@@ -1,24 +1,23 @@
-<!-- templates/contacts/feedback.html -->
+{# templates/contacts/home.html #}
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Обратная связь — Mediscan{% endblock %}
+{% block title %}Контакты — Mediscan{% endblock %}
 
 {% block content %}
-<!--
-  Исправление перекрытий (overlay/анимаций):
-  - isolate создаёт новый stacking context для страницы
-  - z-10 поднимает весь контент выше декоративных/плавающих элементов
-  - relative нужен, чтобы z-index реально применился
--->
+{#
+  Изоляция слоя страницы:
+  - isolate создаёт новый stacking context, чтобы модалки/оверлеи не конфликтовали
+  - z-10 поднимает контент над декоративными элементами
+#}
 <div class="relative isolate z-10 max-w-6xl mx-auto">
-  <!-- Заголовок страницы -->
-  <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Обратная связь</h1>
+  {# Заголовок страницы #}
+  <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Контакты</h1>
 
-  <!-- Подзаголовок: объясняем пользователю, что произойдёт после отправки -->
-  <p class="mt-1 text-slate-600">Напишите нам — отправим администратору на Email и в Telegram.</p>
+  {# Короткое описание, что пользователь найдёт на странице #}
+  <p class="mt-1 text-slate-600">Адрес, телефон, Telegram и карта проезда.</p>
 
-  <!-- Блок Django messages: показываем системные сообщения (например, "успешно отправлено") -->
+  {# Django messages (например, "сообщение отправлено") #}
   {% if messages %}
     <div class="mt-4 space-y-2">
       {% for m in messages %}
@@ -29,55 +28,69 @@
     </div>
   {% endif %}
 
-  <!--
-    Основная сетка страницы (форма + боковая колонка):
-    - relative z-10 гарантирует, что сетка выше любых "плавающих" элементов
-  -->
-  <div class="relative z-10 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+  {#
+    Сетка из двух колонок:
+    - items-stretch — чтобы правая колонка (карта) тянулась по высоте левой
+  #}
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
 
-    <!-- ===================== ЛЕВАЯ КОЛОНКА: форма ===================== -->
-    <!--
-      z-20 — форма выше правого блока и любых декоративных слоёв,
-      чтобы фокус/тени/выпадающие элементы не "обрезались" визуально.
-    -->
-    <div class="relative z-20 lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-      <!-- Шапка формы (заголовок + пояснение) -->
-      <div class="px-6 py-4 border-b border-slate-100">
-        <div class="text-lg font-extrabold text-slate-900">Форма обратной связи</div>
-        <div class="text-sm text-slate-500">Заполните поля — мы свяжемся с вами как можно быстрее.</div>
+    {# ===================== ЛЕВАЯ КОЛОНКА: контакты + форма ===================== #}
+    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+      {# Адрес клиники #}
+      <div class="font-semibold text-slate-900">Адрес</div>
+      <div class="mt-2 text-slate-700 leading-relaxed">
+        {{ address }}
       </div>
 
-      <div class="p-6">
-        <!--
+      {# Телефон и Email #}
+      <div class="mt-5 font-semibold text-slate-900">Телефон / Email</div>
+      <div class="mt-2 text-slate-700 space-y-1">
+        <div>
+          <a class="text-blue-700 hover:underline" href="tel:{{ phone_tel }}">{{ phone_display }}</a>
+        </div>
+        <div>
+          <a class="text-blue-700 hover:underline" href="mailto:{{ email }}">{{ email }}</a>
+        </div>
+      </div>
+
+      {# Telegram показываем только если он передан в контекст #}
+      {% if telegram_username %}
+        <div class="mt-5 font-semibold text-slate-900">Telegram</div>
+        <div class="mt-2">
+          <a
+            class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition"
+            href="https://t.me/{{ telegram_username|cut:'@' }}"
+            target="_blank"
+            rel="noreferrer"
+          >
+            @{{ telegram_username|cut:'@' }}
+            <span class="text-slate-400 font-normal">→</span>
+          </a>
+        </div>
+      {% endif %}
+
+      {# ===================== ФОРМА ОБРАТНОЙ СВЯЗИ ===================== #}
+      <div class="mt-6">
+        <div class="font-semibold text-slate-900">Форма обратной связи</div>
+
+        {#
           novalidate — отключаем встроенную HTML-валидацию,
-          чтобы сообщения об ошибках контролировались Django/JS и были в одном стиле.
-        -->
-        <form
-          id="server-feedback-form"
-          method="post"
-          novalidate
-          data-feedback-form
-          class="space-y-4"
-        >
-          <!-- CSRF-токен обязателен для POST в Django -->
+          чтобы ошибки контролировались Django и выглядели единообразно.
+        #}
+        <form method="post" class="mt-4 space-y-3" novalidate>
+          {# CSRF-токен обязателен для POST в Django #}
           {% csrf_token %}
 
-          <!--
-            Non-field errors (ошибки формы, не привязанные к конкретному полю).
-            "Якорь" (id + data-атрибут) нужен вашему JS, чтобы корректно распарсить ошибки из HTML.
-          -->
-          <div id="form-non-field-errors" data-non-field-errors>
-            {% if form.non_field_errors %}
-              <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                {{ form.non_field_errors }}
-              </div>
-            {% endif %}
-          </div>
+          {# Ошибки формы, не привязанные к конкретному полю #}
+          {% if form.non_field_errors %}
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
 
-          <!-- ================= Поле: Имя ================= -->
-          <div data-field="name">
+          {# Поле "Имя" #}
+          <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
-
             <input
               type="text"
               name="{{ form.name.name }}"
@@ -86,24 +99,15 @@
                      focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
                      {% if form.name.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
               placeholder="Ваше имя"
-              autocomplete="name"
             />
-
-            <!--
-              "Якорь" ошибок поля name для JS-парсинга:
-              JS ищет #error-name или [data-error-for="name"].
-            -->
-            <div id="error-name" data-error-for="name">
-              {% if form.name.errors %}
-                <div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>
-              {% endif %}
-            </div>
+            {% if form.name.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>
+            {% endif %}
           </div>
 
-          <!-- ================= Поле: Email ================= -->
-          <div data-field="email">
+          {# Поле "Email" #}
+          <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.email.label }}</label>
-
             <input
               type="email"
               name="{{ form.email.name }}"
@@ -112,119 +116,97 @@
                      focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
                      {% if form.email.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
               placeholder="Email"
-              autocomplete="email"
-              inputmode="email"
-              maxlength="254"
             />
-
-            <!-- "Якорь" ошибок поля email для JS-парсинга -->
-            <div id="error-email" data-error-for="email">
-              {% if form.email.errors %}
-                <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
-              {% endif %}
-            </div>
+            {% if form.email.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
+            {% endif %}
           </div>
 
-          <!-- ================= Поле: Сообщение ================= -->
-          <div data-field="message">
+          {# Поле "Сообщение" #}
+          <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.message.label }}</label>
-
             <textarea
               name="{{ form.message.name }}"
-              rows="8"
+              rows="6"
               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 shadow-sm bg-white
                      focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100
                      {% if form.message.errors %}border-red-300 focus:border-red-500 focus:ring-red-100{% endif %}"
               placeholder="Сообщение"
             >{{ form.message.value|default_if_none:'' }}</textarea>
-
-            <!-- "Якорь" ошибок поля message для JS-парсинга -->
-            <div id="error-message" data-error-for="message">
-              {% if form.message.errors %}
-                <div class="mt-1 text-sm text-red-700">{{ form.message.errors }}</div>
-              {% endif %}
-            </div>
+            {% if form.message.errors %}
+              <div class="mt-1 text-sm text-red-700">{{ form.message.errors }}</div>
+            {% endif %}
           </div>
 
-          <!-- Блок кнопок действий: отправить + вернуться в контакты -->
-          <div class="pt-1 flex flex-wrap items-center gap-3">
-            <!-- Кнопка отправки формы -->
-            <button
-              type="submit"
-              class="relative overflow-hidden inline-flex items-center justify-center gap-2
-                     rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95
-                     text-white px-6 py-3 font-semibold shadow-sm transition-all duration-200
-                     focus:outline-none focus:ring-4 focus:ring-blue-200"
-            >
-              Отправить
-            </button>
-
-            <!-- Ссылка-навигация обратно на страницу контактов -->
-            <a
-              href="{% url 'contacts:home' %}"
-              class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white
-                     px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-slate-50 transition"
-            >
-              Вернуться в Контакты
-            </a>
-          </div>
-
-          <!-- Юридическое уведомление: согласие на обработку персональных данных -->
-          <div class="text-xs text-slate-500">
-            Нажимая «Отправить», вы соглашаетесь на обработку персональных данных.
-          </div>
+          {# Кнопка отправки формы #}
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white
+                   px-6 py-3 font-semibold shadow-sm transition"
+          >
+            Отправить
+          </button>
         </form>
       </div>
     </div>
 
-    <!-- ===================== ПРАВАЯ КОЛОНКА: контакты/подсказка ===================== -->
-    <aside class="relative z-10 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-      <!-- Заголовок блока контактов -->
-      <div class="font-semibold text-slate-900">Контакты</div>
+    {# ===================== ПРАВАЯ КОЛОНКА: карта Яндекса ===================== #}
+    {#
+      ВАЖНО по слоям:
+      - контейнер карты z-0, чтобы не перекрывать модалки/оверлеи
+      - сама карта абсолютная (inset-0) внутри контейнера
+    #}
+    <div class="relative z-0 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[70vh] lg:h-full min-h-[420px]">
+      {# Контейнер, куда Yandex Maps отрисует карту #}
+      <div id="ymap" class="absolute inset-0"></div>
 
-      <!-- Список контактных данных (телефон, email, telegram) -->
-      <div class="mt-4 space-y-3 text-slate-700">
-        <div>
-          <div class="text-xs uppercase tracking-wide text-slate-500">Телефон</div>
-          <a class="text-blue-700 hover:underline font-semibold" href="tel:{{ phone_tel }}">
-            {{ phone_display }}
-          </a>
-        </div>
+      {# Кнопка "Построить маршрут" включится после успешного геокодинга/инициализации карты #}
+      <button
+        id="route-btn"
+        type="button"
+        disabled
+        class="absolute top-4 left-4 z-10 rounded-2xl px-4 py-2 text-sm font-semibold
+               bg-gray-300 text-gray-500 cursor-not-allowed shadow-sm"
+      >
+        Построить маршрут
+      </button>
 
-        <div>
-          <div class="text-xs uppercase tracking-wide text-slate-500">Email</div>
-          <a class="text-blue-700 hover:underline font-semibold" href="mailto:{{ email }}">
-            {{ email }}
-          </a>
-        </div>
-
-        <!-- Telegram показываем только если он задан в контексте -->
-        {% if telegram_username %}
-          <div>
-            <div class="text-xs uppercase tracking-wide text-slate-500">Telegram</div>
-            <a
-              class="text-blue-700 hover:underline font-semibold"
-              href="https://t.me/{{ telegram_username|cut:'@' }}"
-              target="_blank"
-              rel="noreferrer"
-            >
-              @{{ telegram_username|cut:'@' }}
-            </a>
+      {# Если ключ не задан — показываем поверх карты подсказку #}
+      {% if not ymaps_api_key %}
+        <div class="absolute inset-0 z-20 flex items-center justify-center bg-white/80 p-6">
+          <div class="max-w-md rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+            Не задан <b>YMAPS_API_KEY</b> в настройках. Добавь ключ — и карта появится.
           </div>
-        {% endif %}
-      </div>
-
-      <!-- Информационный блок: куда именно отправится заявка -->
-      <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-        Мы отправим вашу заявку администратору по <b>Email</b> и в <b>Telegram</b>.
-      </div>
-
-      <!-- Ожидания по времени ответа -->
-      <div class="mt-4 text-xs text-slate-500">
-        Обычно отвечаем в течение рабочего дня.
-      </div>
-    </aside>
+        </div>
+      {% endif %}
+    </div>
 
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {# Скрипты карты подключаем только если есть ключ #}
+  {% if ymaps_api_key %}
+    <script>
+      // Глобальная конфигурация для static/js/contacts-map.js
+      window.CONTACTS_MAP = {
+        // Подпись на маркере/в подсказках
+        title: "Mediscan",
+
+        // Адрес используем для геокодинга (по нему получаем координаты)
+        address: "{{ address|escapejs }}",
+
+        // ВАЖНО: Яндекс.Карты принимают координаты в формате [долгота, широта]
+        // Здесь стоят координаты-заглушка: замени на реальные координаты клиники
+        coords: [55.737497, 37.562577]
+      };
+    </script>
+
+    {# API Яндекс.Карт (ключ берём из контекста) #}
+    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ ymaps_api_key }}&lang=ru_RU"></script>
+
+    {# Ваш JS, который инициализирует карту, маркер и кнопку маршрута #}
+    <script src="{% static 'js/contacts-map.js' %}"></script>
+  {% endif %}
 {% endblock %}
