@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt /app/backend/requirements.txt
-RUN pip install --no-cache-dir -r /app/backend/requirements_.txt
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 # ---------- lint ----------
 FROM base AS lint
