@@ -79,8 +79,8 @@ jobs:
             fi
 
             if [ ! -f .env ]; then
-              printf '%s\n' "${{ secrets.MEDISCAN_ENV }}" > .env
-              echo ".env created from MEDISCAN_ENV secret"
+              printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 -d > .env
+              echo ".env created from MEDISCAN_ENV_B64 secret"
             else
               echo ".env already exists, keeping current server file"
             fi
