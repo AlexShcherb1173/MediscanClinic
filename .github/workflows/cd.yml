@@ -56,7 +56,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            set -euo pipefail
+            set -eu
 
             OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
             REPO_LC="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
@@ -86,22 +86,20 @@ jobs:
             fi
 
             # Проверяем обязательные переменные в .env
-            required_vars=(
-              DJANGO_SECRET_KEY
-              DJANGO_SETTINGS_MODULE
-              DJANGO_ALLOWED_HOSTS
-              DJANGO_CSRF_TRUSTED_ORIGINS
-              DB_NAME
-              DB_USER
-              DB_PASSWORD
-              DB_HOST
-              DB_PORT
-              CELERY_BROKER_URL
-              CELERY_RESULT_BACKEND
+            for var in \
+              DJANGO_SECRET_KEY \
+              DJANGO_SETTINGS_MODULE \
+              DJANGO_ALLOWED_HOSTS \
+              DJANGO_CSRF_TRUSTED_ORIGINS \
+              DB_NAME \
+              DB_USER \
+              DB_PASSWORD \
+              DB_HOST \
+              DB_PORT \
+              CELERY_BROKER_URL \
+              CELERY_RESULT_BACKEND \
               APP_PORT
-            )
-
-            for var in "${required_vars[@]}"; do
+            do
               if ! grep -q "^${var}=" .env; then
                 echo "ERROR: Missing required variable in .env -> ${var}"
                 exit 1
