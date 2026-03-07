@@ -37,11 +37,7 @@
               ФИО пациента <span class="text-red-600">*</span>
             </label>
 
-            <!--
-              Важно:
-              - name берём из Django form, чтобы корректно связалось при POST
-              - подсветка ошибки (красная рамка) включается, если form.full_name.errors
-            -->
+
             <input
               id="id_full_name"
               type="text"
@@ -68,11 +64,7 @@
                 Телефон <span class="text-red-600">*</span>
               </label>
 
-              <!--
-                Примечание:
-                - pattern задан как базовая HTML-валидация, но основная проверка всё равно на сервере/в форме Django
-                - maxlength ограничивает длину ввода
-              -->
+
               <input
                 id="id_phone"
                 type="tel"
@@ -88,7 +80,7 @@
                 pattern="^\+?[0-9]{10,15}$"
               />
 
-              <!-- Ошибки поля Телефон -->
+
               {% if form.phone.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.phone.errors }}</div>
               {% endif %}
@@ -112,7 +104,7 @@
                 autocomplete="email"
               />
 
-              <!-- Ошибки поля Email -->
+
               {% if form.email.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.email.errors }}</div>
               {% endif %}
@@ -125,11 +117,7 @@
               Услуга <span class="text-red-600">*</span>
             </label>
 
-            <!--
-              Селект услуг:
-              - первый option disabled, чтобы пользователь явно выбрал услугу
-              - choices берём из form.service.field.choices
-            -->
+
             <select
               id="service-select"
               name="{{ form.service.name }}"
@@ -151,7 +139,7 @@
               {% endfor %}
             </select>
 
-            <!-- Ошибки поля Услуга -->
+
             {% if form.service.errors %}
               <div class="mt-1 text-sm text-red-700">{{ form.service.errors }}</div>
             {% endif %}
@@ -159,7 +147,7 @@
 
           <!-- ===== Скрытые поля (управляются JS/HTMX) ===== -->
 
-          <!-- Скрытая дата в ISO-формате (YYYY-MM-DD) — именно это значение отправляется на backend -->
+
           <input
             type="hidden"
             id="preferred-date"
@@ -167,7 +155,7 @@
             value="{% if form.preferred_date.value %}{{ form.preferred_date.value|date:'Y-m-d' }}{% endif %}"
           />
 
-          <!-- Скрытый выбранный слот (PK) — именно его отправляем на backend -->
+
           <input
             type="hidden"
             id="slot-input"
@@ -177,7 +165,7 @@
 
           <!-- ===== Блоки: Дата + Время ===== -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- ===== Выбор даты (поповер с HTMX-календарём) ===== -->
+
             <div class="min-w-0">
               <label for="date-display" class="block text-sm font-semibold text-slate-800 mb-1">
                 Дата <span class="text-red-600">*</span>
@@ -185,10 +173,7 @@
 
               <div class="relative" id="date-area">
                 <div class="flex items-stretch gap-2">
-                  <!--
-                    Поле только для отображения выбранной даты (read-only).
-                    Реальное значение хранится в hidden #preferred-date.
-                  -->
+
                   <input
                     id="date-display"
                     type="text"
@@ -211,10 +196,7 @@
                   </button>
                 </div>
 
-                <!--
-                  Поповер с календарём.
-                  Календарь подгружается через HTMX при load.
-                -->
+
                 <div
                   id="date-popover"
                   class="hidden absolute z-30 mt-2 left-0 w-[320px] max-w-full rounded-3xl border border-slate-200 bg-white shadow-lg p-4"
@@ -254,10 +236,7 @@
                 Время записи <span class="text-red-600">*</span>
               </label>
 
-              <!--
-                “Псевдо-поле” для отображения статуса выбора.
-                Реальное значение хранится в hidden #slot-input.
-              -->
+
               <div id="slot-field" class="w-full rounded-2xl border px-4 py-3 shadow-sm bg-white border-slate-200">
                 <span id="slot-display" class="text-slate-400">
                   {% if form.slot.value and form.preferred_date.value %}
@@ -268,12 +247,7 @@
                 </span>
               </div>
 
-              <!--
-                Контейнер слотов:
-                - подгружается через HTMX
-                - триггеры: загрузка, смена услуги, смена даты, ввод ФИО/телефона (с задержкой), и ручной trigger "refresh"
-                - include: отправляет на backend текущее состояние формы
-              -->
+
               <div
                 id="slot-tiles"
                 class="mt-2"
@@ -325,15 +299,7 @@
               Нажимая “Отправить”, вы соглашаетесь с обработкой персональных данных.
             </div>
 
-            <!--
-              По умолчанию кнопка disabled.
-              JS включает её только когда заполнены:
-              - ФИО (>=3)
-              - телефон (>=6)
-              - услуга
-              - дата
-              - слот
-            -->
+
             <button
               type="submit"
               id="submit-btn"

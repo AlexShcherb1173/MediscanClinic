@@ -1,0 +1,101 @@
+name: deploy-env
+
+on:
+  workflow_dispatch:
+    inputs:
+      restart_services:
+        description: "Перезапустить контейнеры после обновления .env"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update .env on server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -eu
+
+            APP_DIR="/opt/mediscanclinic"
+            COMPOSE_FILE="docker-compose.prod.yml"
+            RESTART_SERVICES="${{ inputs.restart_services }}"
+
+            sudo mkdir -p "$APP_DIR"
+            sudo chown -R "$USER:$USER" "$APP_DIR"
+            cd "$APP_DIR"
+
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "ERROR: $COMPOSE_FILE not found in $APP_DIR"
+              exit 1
+            fi
+
+            if [ -z "${{ secrets.MEDISCAN_ENV_B64 }}" ]; then
+              echo "ERROR: MEDISCAN_ENV_B64 secret is empty"
+              exit 1
+            fi
+
+            TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+
+            if [ -f ".env" ]; then
+              cp .env ".env.backup_${TIMESTAMP}"
+              echo "Backup created: .env.backup_${TIMESTAMP}"
+            fi
+
+            if printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 --decode > .env.new 2>/dev/null; then
+              echo "Decoded .env.new using base64 --decode"
+            else
+              printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 -d > .env.new
+              echo "Decoded .env.new using base64 -d"
+            fi
+
+            for var in \
+              DJANGO_SECRET_KEY \
+              DJANGO_SETTINGS_MODULE \
+              DJANGO_ALLOWED_HOSTS \
+              DJANGO_CSRF_TRUSTED_ORIGINS \
+              DB_NAME \
+              DB_USER \
+              DB_PASSWORD \
+              DB_HOST \
+              DB_PORT \
+              CELERY_BROKER_URL \
+              CELERY_RESULT_BACKEND \
+              APP_PORT
+            do
+              if ! grep -q "^${var}=" .env.new; then
+                echo "ERROR: Missing required variable in new .env -> ${var}"
+                rm -f .env.new
+                exit 1
+              fi
+            done
+
+            mv .env.new .env
+            chmod 600 .env
+
+            echo ".env updated successfully"
+
+            echo "Visible config snapshot:"
+            grep -E '^(DJANGO_SETTINGS_MODULE|DJANGO_ALLOWED_HOSTS|DJANGO_CSRF_TRUSTED_ORIGINS|DB_NAME|DB_USER|DB_HOST|DB_PORT|APP_PORT)=' .env || true
+
+            if [ "$RESTART_SERVICES" = "true" ]; then
+              echo "Restarting services..."
+              docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+
+              echo "Containers status:"
+              docker compose -f "$COMPOSE_FILE" ps
+
+              echo "Runtime settings check:"
+              docker exec mediscanclinic-web-1 python manage.py shell -c "from django.conf import settings; print('ALLOWED_HOSTS =', settings.ALLOWED_HOSTS); print('CSRF_TRUSTED_ORIGINS =', getattr(settings, 'CSRF_TRUSTED_ORIGINS', []))"
+            else
+              echo "Restart skipped"
+            fi

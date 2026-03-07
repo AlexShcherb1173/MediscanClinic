@@ -59,7 +59,6 @@ jobs:
             set -eu
 
             OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-            REPO_LC="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
 
             APP_DIR="/opt/mediscanclinic"
             COMPOSE_FILE="docker-compose.prod.yml"
@@ -68,24 +67,42 @@ jobs:
             sudo chown -R "$USER:$USER" "$APP_DIR"
             cd "$APP_DIR"
 
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "ERROR: docker is not installed"
+              exit 1
+            fi
+
+            if ! docker compose version >/dev/null 2>&1; then
+              echo "ERROR: docker compose is not available"
+              exit 1
+            fi
+
             if [ ! -f "$COMPOSE_FILE" ]; then
               echo "ERROR: $COMPOSE_FILE not found in $APP_DIR"
               exit 1
             fi
 
-            if [ ! -d docker/nginx ]; then
+            if [ ! -d "docker/nginx" ]; then
               echo "ERROR: docker/nginx directory not found in $APP_DIR"
               exit 1
             fi
 
-            if [ ! -f .env ]; then
-              printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 -d > .env
-              echo ".env created from MEDISCAN_ENV_B64 secret"
+            if [ ! -f ".env" ]; then
+              if [ -z "${{ secrets.MEDISCAN_ENV_B64 }}" ]; then
+                echo "ERROR: .env does not exist and MEDISCAN_ENV_B64 secret is empty"
+                exit 1
+              fi
+
+              if printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 --decode > .env 2>/dev/null; then
+                echo ".env created from MEDISCAN_ENV_B64 secret"
+              else
+                printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 -d > .env
+                echo ".env created from MEDISCAN_ENV_B64 secret"
+              fi
             else
               echo ".env already exists, keeping current server file"
             fi
 
-            # Проверяем обязательные переменные в .env
             for var in \
               DJANGO_SECRET_KEY \
               DJANGO_SETTINGS_MODULE \
