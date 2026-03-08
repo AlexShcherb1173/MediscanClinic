@@ -204,11 +204,10 @@ Django-проект сайта клиники диагностики и лабо
 
 ---
 
-``` flowchart TD
+```mermaid
+flowchart TD
 
-User[User Browser]
-User --> Nginx
-
+User["User Browser"] --> Nginx
 Nginx --> Gunicorn
 Gunicorn --> Django
 
@@ -224,6 +223,14 @@ Templates --> HTMX
 GitHubActions --> DockerBuild
 DockerBuild --> GHCR
 GHCR --> ProductionServer
+
+classDef infra fill:#e8f5e9,stroke:#2e7d32
+classDef app fill:#e3f2fd,stroke:#1565c0
+classDef async fill:#fff3e0,stroke:#ef6c00
+
+class PostgreSQL,Redis infra
+class Django,Nginx,Gunicorn app
+class Celery,Notifications async
 ```
 ## Структура проекта
 ```text
