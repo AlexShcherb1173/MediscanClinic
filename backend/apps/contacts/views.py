@@ -166,12 +166,7 @@ def ask_question(request):
             question = form.cleaned_data["question"]
 
             subject = f"Mediscan: вопрос с сайта от {name}"
-            text = (
-                "Новый вопрос с сайта\n\n"
-                f"Имя: {name}\n"
-                f"Контакт: {contact}\n\n"
-                f"Вопрос:\n{question}\n"
-            )
+            text = "Новый вопрос с сайта\n\n" f"Имя: {name}\n" f"Контакт: {contact}\n\n" f"Вопрос:\n{question}\n"
             notify_contact_email(subject, text)
 
             tg_text = (

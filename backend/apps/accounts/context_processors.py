@@ -70,13 +70,14 @@ def _user_full_name(user) -> str:
 def _user_phone(user) -> str:
     """
     Определяет номер телефона пользователя.
+
     Порядок поиска:
         1. user.phone
         2. связанные объекты profile / patient / person
         3. последняя запись Appointment
+
     Возвращает:
-        Номер телефона или пустую строку,
-        если пользователь не аутентифицирован или телефон не найден.
+        строку с номером телефона или пустую строку.
     """
     if not user or not getattr(user, "is_authenticated", False):
         return ""
@@ -99,10 +100,11 @@ def _user_phone(user) -> str:
         .order_by("-id")
         .first()
     )
+
     if last:
         return (last.phone or "").strip()
 
-    return
+    return ""
 
 
 def lk_user_data(request) -> dict[str, Any]:

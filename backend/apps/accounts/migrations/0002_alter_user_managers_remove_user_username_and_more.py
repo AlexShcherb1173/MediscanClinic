@@ -25,9 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="last_seen_at",
-            field=models.DateTimeField(
-                blank=True, null=True, verbose_name="Последняя активность"
-            ),
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Последняя активность"),
         ),
         migrations.AlterField(
             model_name="user",

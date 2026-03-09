@@ -26,9 +26,7 @@ class Migration(migrations.Migration):
                 ("full_name", models.CharField(max_length=150, verbose_name="ФИО")),
                 (
                     "photo",
-                    models.ImageField(
-                        blank=True, upload_to="doctors/", verbose_name="Фото"
-                    ),
+                    models.ImageField(blank=True, upload_to="doctors/", verbose_name="Фото"),
                 ),
                 ("bio", models.TextField(blank=True, verbose_name="Биография")),
                 (

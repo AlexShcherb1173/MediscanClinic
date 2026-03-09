@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from apps.promos.models import Promo
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from apps.promos.models import Promo
 
 
 class PromoModelTests(TestCase):
@@ -51,14 +52,10 @@ class PromoModelTests(TestCase):
         p_inactive = Promo.objects.create(title="B", is_active=False)
         self.assertFalse(p_inactive.is_current)
 
-        p_future = Promo.objects.create(
-            title="C", is_active=True, starts_at=now + timedelta(days=1)
-        )
+        p_future = Promo.objects.create(title="C", is_active=True, starts_at=now + timedelta(days=1))
         self.assertFalse(p_future.is_current)
 
-        p_ended = Promo.objects.create(
-            title="D", is_active=True, ends_at=now - timedelta(minutes=1)
-        )
+        p_ended = Promo.objects.create(title="D", is_active=True, ends_at=now - timedelta(minutes=1))
         self.assertFalse(p_ended.is_current)
 
         p_in_window = Promo.objects.create(
@@ -76,9 +73,9 @@ class PromoViewsTests(TestCase):
         promo_list фильтрует только is_active=True и сортирует:
         sort_order ASC, created_at DESC (см. views.py)
         """
-        p_active1 = Promo.objects.create(title="A1", slug="", is_active=True, sort_order=10)
-        p_inactive = Promo.objects.create(title="INACTIVE", slug="", is_active=False, sort_order=1)
-        p_active2 = Promo.objects.create(title="A2", slug="", is_active=True, sort_order=20)
+        Promo.objects.create(title="A1", slug="", is_active=True, sort_order=10)
+        Promo.objects.create(title="INACTIVE", slug="", is_active=False, sort_order=1)
+        Promo.objects.create(title="A2", slug="", is_active=True, sort_order=20)
 
         url = reverse("promos:list")
         r = self.client.get(url)

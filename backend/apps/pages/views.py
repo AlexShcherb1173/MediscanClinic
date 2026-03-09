@@ -7,10 +7,11 @@
 - отображение страницы карты сайта.
 """
 
+from django.shortcuts import get_object_or_404, render
+
 from apps.promos.models import Promo
 from apps.services.models import Service
 from apps.staff.models import Doctor
-from django.shortcuts import get_object_or_404, render
 
 from .models import Page
 
@@ -56,11 +57,7 @@ def page_detail(request, slug: str):
         Http404 — если страница не найдена или не опубликована.
     """
     if slug == "about":
-        doctors = (
-            Doctor.objects.filter(is_active=True)
-            .prefetch_related("specialties")
-            .order_by("full_name")[:6]
-        )
+        doctors = Doctor.objects.filter(is_active=True).prefetch_related("specialties").order_by("full_name")[:6]
 
         try:
             from apps.core.models import License
@@ -113,10 +110,7 @@ def home(request):
     )
 
     doctors_slider = list(
-        Doctor.objects.exclude(photo="")
-        .exclude(photo__isnull=True)
-        .only("full_name", "photo")
-        .order_by("?")[:10]
+        Doctor.objects.exclude(photo="").exclude(photo__isnull=True).only("full_name", "photo").order_by("?")[:10]
     )
 
     return render(

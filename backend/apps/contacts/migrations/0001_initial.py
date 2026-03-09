@@ -29,9 +29,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "sent_at",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="Отправлено"
-                    ),
+                    models.DateTimeField(blank=True, null=True, verbose_name="Отправлено"),
                 ),
                 (
                     "is_sent",

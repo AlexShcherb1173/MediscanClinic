@@ -18,9 +18,40 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import Iterable, TypeVar
 
 import environ
 from celery.schedules import crontab
+
+T = TypeVar("T")
+
+
+def env_first(value, default: str = "") -> str:
+    """
+    Возвращает строку:
+    - если value list/tuple: берёт первый элемент
+    - иначе приводит к str
+    """
+    if isinstance(value, (tuple, list)):
+        value = value[0] if value else default
+    return str(value).strip() if value is not None else default
+
+
+def env_list(name: str, default: str | Iterable[str] | None = None) -> list[str]:
+    raw = os.getenv(name)
+
+    if raw is None:
+        if default is None:
+            return []
+        if isinstance(default, str):
+            raw = default
+        else:
+            return [str(x).strip() for x in default if str(x).strip()]
+
+    # raw здесь всегда str
+    items = [x.strip() for x in raw.split(",")]
+    return [x for x in items if x]
+
 
 # -----------------------------------------------------------------------------
 # Пути проекта и переменные окружения
@@ -52,28 +83,23 @@ if not DEBUG and SECRET_KEY == "django-insecure-dev-key":
 
 ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
-    default=["127.0.0.1", "localhost", "testserver"],
+    default=["127.0.0.1", "localhost"],
 )
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()
+]
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
 
 
 def _env_str(name: str, default: str = "") -> str:
     """
     Прочитать переменную окружения как «чистую» строку.
-
-    Иногда хостинги/пайплайны могут передать значение как tuple/list
-    (например, при ошибочной конфигурации). Функция нормализует это поведение.
-
-    Args:
-        name: Имя переменной окружения.
-        default: Значение по умолчанию, если переменная отсутствует.
-
-    Returns:
-        Обрезанная строка (strip).
     """
-    value = os.getenv(name, default)
-    if isinstance(value, (tuple, list)):
-        value = value[0] if value else default
-    return str(value).strip()
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip()
 
 
 # -----------------------------------------------------------------------------

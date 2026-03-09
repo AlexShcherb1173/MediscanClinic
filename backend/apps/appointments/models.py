@@ -10,15 +10,16 @@
 
 from __future__ import annotations
 
-from apps.accounts.utils import normalize_phone
-from apps.promos.models import Promo
-from apps.services.models import Service
-from apps.staff.models import Doctor
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator, RegexValidator
 from django.db import models
 from django.db.models import Q
+
+from apps.accounts.utils import normalize_phone
+from apps.promos.models import Promo
+from apps.services.models import Service
+from apps.staff.models import Doctor
 
 phone_validator = RegexValidator(
     regex=r"^\+[1-9]\d{1,14}$",
@@ -71,9 +72,7 @@ class AppointmentSlot(models.Model):
             models.Index(fields=["is_active", "is_booked"]),
         ]
         constraints = [
-            models.UniqueConstraint(
-                fields=["service", "starts_at"], name="uniq_slot_service_starts_at"
-            ),
+            models.UniqueConstraint(fields=["service", "starts_at"], name="uniq_slot_service_starts_at"),
         ]
 
     def __str__(self) -> str:

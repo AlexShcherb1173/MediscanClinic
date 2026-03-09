@@ -4,13 +4,14 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from apps.cabinet.models import UserProfile
-from apps.results.models import ResearchResult, result_upload_to
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+
+from apps.cabinet.models import UserProfile
+from apps.results.models import ResearchResult, result_upload_to
 
 User = get_user_model()
 
@@ -29,9 +30,7 @@ class ResultsModelTests(TestCase):
 class ResultsViewsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(phone="79990000002", password="123456", full_name="U1")
-        self.other = User.objects.create_user(
-            phone="79990000003", password="123456", full_name="U2"
-        )
+        self.other = User.objects.create_user(phone="79990000003", password="123456", full_name="U2")
 
     def test_my_results_requires_login(self):
         url = reverse("results:my_results")

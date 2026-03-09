@@ -2,32 +2,32 @@
 {% block title %}Задать вопрос — Mediscan{% endblock %}
 
 {% block content %}
-<!-- Контейнер страницы (ограничиваем ширину и центрируем) -->
+
 <div class="max-w-3xl mx-auto">
-  <!-- Заголовок страницы -->
+  {# Заголовок страницы #}
   <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Задать вопрос</h1>
 
-  <!-- Короткое описание — что делать пользователю -->
+
   <p class="mt-1 text-slate-600">Опишите вопрос — мы ответим по указанному контакту.</p>
 
-  <!-- Карточка формы: белый блок с рамкой/тенью -->
+
   <div class="mt-6 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
 
-    <!-- Шапка карточки формы (название + пояснение про каналы отправки) -->
+
     <div class="px-6 py-4 border-b border-slate-100">
       <div class="text-lg font-extrabold text-slate-900">Форма вопроса</div>
       <div class="text-sm text-slate-500">Отправляем администратору на Email и в Telegram.</div>
     </div>
 
-    <!-- Тело карточки с самой формой -->
+
     <div class="p-6">
       {# novalidate — отключаем стандартную HTML-валидацию, чтобы работали наши сообщения/стили #}
       <form method="post" novalidate>
         {# CSRF-токен обязателен для POST в Django #}
         {% csrf_token %}
 
-        <!-- ================= Non-field ошибки формы =================
-           Это ошибки, не привязанные к конкретному полю (например: "слишком часто отправляете") -->
+
+           Это ошибки, не привязанные к конкретному полю (например: "слишком часто отправляете") #}
         <div id="form-non-field-errors" data-non-field-errors>
           {% if form.non_field_errors %}
             <div class="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
@@ -36,15 +36,15 @@
           {% endif %}
         </div>
 
-        <!-- Основной блок полей (отступ сверху + вертикальные интервалы между полями) -->
+        {# Основной блок полей (отступ сверху + вертикальные интервалы между полями) #}
         <div class="mt-4 space-y-4">
 
-          <!-- ================= Поле: Имя ================= -->
+
           <div>
             {# Лейбл берём из Django form, чтобы не дублировать текст #}
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.name.label }}</label>
 
-            <!-- Инпут: подсветка ошибок через условные классы -->
+
             <input
               type="text"
               name="{{ form.name.name }}"
@@ -55,7 +55,7 @@
               placeholder="Ваше имя"
             />
 
-            <!-- Контейнер ошибки поля (важен для JS-парсинга ошибок по #error-name / data-error-for) -->
+
             <div id="error-name" data-error-for="name">
               {% if form.name.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.name.errors }}</div>
@@ -63,7 +63,7 @@
             </div>
           </div>
 
-          <!-- ================= Поле: Контакт (телефон или email) ================= -->
+
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.contact.label }}</label>
 
@@ -77,7 +77,7 @@
               placeholder="Телефон или email"
             />
 
-            <!-- Контейнер ошибки для JS-парсинга -->
+
             <div id="error-contact" data-error-for="contact">
               {% if form.contact.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.contact.errors }}</div>
@@ -85,7 +85,7 @@
             </div>
           </div>
 
-          <!-- ================= Поле: Вопрос ================= -->
+
           <div>
             <label class="block text-sm font-semibold text-slate-800 mb-1">{{ form.question.label }}</label>
 
@@ -98,7 +98,7 @@
               placeholder="Ваш вопрос"
             >{{ form.question.value|default_if_none:'' }}</textarea>
 
-            <!-- Контейнер ошибки для JS-парсинга -->
+
             <div id="error-question" data-error-for="question">
               {% if form.question.errors %}
                 <div class="mt-1 text-sm text-red-700">{{ form.question.errors }}</div>
@@ -106,8 +106,8 @@
             </div>
           </div>
 
-          <!-- ================= Кнопка отправки =================
-             По дизайну: синяя кнопка, с hover и плавным переходом -->
+
+             По дизайну: синяя кнопка, с hover и плавным переходом #}
           <button
             type="submit"
             class="inline-flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 text-white

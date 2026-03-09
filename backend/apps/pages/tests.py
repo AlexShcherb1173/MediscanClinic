@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from apps.pages.models import Page
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
+
+from apps.pages.models import Page
 
 
 class PagesModelTests(TestCase):

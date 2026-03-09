@@ -28,9 +28,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "birth_date",
-                    models.DateField(
-                        blank=True, null=True, verbose_name="Дата рождения"
-                    ),
+                    models.DateField(blank=True, null=True, verbose_name="Дата рождения"),
                 ),
                 ("notes", models.TextField(blank=True, verbose_name="Заметки")),
                 (

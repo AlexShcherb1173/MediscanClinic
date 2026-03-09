@@ -1,6 +1,5 @@
 """
 Корневой URL-конфиг проекта MediscanClinic.
-
 Отвечает за маршрутизацию:
 - админ-панель;
 - главную страницу и CMS (pages);
@@ -12,7 +11,6 @@
 - личный кабинет;
 - результаты исследований;
 - аутентификацию.
-
 В режиме DEBUG дополнительно обслуживает static и media-файлы
 средствами Django (не использовать в production).
 """
@@ -21,8 +19,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.urls.resolvers import URLPattern, URLResolver
 
-urlpatterns = [
+urlpatterns: list[URLPattern | URLResolver] = [
     # -------------------------------------------------------------------------
     # Административная панель
     # -------------------------------------------------------------------------

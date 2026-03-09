@@ -88,39 +88,27 @@ class Migration(migrations.Migration):
                 ("comment", models.TextField(blank=True, verbose_name="Комментарий")),
                 (
                     "preferred_datetime",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="Дата/время записи"
-                    ),
+                    models.DateTimeField(blank=True, null=True, verbose_name="Дата/время записи"),
                 ),
                 (
                     "reminded_at",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="Напоминание отправлено"
-                    ),
+                    models.DateTimeField(blank=True, null=True, verbose_name="Напоминание отправлено"),
                 ),
                 (
                     "reminder_email_sent",
-                    models.BooleanField(
-                        default=False, verbose_name="Email-напоминание отправлено"
-                    ),
+                    models.BooleanField(default=False, verbose_name="Email-напоминание отправлено"),
                 ),
                 (
                     "reminder_telegram_sent",
-                    models.BooleanField(
-                        default=False, verbose_name="Telegram-напоминание отправлено"
-                    ),
+                    models.BooleanField(default=False, verbose_name="Telegram-напоминание отправлено"),
                 ),
                 (
                     "reminder_24h_sent",
-                    models.BooleanField(
-                        default=False, verbose_name="Напоминание 24ч отправлено"
-                    ),
+                    models.BooleanField(default=False, verbose_name="Напоминание 24ч отправлено"),
                 ),
                 (
                     "reminder_2h_sent",
-                    models.BooleanField(
-                        default=False, verbose_name="Напоминание 2ч отправлено"
-                    ),
+                    models.BooleanField(default=False, verbose_name="Напоминание 2ч отправлено"),
                 ),
                 (
                     "status",
@@ -204,15 +192,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="appointmentslot",
-            index=models.Index(
-                fields=["service", "starts_at"], name="appointment_service_a44c41_idx"
-            ),
+            index=models.Index(fields=["service", "starts_at"], name="appointment_service_a44c41_idx"),
         ),
         migrations.AddIndex(
             model_name="appointmentslot",
-            index=models.Index(
-                fields=["is_active", "is_booked"], name="appointment_is_acti_084853_idx"
-            ),
+            index=models.Index(fields=["is_active", "is_booked"], name="appointment_is_acti_084853_idx"),
         ),
         migrations.AddIndex(
             model_name="appointment",
@@ -220,21 +204,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="appointment",
-            index=models.Index(
-                fields=["preferred_datetime"], name="appointment_preferr_5cba49_idx"
-            ),
+            index=models.Index(fields=["preferred_datetime"], name="appointment_preferr_5cba49_idx"),
         ),
         migrations.AddIndex(
             model_name="appointment",
-            index=models.Index(
-                fields=["doctor"], name="appointment_doctor__649ad1_idx"
-            ),
+            index=models.Index(fields=["doctor"], name="appointment_doctor__649ad1_idx"),
         ),
         migrations.AddIndex(
             model_name="appointment",
-            index=models.Index(
-                fields=["service"], name="appointment_service_9ce97f_idx"
-            ),
+            index=models.Index(fields=["service"], name="appointment_service_9ce97f_idx"),
         ),
         migrations.AddIndex(
             model_name="appointment",

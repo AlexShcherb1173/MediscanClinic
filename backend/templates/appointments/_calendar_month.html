@@ -10,14 +10,13 @@
     hx-get="{% url 'appointments:calendar' %}?m={{ prev_m }}"
     hx-target="#calendar-wrap"
     hx-swap="innerHTML"
-    <!-- Передаём выбранные значения формы вместе с запросом -->
     hx-include="#service-select,#preferred-date,#slot-input,#id_full_name,#id_phone"
     aria-label="Предыдущий месяц"
   >
     ←
   </button>
 
-  <!-- Текущий отображаемый месяц (формат YYYY-MM) -->
+
   <div class="text-sm font-semibold text-slate-800">
     {{ year }}-{% if month < 10 %}0{% endif %}{{ month }}
   </div>
@@ -29,7 +28,6 @@
     hx-get="{% url 'appointments:calendar' %}?m={{ next_m }}"
     hx-target="#calendar-wrap"
     hx-swap="innerHTML"
-    <!-- Также сохраняем состояние формы -->
     hx-include="#service-select,#preferred-date,#slot-input,#id_full_name,#id_phone"
     aria-label="Следующий месяц"
   >
@@ -53,16 +51,16 @@
 <!-- ===== Сетка календаря ===== -->
 <div class="grid grid-cols-7 gap-2">
 
-  <!-- Пустые ячейки до первого дня месяца (смещение начала недели) -->
+
   {% for _ in blanks %}
     <div class="h-11"></div>
   {% endfor %}
 
-  <!-- Основные дни месяца -->
+
   {% for d in days %}
     {% with ds=d|date:"Y-m-d" pretty=d|date:"d.m.Y" %}
 
-      <!-- Если дата в прошлом — делаем кнопку неактивной -->
+
       {% if d < today %}
         <button
           type="button"
@@ -75,7 +73,7 @@
         </button>
 
       {% else %}
-        <!-- Активная дата (сегодня или будущее) -->
+
         <button
           type="button"
           class="h-11 rounded-2xl border text-sm flex items-center justify-center transition
@@ -87,7 +85,7 @@
                    bg-white border-slate-200 hover:bg-slate-50 text-slate-900
                  {% endif %}"
           title="{{ ds }}"
-          <!-- При клике вызываем глобальную JS-функцию выбора даты -->
+
           onclick="window.selectDate && window.selectDate('{{ ds|escapejs }}', '{{ pretty|escapejs }}');"
         >
           {{ d|date:"d" }}

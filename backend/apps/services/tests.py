@@ -3,11 +3,12 @@ from __future__ import annotations
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlparse
 
-from apps.services.context_processors import popular_services
-from apps.services.models import Service, ServiceCategory
 from django.core.exceptions import ValidationError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+
+from apps.services.context_processors import popular_services
+from apps.services.models import Service, ServiceCategory
 
 
 class ServiceModelsTests(TestCase):

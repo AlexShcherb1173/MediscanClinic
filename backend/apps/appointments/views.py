@@ -16,14 +16,15 @@ import calendar
 from datetime import date as dt_date
 from datetime import datetime, time, timedelta
 
-from apps.promos.models import Promo
-from apps.services.models import Service
-from apps.staff.models import Doctor
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
+
+from apps.promos.models import Promo
+from apps.services.models import Service
+from apps.staff.models import Doctor
 
 from .forms import AppointmentCreateForm
 from .models import Appointment, AppointmentSlot
@@ -74,9 +75,7 @@ def _safe_day(value: str | None) -> dt_date | None:
     return parse_date(value)
 
 
-def _first_day_with_slots(
-    service_id: int | None, start_day: dt_date, days_ahead: int = 31
-) -> dt_date | None:
+def _first_day_with_slots(service_id: int | None, start_day: dt_date, days_ahead: int = 31) -> dt_date | None:
     """
     Ищет ближайшую дату, начиная со start_day, где есть свободные активные слоты.
     Слот считается доступным, если:
@@ -279,10 +278,7 @@ def slots(request):
         HTML partial "appointments/_slots_tiles.html".
     """
     service_id_raw = (
-        request.GET.get("service")
-        or request.GET.get("service_id")
-        or request.GET.get("service-select")
-        or ""
+        request.GET.get("service") or request.GET.get("service_id") or request.GET.get("service-select") or ""
     )
     service_id = _safe_int(service_id_raw)
 
@@ -377,12 +373,7 @@ def slots(request):
         for slot in qs
     ]
 
-    selected_slot_id = (
-        request.GET.get("slot")
-        or request.GET.get("selected_slot")
-        or request.GET.get("slot_id")
-        or ""
-    )
+    selected_slot_id = request.GET.get("slot") or request.GET.get("selected_slot") or request.GET.get("slot_id") or ""
 
     return render(
         request,
@@ -440,9 +431,7 @@ def appointment_create(request):
             locked_service = True
 
     service = (
-        get_object_or_404(Service, id=service_id, is_active=True, category__is_active=True)
-        if service_id
-        else None
+        get_object_or_404(Service, id=service_id, is_active=True, category__is_active=True) if service_id else None
     )
     doctor = get_object_or_404(Doctor, id=doctor_id, is_active=True) if doctor_id else None
 
@@ -511,9 +500,7 @@ def appointment_create(request):
                 phone=appointment.phone,
                 service_name=appointment.service.name if appointment.service else "",
                 preferred_datetime_iso=(
-                    appointment.preferred_datetime.isoformat()
-                    if appointment.preferred_datetime
-                    else ""
+                    appointment.preferred_datetime.isoformat() if appointment.preferred_datetime else ""
                 ),
             )
             notify_email(payload)
@@ -528,11 +515,7 @@ def appointment_create(request):
     else:
         user_full_name = _user_full_name(request.user)
         user_phone = _user_phone(request.user)
-        user_email = (
-            (getattr(request.user, "email", "") or "").strip()
-            if request.user.is_authenticated
-            else ""
-        )
+        user_email = (getattr(request.user, "email", "") or "").strip() if request.user.is_authenticated else ""
 
         initial = {
             "full_name": draft.get("full_name") or user_full_name or "",

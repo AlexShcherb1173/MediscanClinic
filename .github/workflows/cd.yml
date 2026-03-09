@@ -17,9 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set vars (lowercase)
+      - name: Set lowercase vars
         id: vars
         run: |
           echo "owner_lc=${OWNER,,}" >> "$GITHUB_OUTPUT"
@@ -32,7 +33,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & push (runtime)
+      - name: Build and push runtime image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -55,33 +56,87 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            set -e
+            set -eu
 
             OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-            REPO_LC="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
 
-            sudo mkdir -p /opt/mediscanclinic
-            sudo chown -R $USER:$USER /opt/mediscanclinic
-            cd /opt/mediscanclinic
+            APP_DIR="/opt/mediscanclinic"
+            COMPOSE_FILE="docker-compose.prod.yml"
 
-            # На ВМ лучше НЕ делать git pull вообще.
-            # Деплой должен быть по docker pull из GHCR.
-            # Оставим только compose + docker/nginx конфиги в папке (если они уже там).
-            # Если папка пустая — можешь один раз скопировать compose и docker/ туда вручную или через scp.
+            sudo mkdir -p "$APP_DIR"
+            sudo chown -R "$USER:$USER" "$APP_DIR"
+            cd "$APP_DIR"
 
-            # .env из секрета
-            cat > .env << 'EOF'
-            ${{ secrets.MEDISCAN_ENV }}
-            EOF
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "ERROR: docker is not installed"
+              exit 1
+            fi
 
-            # GHCR login (для public не обязателен, но пусть будет)
+            if ! docker compose version >/dev/null 2>&1; then
+              echo "ERROR: docker compose is not available"
+              exit 1
+            fi
+
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "ERROR: $COMPOSE_FILE not found in $APP_DIR"
+              exit 1
+            fi
+
+            if [ ! -d "docker/nginx" ]; then
+              echo "ERROR: docker/nginx directory not found in $APP_DIR"
+              exit 1
+            fi
+
+            if [ ! -f ".env" ]; then
+              if [ -z "${{ secrets.MEDISCAN_ENV_B64 }}" ]; then
+                echo "ERROR: .env does not exist and MEDISCAN_ENV_B64 secret is empty"
+                exit 1
+              fi
+
+              if printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 --decode > .env 2>/dev/null; then
+                echo ".env created from MEDISCAN_ENV_B64 secret"
+              else
+                printf '%s' "${{ secrets.MEDISCAN_ENV_B64 }}" | base64 -d > .env
+                echo ".env created from MEDISCAN_ENV_B64 secret"
+              fi
+            else
+              echo ".env already exists, keeping current server file"
+            fi
+
+            for var in \
+              DJANGO_SECRET_KEY \
+              DJANGO_SETTINGS_MODULE \
+              DJANGO_ALLOWED_HOSTS \
+              DJANGO_CSRF_TRUSTED_ORIGINS \
+              DB_NAME \
+              DB_USER \
+              DB_PASSWORD \
+              DB_HOST \
+              DB_PORT \
+              CELERY_BROKER_URL \
+              CELERY_RESULT_BACKEND \
+              APP_PORT
+            do
+              if ! grep -q "^${var}=" .env; then
+                echo "ERROR: Missing required variable in .env -> ${var}"
+                exit 1
+              fi
+            done
+
+            echo "Required .env variables check passed"
+
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
 
             export GHCR_OWNER="$OWNER_LC"
             export IMAGE_TAG="latest"
 
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f "$COMPOSE_FILE" pull
+            docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
             docker image prune -f
-            docker compose -f docker-compose.prod.yml ps
+
+            echo "Containers status:"
+            docker compose -f "$COMPOSE_FILE" ps
+
+            echo "Runtime settings check:"
+            docker exec mediscanclinic-web-1 python manage.py shell -c "from django.conf import settings; print('ALLOWED_HOSTS =', settings.ALLOWED_HOSTS); print('CSRF_TRUSTED_ORIGINS =', getattr(settings, 'CSRF_TRUSTED_ORIGINS', []))"

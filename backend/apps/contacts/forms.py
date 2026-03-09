@@ -7,9 +7,10 @@
 
 from __future__ import annotations
 
-from apps.accounts.contact_utils import normalize_phone_or_email
 from django import forms
 from django.core.exceptions import ValidationError
+
+from apps.accounts.contact_utils import normalize_phone_or_email
 
 
 class ContactForm(forms.Form):
@@ -102,7 +103,7 @@ class AskQuestionForm(forms.Form):
         raw = self.cleaned_data.get("contact", "")
         try:
             normalized = normalize_phone_or_email(raw)
-        except ValidationError as e:
+        except ValidationError:
             raise forms.ValidationError("Укажите телефон или email")
 
         # Вернём нормализованную строку (email lower / телефон E.164)

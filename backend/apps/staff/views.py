@@ -26,9 +26,7 @@ def doctor_list(request):
     Возвращает:
         HttpResponse со страницей списка врачей.
     """
-    doctors = (
-        Doctor.objects.filter(is_active=True).prefetch_related("specialties").order_by("full_name")
-    )
+    doctors = Doctor.objects.filter(is_active=True).prefetch_related("specialties").order_by("full_name")
     return render(request, "staff/doctor_list.html", {"doctors": doctors})
 
 

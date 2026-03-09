@@ -87,4 +87,3 @@ class ResearchResult(models.Model):
         для отображения в админке и интерфейсе.
         """
         return f"{self.patient} — {self.title}"
-        return f"{self.patient} — {self.title}"
